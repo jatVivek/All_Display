@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ActiveView, Product, ProjectReel } from '../types';
-import { TOP_SELLING_HOMEPAGE, PROJECT_REELS } from '../data/catalog';
+import { PROJECT_REELS } from '../data/catalog';
 import { storeManager } from '../services/storeManager';
+import { getWhatsAppLink, getWhatsAppNumber } from '../utils/whatsapp';
 
 interface HomeViewProps {
   setActiveView: (view: ActiveView) => void;
@@ -22,10 +23,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [inquiryArea, setInquiryArea] = useState('650');
   const [inquiryCity, setInquiryCity] = useState('');
   const [products, setProducts] = useState<Product[]>(() => storeManager.getProducts());
+  const [categories, setCategories] = useState(() => storeManager.getCategories());
 
   useEffect(() => {
     const handleUpdate = () => {
       setProducts(storeManager.getProducts());
+      setCategories(storeManager.getCategories());
     };
     window.addEventListener('alldisplay_catalog_updated', handleUpdate);
     window.addEventListener('alldisplay_data_updated', handleUpdate);
@@ -47,20 +50,19 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   const handleInquirySubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const text = encodeURIComponent(
+    const text =
       `Hi All Display Hyderabad, I would like an itemized wholesale quotation & elevation guidance:\n` +
       `• Name/Firm: ${inquiryName || 'Store Owner'}\n` +
       `• Store Type: ${inquiryStoreType}\n` +
       `• Floor Area: ${inquiryArea} sq.ft\n` +
       `• Delivery City/Pin: ${inquiryCity || 'Hyderabad'}\n` +
-      `Please provide CAD rack layout guidance and ex-depot proforma rates.`
-    );
-    window.open(`https://wa.me/917396127273?text=${text}`, '_blank');
+      `Please provide CAD rack layout guidance and ex-depot proforma rates.`;
+    window.open(getWhatsAppLink(text), '_blank');
     onToast('Inquiry generated! Opening WhatsApp sales desk...');
   };
 
   // Clean, single set of 6 primary categories with isolated product imagery
-  const coreCategories = [
+  const categoryArtwork = [
     {
       title: 'Floor Stands & Racks',
       subtitle: 'Heavy-Duty Bumper & Islands',
@@ -99,6 +101,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
       view: 'racks-floor-stands' as ActiveView
     }
   ];
+  const coreCategories = categories.map((category, index) => ({
+    ...categoryArtwork[index % categoryArtwork.length],
+    id: category.id,
+    title: category.name,
+    subtitle: category.description,
+    img: products.find((product) => product.category === category.name)?.image ??
+      categoryArtwork[index % categoryArtwork.length].img
+  }));
 
   return (
     <div className="w-full bg-[#fdf9f3] text-[#1c1c18] pb-16">
@@ -137,13 +147,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                 </button>
                 <a
-                  href="https://wa.me/917396127273?text=Hi%20All%20Display,%20I%20am%20interested%20in%20Heavy-Duty%20Display%20Stands%20and%20Racks%20wholesale%20rates."
+                  href={getWhatsAppLink('Hi All Display, I am interested in Heavy-Duty Display Stands and Racks wholesale rates.')}
                   target="_blank"
                   rel="noreferrer"
                   className="bg-[#25D366] hover:bg-[#128C7E] text-white px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-md"
                 >
                   <span className="material-symbols-outlined text-[18px]">chat</span>
-                  <span>WhatsApp Quotation (+91 73961 27273)</span>
+                  <span>WhatsApp Quotation</span>
                 </a>
               </div>
 
@@ -263,9 +273,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
             ref={categoryScrollRef}
             className="flex lg:grid lg:grid-cols-6 gap-3 sm:gap-4 overflow-x-auto lg:overflow-visible pb-2 pt-1 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0 scrollbar-none snap-x snap-mandatory scroll-smooth touch-pan-x"
           >
-            {coreCategories.map((cat, idx) => (
+            {coreCategories.map((cat) => (
               <div
-                key={idx}
+                key={cat.id}
                 onClick={() => setActiveView(cat.view)}
                 className="w-[140px] sm:w-[160px] lg:w-auto shrink-0 lg:shrink snap-start bg-[#ffffff] rounded-xl p-3 border border-[#e6e2dc] shadow-sm hover:shadow-md hover:border-[#775a00]/50 transition-all cursor-pointer group flex flex-col items-center text-center gap-2"
               >
@@ -525,17 +535,17 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
               <a
-                href="https://wa.me/917396127273?text=Hi%20All%20Display,%20I%20have%20a%20store%20plan%20to%20quote%20with%20wholesale%20rates."
+                href={getWhatsAppLink('Hi All Display, I have a store plan to quote with wholesale rates.')}
                 target="_blank"
                 rel="noreferrer"
                 className="bg-[#25D366] hover:bg-[#128C7E] text-white px-5 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-md transition-all"
               >
                 <span className="material-symbols-outlined text-[18px]">chat</span>
-                <span>Chat on WhatsApp (+91 73961 27273)</span>
+                <span>Chat on WhatsApp</span>
               </a>
 
               <a
-                href="tel:+919849023456"
+                href={`tel:+${getWhatsAppNumber(true)}`}
                 className="bg-[#f7f3ed] hover:bg-[#ebe8e2] text-[#000102] px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors border border-[#e6e2dc]"
               >
                 <span className="material-symbols-outlined text-[16px] text-[#775a00]">phone</span>
@@ -544,9 +554,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
 
             <div className="flex items-center gap-4 text-[11px] text-[#76777b] pt-1">
-              <span>Ranigunj Unit: +91 73961 27273</span>
-              <span>•</span>
-              <span>Begum Bazaar: +91 98490 23456</span>
+              <span>Contact our Ranigunj Unit</span>
             </div>
           </div>
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ActiveView, Product, CartItem, ProjectReel } from '../types';
+import { getWhatsAppLink } from '../utils/whatsapp';
 
 interface ProductDetailViewProps {
   onNavigate: (view: ActiveView) => void;
@@ -115,9 +116,8 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
     setTimeout(() => setIsAddedToast(false), 3000);
   };
 
-  const whatsappMessage = encodeURIComponent(
-    `Hi All Display Hyderabad, I want to place a B2B wholesale order for ${quantity} units of Triple Pipe Rack System (AD-TPR-739) with:\n- Finish: ${selectedFinish.name}\n- Height: ${selectedHeight.name}\n- Gauge: ${selectedGauge.name}\n- Unit Price: ₹${totalUnitPrice.toLocaleString('en-IN')}\n- Total: ₹${calculatedTotal.toLocaleString('en-IN')}\nPlease confirm dispatch schedule from Ranigunj depot.`
-  );
+  const whatsappMessage =
+    `Hi All Display Hyderabad, I want to place a B2B wholesale order for ${quantity} units of Triple Pipe Rack System (AD-TPR-739) with:\n- Finish: ${selectedFinish.name}\n- Height: ${selectedHeight.name}\n- Gauge: ${selectedGauge.name}\n- Unit Price: ₹${totalUnitPrice.toLocaleString('en-IN')}\n- Total: ₹${calculatedTotal.toLocaleString('en-IN')}\nPlease confirm dispatch schedule from Ranigunj depot.`;
 
   return (
     <div className="w-full">
@@ -449,13 +449,13 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
             {/* Action CTA Buttons */}
             <div className="flex flex-col gap-2.5">
               <a 
-                href={`https://wa.me/917396127273?text=${whatsappMessage}`}
+                href={getWhatsAppLink(whatsappMessage)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full py-3.5 px-4 rounded-lg bg-[#25D366] hover:bg-[#128C7E] text-white flex items-center justify-center gap-2 font-bold text-sm shadow-md transition-all transform hover:-translate-y-0.5"
               >
                 <span className="material-symbols-outlined text-[20px]">chat</span>
-                <span>Direct WhatsApp Order &amp; Proforma Invoice (+91 73961 27273)</span>
+                <span>Direct WhatsApp Order &amp; Proforma Invoice</span>
               </a>
 
               <div className="grid grid-cols-2 gap-2">
@@ -692,7 +692,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                 </p>
                 <div className="pt-2 flex items-center gap-3">
                   <a 
-                    href="https://wa.me/917396127273?text=Please%20email%20me%20the%20DWG%20and%203D%20SketchUp%20file%20for%20Triple%20Pipe%20Rack%20AD-TPR-739." 
+                    href={getWhatsAppLink('Please email me the DWG and 3D SketchUp file for Triple Pipe Rack AD-TPR-739.')}
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="px-4 py-2 rounded-lg bg-primary text-on-primary font-bold text-xs hover:bg-[#2A2D34] transition-colors flex items-center gap-2"
@@ -995,7 +995,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                 <span className="font-bold text-base text-primary">₹38 <span className="text-[10px] font-normal text-on-surface-variant">/ piece</span></span>
               </div>
               <a 
-                href="https://wa.me/917396127273?text=Inquiring%20about%20Lotus%20Wood%20Hangers%20AD-HNG-50"
+                href={getWhatsAppLink('Inquiring about Lotus Wood Hangers AD-HNG-50')}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-8 h-8 rounded-lg bg-surface-container hover:bg-primary hover:text-on-primary text-on-surface flex items-center justify-center transition-colors shadow-sm"

@@ -34,17 +34,18 @@ export type AdminTab =
   | 'team';
 
 export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
-  // Authentication state
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem('alldisplay_admin_auth') === 'true';
-  });
-  const [pinInput, setPinInput] = useState('');
-  const [pinError, setPinError] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   // Navigation & Role state
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>('ord-1');
-  const [role, setRole] = useState<'Owner' | 'Staff'>('Owner');
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [role, setRole] = useState<'Owner' | 'Staff'>('Staff');
+  const [syncStatus, setSyncStatus] = useState(storeManager.getState().catalogSyncStatus);
+  const [syncError, setSyncError] = useState(storeManager.getState().catalogSyncError);
+  const [, setStoreVersion] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
 
   // Product modal state
@@ -56,32 +57,68 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
   });
   const [tourStep, setTourStep] = useState(1);
 
+  useEffect(() => storeManager.subscribe((state) => {
+    setSyncStatus(state.catalogSyncStatus);
+    setSyncError(state.catalogSyncError);
+    setStoreVersion((version) => version + 1);
+  }), []);
+
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3500);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    let active = true;
+    storeManager.getAdminRole()
+      .then((adminRole) => {
+        if (!active) return;
+        if (adminRole) {
+          setRole(adminRole);
+          setIsAuthenticated(true);
+        }
+      })
+      .catch((error: Error) => {
+        if (active) setLoginError(error.message);
+      })
+      .finally(() => {
+        if (active) setIsCheckingSession(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pinInput === '123456') {
+    setLoginError(null);
+    try {
+      const adminRole = await storeManager.signInAdmin(passwordInput);
+      setRole(adminRole);
       setIsAuthenticated(true);
-      localStorage.setItem('alldisplay_admin_auth', 'true');
-      showToast('Welcome to All Display Admin Panel! PIN Verified.');
-    } else {
-      setPinError(true);
-      setPinInput('');
-      setTimeout(() => setPinError(false), 2000);
+      showToast('Signed in to All Display Admin.');
+    } catch (error) {
+      setLoginError(error instanceof Error ? error.message : 'Unable to sign in.');
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await storeManager.signOutAdmin();
+    } catch (error) {
+      showToast(error instanceof Error ? `Sign-out failed: ${error.message}` : 'Sign-out failed.');
+      return;
+    }
     setIsAuthenticated(false);
-    localStorage.removeItem('alldisplay_admin_auth');
     onExitAdmin();
   };
 
-  // If not authenticated, render PIN Login Screen
+  // If not authenticated, render the server-side admin password login.
   if (!isAuthenticated) {
+    if (isCheckingSession) {
+      return <div className="min-h-screen bg-[#1a1c20] flex items-center justify-center text-white">Checking admin session...</div>;
+    }
+
     return (
       <div className="min-h-screen bg-[#1a1c20] flex items-center justify-center p-4">
         <div className="bg-white max-w-md w-full rounded-2xl shadow-2xl overflow-hidden border border-[#e6e2dc] p-8 flex flex-col items-center animate-in fade-in duration-300">
@@ -92,29 +129,29 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
             All Display Wholesale Admin
           </h1>
           <p className="text-xs text-[#76777b] text-center mb-6">
-            Ranigunj &amp; Begum Bazaar Showrooms Management Portal
+            Sign in with an authorized admin account
           </p>
 
           <form onSubmit={handleLogin} className="w-full flex flex-col gap-4">
+            {syncStatus === 'local' && (
+              <div role="status" className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900">
+                MySQL is not configured yet. Set the database and admin credentials in the server's <code>.env</code> file, then restart it.
+              </div>
+            )}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-[#1c1c18] flex items-center justify-between">
-                <span>Enter 6-Digit Owner PIN</span>
-                <span className="text-[11px] text-[#76777b] font-mono">Hint: 123456</span>
-              </label>
+              <label className="text-xs font-semibold text-[#1c1c18]">Admin password</label>
               <input
                 type="password"
-                maxLength={6}
-                value={pinInput}
-                onChange={(e) => setPinInput(e.target.value)}
-                placeholder="••••••"
-                autoFocus
-                className={`w-full px-4 py-3 rounded-xl bg-[#fdf9f3] border text-center font-mono text-xl tracking-widest outline-none transition-colors ${
-                  pinError ? 'border-red-500 bg-red-50 text-red-600' : 'border-[#e6e2dc] focus:border-[#775a00]'
-                }`}
+                required
+                autoComplete="current-password"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                placeholder="Server-configured admin password"
+                className="w-full px-4 py-3 rounded-xl bg-[#fdf9f3] border border-[#e6e2dc] outline-none focus:border-[#775a00]"
               />
-              {pinError && (
-                <span className="text-xs text-red-600 text-center font-medium animate-bounce">
-                  Incorrect PIN! Use default owner PIN: 123456
+              {loginError && (
+                <span role="alert" className="text-xs text-red-600 text-center font-medium">
+                  {loginError}
                 </span>
               )}
             </div>
@@ -124,7 +161,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
               className="w-full bg-[#1a1c20] hover:bg-black text-[#ffdf98] py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined text-[18px]">lock_open</span>
-              <span>Authenticate &amp; Open Dashboard</span>
+              <span>Sign In</span>
             </button>
           </form>
 
@@ -136,7 +173,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
               <span className="material-symbols-outlined text-[16px]">arrow_back</span>
               <span>Back to Storefront</span>
             </button>
-            <span className="text-[11px] font-mono text-[#76777b]">v2.4 Secure Portal</span>
+            <span className="text-[11px] font-mono text-[#76777b]">Server authenticated</span>
           </div>
         </div>
       </div>
@@ -238,11 +275,17 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
       <AdminHeader
         activeTab={activeTab}
         role={role}
-        setRole={setRole}
+        syncStatus={syncStatus}
         onLogout={handleLogout}
         onOpenTour={() => { setTourStep(1); setShowTour(true); }}
         onExitAdmin={onExitAdmin}
       />
+
+      {syncError && (
+        <div role="alert" className="bg-red-50 text-red-800 border-b border-red-200 px-6 py-3 text-xs">
+          Catalog sync failed: {syncError}. Changes may not be visible to other visitors.
+        </div>
+      )}
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar Navigation */}
@@ -300,7 +343,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
               <AdminSettingsView role={role} showToast={showToast} />
             )}
             {activeTab === 'team' && (
-              <AdminTeamView role={role} setRole={setRole} showToast={showToast} />
+              <AdminTeamView role={role} />
             )}
           </div>
         </main>
@@ -311,6 +354,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
         <AdminProductEditorModal
           product={editingProduct}
           onClose={() => setEditingProduct(null)}
+          onError={showToast}
           onSave={() => {
             setEditingProduct(null);
             showToast('Product updated successfully and synced with storefront!');

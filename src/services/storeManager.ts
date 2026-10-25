@@ -1,5 +1,7 @@
 import { Product, CartItem, ProjectReel } from '../types';
-import { INITIAL_PRODUCTS, INITIAL_CART, PROJECT_REELS, TOP_SELLING_HOMEPAGE } from '../data/catalog';
+import { INITIAL_PRODUCTS, PROJECT_REELS, TOP_SELLING_HOMEPAGE } from '../data/catalog';
+
+type AdminRole = 'Owner' | 'Staff';
 
 export interface AdminOrder {
   id: string;
@@ -39,6 +41,11 @@ export interface AdminQuote {
   notes: string;
   date: string;
   status: 'Pending Review' | 'Priced' | 'Converted to Order';
+  fixtures?: string[];
+  finish?: string;
+  timeline?: string;
+  gstin?: string;
+  attachmentName?: string | null;
 }
 
 export interface AdminCustomer {
@@ -88,45 +95,6 @@ const STORAGE_KEYS = {
   CATEGORIES: 'alldisplay_admin_categories',
 };
 
-const INITIAL_ORDERS: AdminOrder[] = [
-  {
-    id: 'ord-1',
-    orderNo: 'AD-HYD-8492',
-    customerName: 'Rajesh Kalyan',
-    storeName: 'Kalyan Silks Boutique',
-    whatsapp: '9849023456',
-    destination: 'Vijayawada, AP',
-    pincode: '520002',
-    date: '2026-10-24 14:20',
-    status: 'New (Awaiting WhatsApp)',
-    items: [
-      { sku: 'AD-TPR-739', title: 'Commercial Triple Pipe Rack System', finish: 'Matte Black', quantity: 4, unitPrice: 8400, unitLabel: 'Bay' },
-      { sku: 'AD-SGC-102', title: 'Brushed Gold Slotted Wall Channel', finish: 'PVD Gold', quantity: 12, unitPrice: 1250, unitLabel: 'Pcs' }
-    ],
-    subtotal: 48600,
-    discount: 4860,
-    gst: 7873,
-    total: 51613,
-    notes: 'Urgent delivery before Dasara festival opening.'
-  }
-];
-
-const INITIAL_QUOTES: AdminQuote[] = [
-  {
-    id: 'q-1',
-    quoteNo: 'QT-2026-901',
-    customerName: 'Maheshwari Textiles',
-    storeName: 'Maheshwari Megastore',
-    whatsapp: '9700112233',
-    city: 'Karimnagar',
-    area: '1800 sq.ft',
-    storeType: 'Multi-brand Saree & Readymades',
-    notes: 'Need full store CAD elevation plan for center island pipe racks and perimeter wall channels.',
-    date: '2026-10-24 10:15',
-    status: 'Pending Review'
-  }
-];
-
 const DEFAULT_SETTINGS: AdminSettings = {
   whatsappNumber: '917396127273',
   alternateWhatsapp: '919849023456',
@@ -146,18 +114,58 @@ export interface CentralStoreState {
   orders: AdminOrder[];
   quotes: AdminQuote[];
   settings: AdminSettings;
+  catalogSyncStatus: 'local' | 'connecting' | 'connected' | 'error';
+  catalogSyncError: string | null;
 }
 
 type StoreListener = (state: CentralStoreState) => void;
 
 class CentralStoreService {
   private listeners: Set<StoreListener> = new Set();
+  private apiConfigured = false;
+  private adminAuthenticated = false;
   private state: CentralStoreState = {
     products: this.loadProducts(),
     categories: this.loadCategories(),
     orders: this.loadOrders(),
     quotes: this.loadQuotes(),
     settings: this.loadSettings(),
+    catalogSyncStatus: 'connecting',
+    catalogSyncError: null,
+  };
+
+  constructor() {
+    window.addEventListener('storage', this.handleStorageChange);
+    void this.refreshCatalog();
+    window.setInterval(() => {
+      if (this.apiConfigured) {
+        void this.loadSharedCatalog();
+        void this.loadSharedSettings();
+        if (this.adminAuthenticated) void this.loadOperationalData();
+      }
+    }, 10000);
+  }
+
+  private handleStorageChange = (event: StorageEvent) => {
+    if (event.storageArea && event.storageArea !== window.localStorage) return;
+
+    if (!this.apiConfigured && (event.key === null || event.key === STORAGE_KEYS.PRODUCTS)) {
+      this.state = { ...this.state, products: this.loadProducts() };
+    }
+    if (!this.apiConfigured && (event.key === null || event.key === STORAGE_KEYS.CATEGORIES)) {
+      this.state = { ...this.state, categories: this.loadCategories() };
+    }
+    if (event.key === null || event.key === STORAGE_KEYS.ORDERS) {
+      this.state = { ...this.state, orders: this.loadOrders() };
+    }
+    if (event.key === null || event.key === STORAGE_KEYS.QUOTES) {
+      this.state = { ...this.state, quotes: this.loadQuotes() };
+    }
+    if (event.key === null || event.key === STORAGE_KEYS.SETTINGS) {
+      this.state = { ...this.state, settings: this.loadSettings() };
+    }
+
+    this.notify();
   };
 
   private loadProducts(): Product[] {
@@ -181,7 +189,7 @@ class CentralStoreService {
       const stored = localStorage.getItem(STORAGE_KEYS.ORDERS);
       if (stored !== null) return JSON.parse(stored);
     } catch {}
-    return INITIAL_ORDERS;
+    return [];
   }
 
   private loadQuotes(): AdminQuote[] {
@@ -189,7 +197,7 @@ class CentralStoreService {
       const stored = localStorage.getItem(STORAGE_KEYS.QUOTES);
       if (stored !== null) return JSON.parse(stored);
     } catch {}
-    return INITIAL_QUOTES;
+    return [];
   }
 
   private loadSettings(): AdminSettings {
@@ -220,26 +228,215 @@ class CentralStoreService {
     this.listeners.forEach((listener) => listener(this.state));
   }
 
+  private async loadSharedCatalog() {
+    try {
+      const catalog = await this.apiRequest<{ products: Product[]; categories: AdminCategory[] }>('/api/catalog');
+      this.state = {
+        ...this.state,
+        products: catalog.products,
+        categories: catalog.categories,
+        catalogSyncStatus: 'connected',
+        catalogSyncError: null,
+      };
+      this.notify();
+    } catch (error) {
+      if (this.apiConfigured) {
+        this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to load the shared catalog.');
+      }
+    }
+  }
+
+  private async loadSharedSettings() {
+    try {
+      const { settings } = await this.apiRequest<{ settings: AdminSettings | null }>('/api/settings');
+      if (settings) {
+        this.state = { ...this.state, settings };
+        try {
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+        } catch {}
+        this.notify();
+      }
+    } catch (error) {
+      this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to load shared business settings.');
+    }
+  }
+
+  private async loadOperationalData() {
+    try {
+      const [orders, quotes] = await Promise.all([
+        this.apiRequest<{ orders: AdminOrder[] }>('/api/admin/orders'),
+        this.apiRequest<{ quotes: AdminQuote[] }>('/api/admin/quotes'),
+      ]);
+      this.state = { ...this.state, orders: orders.orders, quotes: quotes.quotes };
+      this.notify();
+    } catch (error) {
+      this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to load orders and quote requests.');
+    }
+  }
+
+  private async refreshCatalog() {
+    try {
+      const status = await this.apiRequest<{ configured: boolean; connected: boolean }>('/api/health');
+      this.apiConfigured = status.configured;
+      if (!status.configured) {
+        this.state = { ...this.state, catalogSyncStatus: 'local', catalogSyncError: null };
+        this.notify();
+      } else if (status.connected) {
+        await Promise.all([this.loadSharedCatalog(), this.loadSharedSettings()]);
+      } else {
+        this.setCatalogSyncError('The server is configured but cannot connect to MySQL.');
+      }
+    } catch {
+      this.apiConfigured = false;
+      this.state = { ...this.state, catalogSyncStatus: 'local', catalogSyncError: null };
+      this.notify();
+    }
+  }
+
+  private async apiRequest<T>(url: string, options: RequestInit = {}): Promise<T> {
+    const response = await fetch(url, {
+      ...options,
+      credentials: 'same-origin',
+      headers: {
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        ...options.headers,
+      },
+    });
+    if (!response.ok) {
+      const result = await response.json().catch(() => null);
+      throw new Error(result?.error || `Request failed (${response.status}).`);
+    }
+    if (response.status === 204) return undefined as T;
+    return response.json() as Promise<T>;
+  }
+
+  private setCatalogSyncError(message: string) {
+    this.state = {
+      ...this.state,
+      catalogSyncStatus: 'error',
+      catalogSyncError: message,
+    };
+    this.notify();
+  }
+
+  private async persistCatalog(): Promise<boolean> {
+    if (!this.apiConfigured) return true;
+    try {
+      await this.apiRequest('/api/catalog', {
+        method: 'PUT',
+        headers: { 'X-Admin-Request': '1' },
+        body: JSON.stringify({
+          products: this.state.products,
+          categories: this.state.categories,
+        }),
+      });
+      this.state = { ...this.state, catalogSyncStatus: 'connected', catalogSyncError: null };
+      this.notify();
+      return true;
+    } catch (error) {
+      this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to save shared catalog.');
+      return false;
+    }
+  }
+
+  private async migrateLocalCatalogIfCloudIsEmpty() {
+    const catalog = await this.apiRequest<{ products: Product[]; categories: AdminCategory[] }>('/api/catalog');
+    if (catalog.products.length || catalog.categories.length) return;
+
+    const readLocal = <T,>(key: string, fallback: T): T => {
+      const stored = localStorage.getItem(key);
+      if (stored === null) return fallback;
+      try {
+        return JSON.parse(stored) as T;
+      } catch {
+        return fallback;
+      }
+    };
+    this.state = {
+      ...this.state,
+      products: readLocal(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS),
+      categories: readLocal(STORAGE_KEYS.CATEGORIES, INITIAL_CATEGORIES),
+    };
+    if (!await this.persistCatalog()) {
+      throw new Error(this.state.catalogSyncError || 'Could not migrate the local catalog.');
+    }
+  }
+
+  public async signInAdmin(password: string): Promise<AdminRole> {
+    await this.apiRequest('/api/admin/login', {
+      method: 'POST',
+      headers: { 'X-Admin-Request': '1' },
+      body: JSON.stringify({ password }),
+    });
+    this.apiConfigured = true;
+    this.adminAuthenticated = true;
+    await this.migrateLocalCatalogIfCloudIsEmpty();
+    await Promise.all([
+      this.loadSharedCatalog(),
+      this.migrateLocalSettingsIfCloudIsEmpty(),
+      this.loadOperationalData(),
+    ]);
+    return 'Owner';
+  }
+
+  private async migrateLocalSettingsIfCloudIsEmpty() {
+    const { settings } = await this.apiRequest<{ settings: AdminSettings | null }>('/api/settings');
+    if (settings) {
+      this.state = { ...this.state, settings };
+      this.notify();
+      return;
+    }
+    await this.apiRequest('/api/settings', {
+      method: 'PUT',
+      headers: { 'X-Admin-Request': '1' },
+      body: JSON.stringify({ settings: this.state.settings }),
+    });
+  }
+
+  public async getAdminRole(): Promise<AdminRole | null> {
+    if (!this.apiConfigured) await this.refreshCatalog();
+    if (!this.apiConfigured) return null;
+    const session = await this.apiRequest<{ role: AdminRole | null }>('/api/admin/session');
+    if (!session.role) return null;
+    this.adminAuthenticated = true;
+    await this.migrateLocalCatalogIfCloudIsEmpty();
+    await Promise.all([
+      this.loadSharedCatalog(),
+      this.migrateLocalSettingsIfCloudIsEmpty(),
+      this.loadOperationalData(),
+    ]);
+    return session.role;
+  }
+
+  public async signOutAdmin() {
+    this.adminAuthenticated = false;
+    await this.apiRequest('/api/admin/logout', {
+      method: 'POST',
+      headers: { 'X-Admin-Request': '1' },
+    });
+  }
+
   // Products CRUD
   public getProducts(): Product[] {
     return this.state.products;
   }
 
-  public saveProducts(products: Product[]) {
+  public async saveProducts(products: Product[]): Promise<boolean> {
     this.state = { ...this.state, products };
     try {
       localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
     } catch {}
     this.notify();
+    return this.persistCatalog();
   }
 
-  public clearProducts() {
-    this.saveProducts([]);
+  public clearProducts(): Promise<boolean> {
+    return this.saveProducts([]);
   }
 
-  public deleteProduct(id: string) {
+  public deleteProduct(id: string): Promise<boolean> {
     const updated = this.state.products.filter(p => p.id !== id);
-    this.saveProducts(updated);
+    return this.saveProducts(updated);
   }
 
   // Categories CRUD
@@ -247,17 +444,18 @@ class CentralStoreService {
     return this.state.categories;
   }
 
-  public saveCategories(categories: AdminCategory[]) {
+  public async saveCategories(categories: AdminCategory[]): Promise<boolean> {
     this.state = { ...this.state, categories };
     try {
       localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories));
     } catch {}
     this.notify();
+    return this.persistCatalog();
   }
 
-  public deleteCategory(id: string) {
+  public deleteCategory(id: string): Promise<boolean> {
     const updated = this.state.categories.filter(c => c.id !== id);
-    this.saveCategories(updated);
+    return this.saveCategories(updated);
   }
 
   // Orders
@@ -265,12 +463,35 @@ class CentralStoreService {
     return this.state.orders;
   }
 
-  public saveOrders(orders: AdminOrder[]) {
+  public async saveOrders(orders: AdminOrder[]): Promise<boolean> {
+    if (this.apiConfigured && this.adminAuthenticated) {
+      try {
+        await this.apiRequest('/api/admin/orders', {
+          method: 'PUT',
+          headers: { 'X-Admin-Request': '1' },
+          body: JSON.stringify({ orders }),
+        });
+      } catch (error) {
+        this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to save orders.');
+        return false;
+      }
+    }
     this.state = { ...this.state, orders };
     try {
       localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
     } catch {}
     this.notify();
+    return true;
+  }
+
+  public async createOrder(order: Omit<AdminOrder, 'id' | 'orderNo' | 'date' | 'status' | 'subtotal' | 'discount' | 'gst' | 'total'>): Promise<AdminOrder> {
+    const { order: savedOrder } = await this.apiRequest<{ order: AdminOrder }>('/api/orders', {
+      method: 'POST',
+      body: JSON.stringify(order),
+    });
+    this.state = { ...this.state, orders: [savedOrder, ...this.state.orders] };
+    this.notify();
+    return savedOrder;
   }
 
   // Quotes
@@ -278,12 +499,35 @@ class CentralStoreService {
     return this.state.quotes;
   }
 
-  public saveQuotes(quotes: AdminQuote[]) {
+  public async saveQuotes(quotes: AdminQuote[]): Promise<boolean> {
+    if (this.apiConfigured && this.adminAuthenticated) {
+      try {
+        await this.apiRequest('/api/admin/quotes', {
+          method: 'PUT',
+          headers: { 'X-Admin-Request': '1' },
+          body: JSON.stringify({ quotes }),
+        });
+      } catch (error) {
+        this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to save quote requests.');
+        return false;
+      }
+    }
     this.state = { ...this.state, quotes };
     try {
       localStorage.setItem(STORAGE_KEYS.QUOTES, JSON.stringify(quotes));
     } catch {}
     this.notify();
+    return true;
+  }
+
+  public async createQuote(quote: Omit<AdminQuote, 'id' | 'quoteNo' | 'date' | 'status'>): Promise<AdminQuote> {
+    const { quote: savedQuote } = await this.apiRequest<{ quote: AdminQuote }>('/api/quotes', {
+      method: 'POST',
+      body: JSON.stringify(quote),
+    });
+    this.state = { ...this.state, quotes: [savedQuote, ...this.state.quotes] };
+    this.notify();
+    return savedQuote;
   }
 
   // Settings
@@ -291,35 +535,48 @@ class CentralStoreService {
     return this.state.settings;
   }
 
-  public saveSettings(settings: AdminSettings) {
+  public async saveSettings(settings: AdminSettings): Promise<boolean> {
+    if (this.apiConfigured) {
+      try {
+        await this.apiRequest('/api/settings', {
+          method: 'PUT',
+          headers: { 'X-Admin-Request': '1' },
+          body: JSON.stringify({ settings }),
+        });
+      } catch (error) {
+        this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to save shared business settings.');
+        return false;
+      }
+    }
     this.state = { ...this.state, settings };
     try {
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
     } catch {}
     this.notify();
+    return true;
   }
 
-  public resetAllData() {
+  public async resetAllData(): Promise<boolean> {
     localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
-    localStorage.removeItem(STORAGE_KEYS.ORDERS);
-    localStorage.removeItem(STORAGE_KEYS.QUOTES);
     localStorage.removeItem(STORAGE_KEYS.SETTINGS);
     localStorage.removeItem(STORAGE_KEYS.HOMEPAGE);
     localStorage.removeItem(STORAGE_KEYS.CATEGORIES);
-    Object.keys(localStorage).forEach((key) => {
-      if (key.includes('alldisplay')) {
-        localStorage.removeItem(key);
-      }
-    });
     this.state = {
+      ...this.state,
+      settings: DEFAULT_SETTINGS,
+    };
+    if (!await this.saveProducts(INITIAL_PRODUCTS)) return false;
+    if (!await this.saveCategories(INITIAL_CATEGORIES)) return false;
+    if (!await this.saveSettings(DEFAULT_SETTINGS)) return false;
+    this.state = {
+      ...this.state,
       products: INITIAL_PRODUCTS,
       categories: INITIAL_CATEGORIES,
-      orders: INITIAL_ORDERS,
-      quotes: INITIAL_QUOTES,
       settings: DEFAULT_SETTINGS,
     };
     this.notify();
     window.location.reload();
+    return true;
   }
 }
 

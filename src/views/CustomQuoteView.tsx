@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { ActiveView, CartItem } from '../types';
+import { getWhatsAppLink, getWhatsAppNumber } from '../utils/whatsapp';
+import { storeManager } from '../services/storeManager';
 
 interface CustomQuoteViewProps {
   onNavigate: (view: ActiveView) => void;
@@ -29,6 +31,9 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
   const [customNotes, setCustomNotes] = useState('');
   const [uploadedFile, setUploadedFile] = useState<string | null>(null);
   const [submittedFeedback, setSubmittedFeedback] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [submissionNotice, setSubmissionNotice] = useState<string | null>(null);
 
   const fixtureOptions = [
     { id: 'floor-racks', label: 'Floor Display Racks & Center Islands', desc: 'Triple pipe, double bumper, circular spinner stands' },
@@ -65,13 +70,50 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
     }
   };
 
-  const handleWhatsAppSubmit = (e: React.FormEvent) => {
+  const handleWhatsAppSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const msg = encodeURIComponent(
-      `Hi All Display Hyderabad, I would like to request an official custom factory quote:\n\n*Store:* ${storeName || 'Not specified'}\n*Contact:* ${contactName || 'Not specified'} (+91 ${whatsapp || 'N/A'})\n*Location:* ${deliveryLocation || 'Hyderabad'}\n*Store Format:* ${storeType} (${floorArea} sq.ft)\n*Fixtures Needed:* ${selectedFixtures.join(', ')}\n*Finish:* ${selectedFinish}\n*Timeline:* ${timeline}\n*Drawings/Sketch:* ${uploadedFile ? `Attached file: ${uploadedFile}` : 'Will share photo on WhatsApp'}\n*Notes:* ${customNotes || 'Standard layout requirements'}\n\nPlease share itemized CAD BOQ and wholesale pricing.`
-    );
-    window.open(`https://wa.me/917396127273?text=${msg}`, '_blank');
-    setSubmittedFeedback(true);
+    if (isSubmitting || submittedFeedback) return;
+    const phoneDigits = whatsapp.replace(/\D/g, '').replace(/^91(?=\d{10}$)/, '');
+    if (phoneDigits.length !== 10 || selectedFixtures.length === 0) {
+      setSubmissionError('Enter a valid 10-digit WhatsApp number and select at least one fixture type.');
+      return;
+    }
+    setIsSubmitting(true);
+    setSubmissionError(null);
+    const whatsappWindow = window.open('about:blank', '_blank');
+    try {
+      const quote = await storeManager.createQuote({
+        customerName: contactName.trim(),
+        storeName: storeName.trim(),
+        whatsapp: phoneDigits,
+        city: deliveryLocation.trim(),
+        area: `${floorArea} sq.ft`,
+        storeType,
+        notes: [
+          customNotes.trim(),
+          `Requested fixtures: ${selectedFixtures.join(', ')}`,
+          `Preferred finish: ${selectedFinish}`,
+          `Timeline: ${timeline}`,
+          gstin.trim() ? `GSTIN: ${gstin.trim()}` : '',
+          uploadedFile ? `Customer listed attachment: ${uploadedFile} (file not uploaded)` : '',
+        ].filter(Boolean).join('\n'),
+        fixtures: selectedFixtures,
+        finish: selectedFinish,
+        timeline,
+        gstin: gstin.trim(),
+        attachmentName: uploadedFile,
+      });
+      const message = `Hi All Display Hyderabad, I submitted custom factory quote request *${quote.quoteNo}*.\n\nStore: ${quote.storeName}\nContact: ${quote.customerName} (+91 ${quote.whatsapp})\nLocation: ${quote.city}\nStore format: ${quote.storeType} (${quote.area})\nFixtures: ${quote.fixtures?.join(', ')}\nFinish: ${quote.finish}\nTimeline: ${quote.timeline}\n${quote.gstin ? `GSTIN: ${quote.gstin}\n` : ''}${customNotes ? `Notes: ${customNotes}\n` : ''}${uploadedFile ? `I will attach ${uploadedFile} in this chat.\n` : ''}\nPlease share itemized CAD BOQ and wholesale pricing.`;
+      if (whatsappWindow) whatsappWindow.location.href = getWhatsAppLink(message);
+      else setSubmissionError(`Quote ${quote.quoteNo} is saved, but your browser blocked the WhatsApp window.`);
+      setSubmittedFeedback(true);
+      setSubmissionNotice(`Quote ${quote.quoteNo} was saved to the admin Quote Requests list.`);
+    } catch (error) {
+      whatsappWindow?.close();
+      setSubmissionError(error instanceof Error ? error.message : 'Could not save this quote. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // FAQ state
@@ -252,7 +294,7 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
                       <input 
                         type="tel" 
                         required
-                        placeholder="98490 23456"
+                        placeholder="10-digit mobile number"
                         value={whatsapp}
                         onChange={(e) => setWhatsapp(e.target.value)}
                         className="w-full bg-transparent text-on-surface focus:outline-none font-mono"
@@ -405,6 +447,7 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
                     onChange={handleFileInput}
                   />
                   <span className="material-symbols-outlined text-[36px] text-secondary">cloud_upload</span>
+                  <div role="note" className="text-[11px] text-amber-700">The file is not uploaded to the site yet. After WhatsApp opens, attach it in the chat.</div>
                   {uploadedFile ? (
                     <div className="flex items-center gap-2 text-primary font-bold">
                       <span className="material-symbols-outlined text-[18px] text-[#25D366]">check_circle</span>
@@ -453,20 +496,23 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
 
               {/* Submit Buttons */}
               <div className="flex flex-col gap-2.5 pt-2">
+                {submissionError && <div role="alert" className="rounded-lg bg-red-50 p-3 text-xs text-red-800">{submissionError}</div>}
+                {submissionNotice && <div role="status" className="rounded-lg bg-green-50 p-3 text-xs text-green-800">{submissionNotice}</div>}
                 <button
                   type="submit"
+                  disabled={isSubmitting || submittedFeedback}
                   className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white py-3.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all transform hover:-translate-y-0.5"
                 >
                   <span className="material-symbols-outlined text-[20px]">send</span>
-                  <span>Send Custom Quote Request via WhatsApp (+91 73961 27273)</span>
+                  <span>{isSubmitting ? 'Saving Quote…' : submittedFeedback ? 'Quote Request Saved' : 'Save Quote & Continue to WhatsApp'}</span>
                 </button>
 
                 <a
-                  href="tel:+919849023456"
+                  href={`tel:+${getWhatsAppNumber(true)}`}
                   className="w-full bg-surface-container hover:bg-surface-container-high text-primary py-2.5 px-4 rounded-lg font-bold text-xs flex items-center justify-center gap-2 transition-colors border border-surface-container"
                 >
                   <span className="material-symbols-outlined text-[18px]">phone</span>
-                  <span>Request Call Back from Ranigunj Technical Lead (+91 98490 23456)</span>
+                  <span>Request Call Back from Ranigunj Technical Lead (+{getWhatsAppNumber(true)})</span>
                 </a>
               </div>
             </form>

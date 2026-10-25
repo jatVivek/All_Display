@@ -40,7 +40,7 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (role !== 'Owner') {
       showToast('Staff role cannot modify categories. Switch to Owner mode.');
@@ -54,27 +54,36 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
         description
       };
       const updated = [...categories, newCat];
-      storeManager.saveCategories(updated);
+      if (!await storeManager.saveCategories(updated)) {
+        showToast('Category could not be saved to the shared catalog.');
+        return;
+      }
       setCategories(updated);
       showToast('New category created successfully!');
     } else if (editingCat && typeof editingCat === 'object') {
       const updated = categories.map(c => c.id === editingCat.id ? { ...c, name, description } : c);
-      storeManager.saveCategories(updated);
+      if (!await storeManager.saveCategories(updated)) {
+        showToast('Category could not be saved to the shared catalog.');
+        return;
+      }
       setCategories(updated);
       showToast('Category updated successfully!');
     }
     setEditingCat(null);
   };
 
-  const handleDelete = (id: string, catName: string) => {
+  const handleDelete = async (id: string, catName: string) => {
     if (role !== 'Owner') {
       showToast('Staff role cannot delete categories. Switch to Owner mode.');
       return;
     }
     if (window.confirm(`Are you sure you want to delete category "${catName}"?`)) {
-      storeManager.deleteCategory(id);
-      setCategories(storeManager.getCategories());
-      showToast('Category deleted successfully!');
+      if (await storeManager.deleteCategory(id)) {
+        setCategories(storeManager.getCategories());
+        showToast('Category deleted successfully!');
+      } else {
+        showToast('Category could not be deleted from the shared catalog.');
+      }
     }
   };
 

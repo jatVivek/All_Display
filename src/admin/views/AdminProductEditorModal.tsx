@@ -6,50 +6,93 @@ interface AdminProductEditorModalProps {
   product: Product | 'new';
   onClose: () => void;
   onSave: () => void;
+  onError: (message: string) => void;
 }
 
 export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = ({
   product,
   onClose,
-  onSave
+  onSave,
+  onError
 }) => {
   const isNew = product === 'new';
   const [title, setTitle] = useState(isNew ? '' : product.title);
   const [code, setCode] = useState(isNew ? 'AD-NEW-001' : product.code);
-  const [category, setCategory] = useState(isNew ? 'Floor Stands & Bumper Racks' : product.category);
+  const [category, setCategory] = useState(isNew ? (storeManager.getCategories()[0]?.name ?? '') : product.category);
   const [price, setPrice] = useState(isNew ? 5000 : product.price);
   const [unit, setUnit] = useState(isNew ? 'unit' : product.unit);
   
-  // Multiple images support
-  const defaultImage = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAjsvmXZlohMZptyHS-gMam8Ct3W1nVaqsr_mc0zz2CFqebliYcutec3B9BqZlE6DXkvhqWI7GDLzzMYlG39q8zVA9hzToMg32UZPukc45kD7EsyTvVHGXhV2FwJETW4HGVdCH5tsOWaHksqiYH8uqi33EAjJs1Z1xhpkTxYcv-L-yfmtMf0mvfHtQanYLYdLU0NxlKlIok4FYgainzT43AvDWJaPz25hj292y3bKucJBicVMNTHk09';
-  const initialImages = isNew 
-    ? [defaultImage] 
-    : (product.images && product.images.length > 0 ? product.images : [product.image]);
+  const initialImages = isNew
+    ? []
+    : (product.images && product.images.length > 0 ? product.images : product.image ? [product.image] : []);
 
   const [images, setImages] = useState<string[]>(initialImages);
   const [newImgInput, setNewImgInput] = useState('');
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const [finish, setFinish] = useState(isNew ? 'Matte Black Powder Coat' : product.finish);
   const [stockStatus, setStockStatus] = useState(isNew ? 'Ranigunj In Stock' : product.stockStatus);
 
-  const handleAddImage = () => {
-    if (!newImgInput.trim()) return;
-    setImages([...images, newImgInput.trim()]);
-    setNewImgInput('');
+  const handleAddImageUrl = () => {
+    const value = newImgInput.trim();
+    if (!value) return;
+    try {
+      const url = new URL(value, window.location.origin);
+      if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+        onError('Use an HTTP or HTTPS image URL.');
+        return;
+      }
+      setImages((current) => [...current, value]);
+      setNewImgInput('');
+    } catch {
+      onError('Enter a valid image URL.');
+    }
+  };
+
+  const handleUploadImages = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = '';
+    if (!files.length) return;
+
+    setIsUploadingImage(true);
+    try {
+      const uploadedUrls: string[] = [];
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('image', file);
+        const response = await fetch('/api/admin/uploads', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'X-Admin-Request': '1' },
+          body: formData,
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          throw new Error(result.error || `Image upload failed (${response.status}).`);
+        }
+        uploadedUrls.push(result.url);
+      }
+      setImages((current) => [...current, ...uploadedUrls]);
+    } catch (error) {
+      onError(error instanceof Error ? error.message : 'Image upload failed.');
+    } finally {
+      setIsUploadingImage(false);
+    }
   };
 
   const handleRemoveImage = (index: number) => {
-    if (images.length <= 1) {
-      alert('Product must have at least one image.');
-      return;
-    }
-    setImages(images.filter((_, i) => i !== index));
+    setImages((current) => current.filter((_, imageIndex) => imageIndex !== index));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (images.length === 0) {
+      onError('Add at least one product photo before saving.');
+      return;
+    }
     const products = storeManager.getProducts();
-    const primaryImage = images[0] || defaultImage;
+    const primaryImage = images[0];
+    let saved: boolean;
 
     if (isNew) {
       const newProduct: Product = {
@@ -70,13 +113,13 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
         stockStatus,
         moq: 'MOQ: 1 Unit',
         image: primaryImage,
-        images: images,
+        images,
         finishes: [
           { name: finish, color: '#1A1C20' },
           { name: 'Brushed Gold', color: '#D4AF37' }
         ]
       };
-      storeManager.saveProducts([newProduct, ...products]);
+      saved = await storeManager.saveProducts([newProduct, ...products]);
     } else {
       const updated = products.map((p) => (p.id === product.id ? {
         ...p,
@@ -86,14 +129,18 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
         price,
         unit,
         image: primaryImage,
-        images: images,
+        images,
         finish,
         stockStatus
       } : p));
-      storeManager.saveProducts(updated);
+      saved = await storeManager.saveProducts(updated);
     }
 
-    onSave();
+    if (saved) {
+      onSave();
+    } else {
+      onError('Product could not be saved to the shared catalog. Check the database sync error and try again.');
+    }
   };
 
   return (
@@ -246,15 +293,31 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
               />
               <button
                 type="button"
-                onClick={handleAddImage}
+                onClick={handleAddImageUrl}
                 className="bg-[#1a1c20] hover:bg-black text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer shrink-0"
               >
                 <span className="material-symbols-outlined text-sm">add_a_photo</span>
-                Add Photo
+                Add URL
               </button>
             </div>
+            <label className={`mt-1 flex items-center justify-center gap-2 rounded-xl border border-dashed border-[#775a00]/50 px-4 py-3 text-xs font-semibold text-[#775a00] ${
+              isUploadingImage ? 'opacity-60 cursor-wait' : 'cursor-pointer hover:bg-[#ffdf98]/20'
+            }`}>
+              <span className="material-symbols-outlined text-[18px]">
+                {isUploadingImage ? 'progress_activity' : 'upload_file'}
+              </span>
+              {isUploadingImage ? 'Uploading image...' : 'Choose image(s) from this device'}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                disabled={isUploadingImage}
+                onChange={handleUploadImages}
+                className="sr-only"
+              />
+            </label>
             <p className="text-[10px] text-[#63635e] italic">
-              Tip: You can add multiple photos for storefront zoom and gallery preview.
+              JPEG, PNG, WebP, or GIF; max 5 MB per image. The first image is used on the storefront.
             </p>
           </div>
 

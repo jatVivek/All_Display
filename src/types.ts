@@ -59,6 +59,16 @@ export interface CartItem {
   isLinear?: boolean;
 }
 
+export interface ConsigneeDetails {
+  storeName: string;
+  ownerName: string;
+  whatsapp: string;
+  destination: string;
+  pincode: string;
+  launchDate: string;
+  notes: string;
+}
+
 export interface ProjectReel {
   id: string;
   title: string;

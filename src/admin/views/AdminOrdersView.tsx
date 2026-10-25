@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AdminTab } from '../AdminApp';
 import { storeManager, AdminOrder } from '../../services/storeManager';
 
@@ -18,9 +18,12 @@ export const AdminOrdersView: React.FC<AdminOrdersViewProps> = ({
   const [statusFilter, setStatusFilter] = useState<string>('All');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
+  useEffect(() => storeManager.subscribe((state) => setOrders(state.orders)), []);
+
   const statuses = [
     'All',
     'New (Awaiting WhatsApp)',
+    'Confirmed',
     'Payment pending',
     'Paid',
     'Packed',
@@ -42,10 +45,12 @@ export const AdminOrdersView: React.FC<AdminOrdersViewProps> = ({
     return matchesSearch && matchesStatus;
   });
 
-  const handleStatusChange = (id: string, newStatus: AdminOrder['status']) => {
+  const handleStatusChange = async (id: string, newStatus: AdminOrder['status']) => {
     const updated = orders.map((o) => (o.id === id ? { ...o, status: newStatus } : o));
-    setOrders(updated);
-    storeManager.saveOrders(updated);
+    if (!await storeManager.saveOrders(updated)) {
+      showToast(storeManager.getState().catalogSyncError || 'Could not save order status.');
+      return;
+    }
     showToast(`Order status updated to "${newStatus}"`);
   };
 
@@ -175,6 +180,7 @@ export const AdminOrdersView: React.FC<AdminOrdersViewProps> = ({
                         onChange={(e) => handleStatusChange(ord.id, e.target.value as AdminOrder['status'])}
                         className={`text-[11px] font-semibold px-2.5 py-1.5 rounded-lg border cursor-pointer outline-none ${
                           ord.status === 'New (Awaiting WhatsApp)' ? 'bg-amber-50 text-amber-800 border-amber-300' :
+                          ord.status === 'Confirmed' ? 'bg-violet-50 text-violet-800 border-violet-300' :
                           ord.status === 'Payment pending' ? 'bg-orange-50 text-orange-800 border-orange-300' :
                           ord.status === 'Paid' ? 'bg-emerald-50 text-emerald-800 border-emerald-300' :
                           ord.status === 'Packed' ? 'bg-blue-50 text-blue-800 border-blue-300' :

@@ -1,4 +1,5 @@
 import React from 'react';
+import { getWhatsAppLink, getWhatsAppNumber } from '../../utils/whatsapp';
 import { AdminTab } from '../AdminApp';
 import { storeManager } from '../../services/storeManager';
 
@@ -38,7 +39,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             Wholesale Command Dashboard
           </h1>
           <p className="text-xs sm:text-sm text-[#c6c6cb] max-w-xl">
-            Orders arrive via WhatsApp with prefilled proformas. Review new customer requirements, dispatch lorry transport, and update ex-depot prices in 3 clicks or fewer.
+            Customer order and quote requests are saved to the shared database before opening WhatsApp. Review requests, update statuses, and coordinate fulfillment here.
           </p>
         </div>
 
@@ -223,14 +224,14 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
               </button>
 
               <a
-                href={`https://wa.me/917396127273?text=Hi%20All%20Display%20Admin,%20checking%20today%20wholesale%20dispatch%20status.`}
+                href={getWhatsAppLink('Hi All Display Admin, checking today wholesale dispatch status.')}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white p-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors shadow-sm"
               >
                 <div className="flex items-center gap-2.5">
                   <span className="material-symbols-outlined text-[18px]">chat</span>
-                  <span>Open WhatsApp Desk (+91 73961)</span>
+                  <span>Open WhatsApp Desk (+{getWhatsAppNumber()})</span>
                 </div>
                 <span className="material-symbols-outlined text-[16px]">open_in_new</span>
               </a>

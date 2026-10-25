@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { storeManager, AdminQuote } from '../../services/storeManager';
+import { getContactWhatsAppLink } from '../../utils/whatsapp';
 
 interface AdminQuotesViewProps {
   showToast: (msg: string) => void;
@@ -8,10 +9,14 @@ interface AdminQuotesViewProps {
 export const AdminQuotesView: React.FC<AdminQuotesViewProps> = ({ showToast }) => {
   const [quotes, setQuotes] = useState<AdminQuote[]>(() => storeManager.getQuotes());
 
-  const handleStatusChange = (id: string, newStatus: AdminQuote['status']) => {
+  useEffect(() => storeManager.subscribe((state) => setQuotes(state.quotes)), []);
+
+  const handleStatusChange = async (id: string, newStatus: AdminQuote['status']) => {
     const updated = quotes.map((q) => (q.id === id ? { ...q, status: newStatus } : q));
-    setQuotes(updated);
-    storeManager.saveQuotes(updated);
+    if (!await storeManager.saveQuotes(updated)) {
+      showToast(storeManager.getState().catalogSyncError || 'Could not save quote status.');
+      return;
+    }
     showToast(`Quote status updated to "${newStatus}"`);
   };
 
@@ -19,7 +24,7 @@ export const AdminQuotesView: React.FC<AdminQuotesViewProps> = ({ showToast }) =
     const text = `Hi ${quote.customerName} (${quote.storeName}), regarding your bespoke store quote *${quote.quoteNo}* for ${quote.area} (${quote.storeType} in ${quote.city}):\n\n` +
       `Our Ranigunj engineering desk has reviewed your floor plan requirements. Let's discuss ex-factory pricing and 3D CAD elevations!`;
 
-    window.open(`https://wa.me/91${quote.whatsapp}?text=${encodeURIComponent(text)}`, '_blank');
+    window.open(getContactWhatsAppLink(quote.whatsapp, text), '_blank');
     showToast('WhatsApp quote consultation opened.');
   };
 
@@ -78,8 +83,12 @@ export const AdminQuotesView: React.FC<AdminQuotesViewProps> = ({ showToast }) =
                         <span className="text-[10px] text-[#76777b] font-mono">{q.area} • {q.storeType}</span>
                       </div>
                     </td>
-                    <td className="p-4 max-w-xs text-[#45474b] truncate" title={q.notes}>
-                      {q.notes}
+                    <td className="p-4 max-w-xs text-[#45474b] truncate" title={[q.notes, q.fixtures?.join(', '), q.finish, q.timeline, q.gstin, q.attachmentName].filter(Boolean).join(' | ')}>
+                      <span>{q.notes}</span>
+                      {q.fixtures?.length ? <span className="block text-[10px] text-[#76777b]">Fixtures: {q.fixtures.join(', ')}</span> : null}
+                      {q.finish ? <span className="block text-[10px] text-[#76777b]">Finish: {q.finish} • Timeline: {q.timeline}</span> : null}
+                      {q.gstin ? <span className="block text-[10px] text-[#76777b]">GSTIN: {q.gstin}</span> : null}
+                      {q.attachmentName ? <span className="block text-[10px] text-amber-700">Customer listed attachment: {q.attachmentName} (not uploaded)</span> : null}
                     </td>
                     <td className="p-4">
                       <select

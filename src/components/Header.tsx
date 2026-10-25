@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getWhatsAppLink, getWhatsAppNumber } from '../utils/whatsapp';
 import { ActiveView, CartItem } from '../types';
 import { useScrollLock } from '../hooks/useScrollLock';
 
@@ -200,7 +201,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Direct WhatsApp Callout - Responsive */}
             <a
-              href="https://wa.me/917396127273?text=Hi%20All%20Display%20Hyderabad,%20I%20want%20to%20inquire%20about%20store%20fixtures%20wholesale%20rates."
+              href={getWhatsAppLink('Hi All Display Hyderabad, I want to inquire about store fixtures wholesale rates.')}
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-1 bg-[#25D366] hover:bg-[#128C7E] text-white px-2 sm:px-3 py-1 rounded-lg text-[11px] font-bold transition-all shadow-2xs shrink-0"
@@ -209,7 +210,7 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="material-symbols-outlined text-[15px]">chat</span>
               <span className="hidden sm:inline">WhatsApp</span>
               <span className="sm:hidden">WA</span>
-              <span className="hidden lg:inline text-[10px] font-normal opacity-90">+91 73961 27273</span>
+              <span className="hidden lg:inline text-[10px] font-normal opacity-90">+{getWhatsAppNumber()}</span>
             </a>
 
             {/* Wholesale Order List Cart Button - Responsive */}
@@ -424,21 +425,21 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
 
                 <a
-                  href="https://wa.me/917396127273"
+                  href={getWhatsAppLink('Hi All Display, I would like to know more about your wholesale fixtures.')}
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center gap-2 text-primary font-bold hover:text-secondary"
                 >
                   <span className="material-symbols-outlined text-[18px] text-[#25D366]">chat</span>
-                  <span>WhatsApp: +91 73961 27273</span>
+                  <span>WhatsApp: +{getWhatsAppNumber()}</span>
                 </a>
 
                 <a
-                  href="tel:+919849023456"
+                  href={`tel:+${getWhatsAppNumber(true)}`}
                   className="flex items-center gap-2 text-primary font-bold hover:text-secondary"
                 >
                   <span className="material-symbols-outlined text-[18px] text-[#775a00]">phone</span>
-                  <span>Showroom: +91 98490 23456</span>
+                  <span>Showroom: +{getWhatsAppNumber(true)}</span>
                 </a>
 
                 <div className="text-[10px] text-on-surface-variant pt-1 border-t border-surface-container">

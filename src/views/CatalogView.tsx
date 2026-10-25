@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ActiveView, Product } from '../types';
 import { storeManager } from '../services/storeManager';
+import { getWhatsAppLink } from '../utils/whatsapp';
 
 interface CatalogViewProps {
   setActiveView: (view: ActiveView) => void;
@@ -18,10 +19,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   cartSubtotal
 }) => {
   const [products, setProducts] = useState<Product[]>(() => storeManager.getProducts());
+  const [categories, setCategories] = useState(() => storeManager.getCategories());
 
   useEffect(() => {
     const handleUpdate = () => {
       setProducts(storeManager.getProducts());
+      setCategories(storeManager.getCategories());
     };
     window.addEventListener('alldisplay_catalog_updated', handleUpdate);
     window.addEventListener('alldisplay_data_updated', handleUpdate);
@@ -34,7 +37,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   }, []);
 
   // Filter States
-  const [selectedCategory, setSelectedCategory] = useState('Floor Stands & Bumper Racks');
+  const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [selectedFinishes, setSelectedFinishes] = useState<string[]>(['Matte Black Powder Coat']);
   const [selectedProfile, setSelectedProfile] = useState('All Configurations');
   const [selectedLoads, setSelectedLoads] = useState<string[]>(['>100kg Heavy Duty']);
@@ -47,7 +50,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   const filteredProducts = useMemo(() => {
     return products.filter((prod) => {
       // Category filter
-      if (selectedCategory && selectedCategory !== 'Floor Stands & Bumper Racks' && prod.category !== selectedCategory) {
+      if (selectedCategory !== 'All Categories' && prod.category !== selectedCategory) {
         return false;
       }
       // Finish filter
@@ -79,6 +82,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       return 0; // Most popular default
     });
   }, [selectedCategory, selectedFinishes, selectedProfile, selectedLoads, maxPrice, sortBy]);
+
+  useEffect(() => {
+    if (selectedCategory !== 'All Categories' && !categories.some((category) => category.name === selectedCategory)) {
+      setSelectedCategory('All Categories');
+    }
+  }, [categories, selectedCategory]);
 
   const toggleFinish = (f: string) => {
     setSelectedFinishes((prev) =>
@@ -210,12 +219,11 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               </label>
               <div className="flex flex-col gap-1 text-xs">
                 {[
-                  { name: 'Floor Stands & Bumper Racks', count: 34 },
-                  { name: 'Wall Channel Systems', count: 28 },
-                  { name: 'Mannequins & Dress Forms', count: 19 },
-                  { name: 'Gold Luxury Boutique Fixtures', count: 22 },
-                  { name: 'Hangers, Clips & Hooks', count: 45 },
-                  { name: 'Fitting Room Mirrors & Counters', count: 14 }
+                  { name: 'All Categories', count: products.length },
+                  ...categories.map((category) => ({
+                    name: category.name,
+                    count: products.filter((product) => product.category === category.name).length
+                  }))
                 ].map((cat) => (
                   <button
                     key={cat.name}
@@ -408,7 +416,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 Opening a new showroom in Hyderabad, Bangalore, or Chennai? Send your 2D CAD floor plan for optimal fixture count &amp; wholesale pack pricing.
               </p>
               <a
-                href="https://wa.me/917396127273?text=Hi%20All%20Display,%20I%20have%20a%20store%20floor%20plan%20to%20quote."
+                href={getWhatsAppLink('Hi All Display, I have a store floor plan to quote.')}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white py-2.5 rounded-lg text-xs font-semibold transition-all shadow-sm"
@@ -565,7 +573,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           <span>Add to Order</span>
                         </button>
                         <a
-                          href={`https://wa.me/917396127273?text=Interested%20in%20${encodeURIComponent(product.code)}%20${encodeURIComponent(product.title)}%20at%20wholesale%20rate%20INR%20${product.price}`}
+                          href={getWhatsAppLink(`Interested in ${product.code} ${product.title} at wholesale rate INR ${product.price}`)}
                           target="_blank"
                           rel="noreferrer"
                           className="flex items-center justify-center gap-1 bg-[#25D366] hover:bg-[#128C7E] text-white py-2 px-3 rounded-lg text-xs font-semibold transition-all shadow-sm"
@@ -825,7 +833,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               Review List
             </button>
             <a
-              href={`https://wa.me/917396127273?text=Hi%20All%20Display,%20I%20have%20${cartCount}%20items%20in%20my%20order%20list%20totalling%20INR%20${cartSubtotal.toLocaleString('en-IN')}.%20Please%20confirm%20stock%20and%20provide%20tax%20invoice.`}
+              href={getWhatsAppLink(`Hi All Display, I have ${cartCount} items in my order list totalling INR ${cartSubtotal.toLocaleString('en-IN')}. Please confirm stock and provide tax invoice.`)}
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-1.5 bg-[#25D366] hover:bg-[#128C7E] text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shadow-md"

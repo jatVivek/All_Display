@@ -1,5 +1,6 @@
 import React from 'react';
 import { ActiveView } from '../types';
+import { getWhatsAppNumber } from '../utils/whatsapp';
 
 interface FooterProps {
   setActiveView: (view: ActiveView) => void;
@@ -37,9 +38,9 @@ export const Footer: React.FC<FooterProps> = ({ setActiveView }) => {
               <p>Plot #14, Ground Floor, Wholesale Hardware Lane, Ranigunj, Secunderabad - 500003</p>
               <div className="flex items-center gap-2 pt-0.5">
                 <span className="text-[#775a00] font-semibold">Direct:</span>
-                <a href="tel:+917396127273" className="hover:underline text-[#1c1c18]">+91 73961 27273</a>
+                <a href={`tel:+${getWhatsAppNumber()}`} className="hover:underline text-[#1c1c18]">+{getWhatsAppNumber()}</a>
                 <span>/</span>
-                <a href="tel:+919849023456" className="hover:underline text-[#1c1c18]">+91 98490 23456</a>
+                <a href={`tel:+${getWhatsAppNumber(true)}`} className="hover:underline text-[#1c1c18]">+{getWhatsAppNumber(true)}</a>
               </div>
             </div>
 

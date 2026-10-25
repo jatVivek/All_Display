@@ -1,6 +1,7 @@
 import React from 'react';
 import { AdminTab } from '../AdminApp';
 import { storeManager } from '../../services/storeManager';
+import { getWhatsAppNumber } from '../../utils/whatsapp';
 
 interface AdminSidebarProps {
   activeTab: AdminTab;
@@ -75,7 +76,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActive
           <span className="text-[11px] font-medium text-[#1c1c18]">Ranigunj Desk Online</span>
         </div>
         <p className="text-[10px] text-[#76777b] mt-1">
-          WhatsApp: +91 73961 27273
+          WhatsApp: +{getWhatsAppNumber()}
         </p>
       </div>
     </aside>

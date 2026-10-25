@@ -1,5 +1,6 @@
 import React from 'react';
 import { useScrollLock } from '../hooks/useScrollLock';
+import { getWhatsAppLink } from '../utils/whatsapp';
 
 interface CadBlueprintModalProps {
   isOpen: boolean;
@@ -109,7 +110,7 @@ export const CadBlueprintModal: React.FC<CadBlueprintModalProps> = ({
 
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <a
-              href="https://wa.me/917396127273?text=Hi%20All%20Display%20Engineering,%20please%20email%20me%20the%20DWG%20and%20Revit%20CAD%20bundle%20for%20Triple%20Pipe%20Rack%20AD-TPR-739."
+              href={getWhatsAppLink('Hi All Display Engineering, please email me the DWG and Revit CAD bundle for Triple Pipe Rack AD-TPR-739.')}
               target="_blank"
               rel="noreferrer"
               className="flex-1 bg-[#25D366] hover:bg-[#128C7E] text-white py-3 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-md"

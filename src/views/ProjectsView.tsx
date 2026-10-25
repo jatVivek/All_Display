@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ActiveView, ProjectReel } from '../types';
 import { PROJECT_REELS, REVIEWS } from '../data/catalog';
+import { getWhatsAppLink, getWhatsAppNumber } from '../utils/whatsapp';
 
 interface ProjectsViewProps {
   onNavigate: (view: ActiveView) => void;
@@ -94,7 +95,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
               </span>
             </div>
             <a 
-              href="https://wa.me/917396127273?text=Hi%20All%20Display,%20I%20want%20to%20verify%20fixture%20stock%20via%20video%20call."
+              href={getWhatsAppLink('Hi All Display, I want to verify fixture stock via video call.')}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 bg-primary hover:bg-[#2A2D34] text-on-primary px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm"
@@ -218,7 +219,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                     <span className="text-[10px] uppercase font-bold text-outline ml-1">{project.finishLabel}</span>
                   </div>
                   <a 
-                    href={`https://wa.me/917396127273?text=Hi%20All%20Display,%20I%20saw%20the%20${encodeURIComponent(project.title)}%20setup.%20Please%20quote%20for%20a%20similar%20setup.`}
+                    href={getWhatsAppLink(`Hi All Display, I saw the ${project.title} setup. Please quote for a similar setup.`)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-primary hover:text-secondary font-bold text-xs transition-colors"
@@ -305,17 +306,17 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             </div>
 
             <a 
-              href="https://wa.me/917396127273?text=Hi%20All%20Display,%20I%20have%20a%20store%20floor%20plan%20for%20estimation.%20Can%20you%20help%20me%20calculate%20racks%20and%20budget?"
+              href={getWhatsAppLink('Hi All Display, I have a store floor plan for estimation. Can you help me calculate racks and budget?')}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-md transition-all"
             >
               <span className="material-symbols-outlined text-[18px]">send</span>
-              <span>Send Floor Plan to +91 73961 27273</span>
+              <span>Send Floor Plan on WhatsApp</span>
             </a>
 
             <div className="text-center text-[11px] text-on-surface-variant">
-              Or Call Ranigunj Head: <a href="tel:+919849023456" className="text-secondary font-bold underline">+91 98490 23456</a>
+              Or Call Ranigunj Head: <a href={`tel:+${getWhatsAppNumber(true)}`} className="text-secondary font-bold underline">+{getWhatsAppNumber(true)}</a>
             </div>
           </div>
         </div>

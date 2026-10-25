@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AdminTab } from '../AdminApp';
 import { storeManager, AdminOrder, AdminSettings } from '../../services/storeManager';
+import { getContactWhatsAppLink } from '../../utils/whatsapp';
 
 interface AdminOrderDetailViewProps {
   orderId: string | null;
@@ -20,6 +21,15 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
   const [trackingNo, setTrackingNo] = useState(order?.trackingNo || '');
   const [internalNotes, setInternalNotes] = useState(order?.notes || '');
 
+  useEffect(() => storeManager.subscribe((state) => {
+    setOrders(state.orders);
+  }), []);
+
+  useEffect(() => {
+    setTrackingNo(order?.trackingNo || '');
+    setInternalNotes(order?.notes || '');
+  }, [order?.id, order?.trackingNo, order?.notes]);
+
   if (!order) {
     return (
       <div className="p-8 text-center flex flex-col gap-4">
@@ -34,17 +44,21 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
     );
   }
 
-  const handleStatusUpdate = (newStatus: AdminOrder['status']) => {
+  const handleStatusUpdate = async (newStatus: AdminOrder['status']) => {
     const updated = orders.map((o) => (o.id === order.id ? { ...o, status: newStatus } : o));
-    setOrders(updated);
-    storeManager.saveOrders(updated);
+    if (!await storeManager.saveOrders(updated)) {
+      showToast(storeManager.getState().catalogSyncError || 'Could not save order status.');
+      return;
+    }
     showToast(`Order status updated to "${newStatus}"`);
   };
 
-  const handleSaveNotes = () => {
+  const handleSaveNotes = async () => {
     const updated = orders.map((o) => (o.id === order.id ? { ...o, notes: internalNotes, trackingNo } : o));
-    setOrders(updated);
-    storeManager.saveOrders(updated);
+    if (!await storeManager.saveOrders(updated)) {
+      showToast(storeManager.getState().catalogSyncError || 'Could not save order notes.');
+      return;
+    }
     showToast('Order internal notes and tracking number saved!');
   };
 
@@ -56,7 +70,7 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
       `\n\nGrand Total (incl. GST): ₹${order.total.toLocaleString('en-IN')}\n\n` +
       `Your order is being prepared at our Ranigunj warehouse. We will share transport dispatch LR soon!`;
     
-    window.open(`https://wa.me/91${order.whatsapp}?text=${encodeURIComponent(text)}`, '_blank');
+    window.open(getContactWhatsAppLink(order.whatsapp, text), '_blank');
     showToast('WhatsApp reply window opened with order confirmation template.');
   };
 
@@ -68,17 +82,17 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
       `⚡ UPI ID: ${settings.upiId}\n\n` +
       `Please share payment screenshot on WhatsApp once completed so we can dispatch immediately!`;
 
-    window.open(`https://wa.me/91${order.whatsapp}?text=${encodeURIComponent(text)}`, '_blank');
+    window.open(getContactWhatsAppLink(order.whatsapp, text), '_blank');
     showToast('WhatsApp payment details template dispatched.');
   };
 
   const handleSendDispatchNotice = () => {
     const text = `Hi ${order.customerName} (${order.storeName}), great news! Your wholesale order *${order.orderNo}* has been packed and dispatched via transport.\n\n` +
-      `📦 Lorry Receipt / Tracking No: *${trackingNo || 'LR-HYD-9942'}*\n` +
+      `📦 Lorry Receipt / Tracking No: *${trackingNo || 'To be confirmed'}*\n` +
       `Destination Depot: ${order.destination} (${order.pincode})\n\n` +
       `Please collect consignment from transport office upon arrival. Thank you for shopping with All Display!`;
 
-    window.open(`https://wa.me/91${order.whatsapp}?text=${encodeURIComponent(text)}`, '_blank');
+    window.open(getContactWhatsAppLink(order.whatsapp, text), '_blank');
     showToast('Transport dispatch notice sent via WhatsApp.');
   };
 
@@ -193,7 +207,7 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
               </div>
               {order.discount > 0 && (
                 <div className="flex justify-between py-1 border-b border-[#e6e2dc] text-emerald-700">
-                  <span>Volume Slab Discount (10%):</span>
+                  <span>Volume Slab Discount ({order.subtotal >= 50000 ? '15%' : '10%'}):</span>
                   <span className="font-mono font-semibold">-₹{order.discount.toLocaleString('en-IN')}</span>
                 </div>
               )}

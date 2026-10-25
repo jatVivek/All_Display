@@ -36,7 +36,7 @@ export const AdminProductsView: React.FC<AdminProductsViewProps> = ({
     p.category.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleToggleStock = (id: string) => {
+  const handleToggleStock = async (id: string) => {
     const updated = products.map(p => {
       if (p.id === id) {
         const nextStatus = p.stockStatus.includes('In Stock') ? 'Sold Out / Make to Order' : 'Ranigunj In Stock';
@@ -45,19 +45,25 @@ export const AdminProductsView: React.FC<AdminProductsViewProps> = ({
       return p;
     });
     setProducts(updated);
-    storeManager.saveProducts(updated);
-    showToast('Product stock status toggled!');
+    if (await storeManager.saveProducts(updated)) {
+      showToast('Product stock status saved.');
+    } else {
+      showToast('Stock status changed locally but could not sync to the shared database.');
+    }
   };
 
-  const handleDeleteProduct = (id: string, title: string) => {
+  const handleDeleteProduct = async (id: string, title: string) => {
     if (role !== 'Owner') {
       showToast('Staff role cannot delete products. Switch to Owner mode.');
       return;
     }
     if (window.confirm(`Are you sure you want to delete product "${title}"?`)) {
-      storeManager.deleteProduct(id);
-      setProducts(storeManager.getProducts());
-      showToast('Product deleted successfully!');
+      if (await storeManager.deleteProduct(id)) {
+        setProducts(storeManager.getProducts());
+        showToast('Product deleted successfully!');
+      } else {
+        showToast('Product could not be deleted from the shared catalog.');
+      }
     }
   };
 
@@ -78,11 +84,16 @@ export const AdminProductsView: React.FC<AdminProductsViewProps> = ({
         {role === 'Owner' && (
           <div className="flex flex-wrap items-center gap-2">
             <button
-              onClick={() => {
+              onClick={async () => {
                 if (window.confirm('Are you sure you want to clear all product and category data? This will empty the catalog for scratch testing.')) {
-                  storeManager.clearProducts();
-                  setProducts([]);
-                  showToast('All products and category data cleared successfully!');
+                  const productsCleared = await storeManager.clearProducts();
+                  const categoriesCleared = productsCleared && await storeManager.saveCategories([]);
+                  if (productsCleared && categoriesCleared) {
+                    setProducts([]);
+                    showToast('Products and categories cleared from the shared catalog.');
+                  } else {
+                    showToast('Catalog could not be fully cleared from the shared database.');
+                  }
                 }
               }}
               className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"

@@ -1,4 +1,4 @@
-import { Product, ProjectReel, Review, CartItem } from '../types';
+import { Product, ProjectReel, Review } from '../types';
 
 export const INITIAL_PRODUCTS: Product[] = [
   {
@@ -482,55 +482,6 @@ export const REVIEWS: Review[] = [
     location: 'Begum Bazaar Wholesale, Hyderabad',
     rating: 5,
     text: '“Their Begum Bazaar depot is the best wholesale spot for cloth store fixtures in Hyderabad. The heavy gauge steel does not bend like generic local fabrication. All 8 tailor dummies and 800 wooden hangers arrived in immaculate condition.”'
-  }
-];
-
-export const INITIAL_CART: CartItem[] = [
-  {
-    id: 'cart-1',
-    productId: 'ad-tpr-739',
-    sku: 'AD-TPR-739',
-    title: 'AD-TPR-739 Triple Pipe Rack System',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAFQkP_VXAoHUz4TnO60Bt_oJOV7G5TsS0isispZNz0iKrfmTSpBsYomjoxCaVmk2wTjJEuciJa--j-seQc6RXCqlkyjrLZB8hfJL_nVc7m7u1PMFQDD-1NJ1vH48zDbcr8_SaivvTkSeNY4CjVD6b7-zXqKriNLcp_IESTMFrNNLrrv4-WSjAcsCfM__5ohdwxuMFpRtmVlp81V18LJQFbYd8Q4_QII2QV70isqyYLrps6cWgiFoJY',
-    unitPrice: 3850,
-    quantity: 4,
-    moq: 2,
-    unitLabel: 'Unit',
-    finish: 'Matte Black',
-    sizeOrSpec: '6.5ft (4 Tiers + Glass Deck)',
-    gauge: '1.6mm Commercial Gauge',
-    packingType: 'Heavy Crated Packing'
-  },
-  {
-    id: 'cart-2',
-    productId: 'ad-wch-520',
-    sku: 'AD-WCH-520',
-    title: 'AD-WCH-520 Slotted Wall Channel System',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBVNvkNuZowrWf1dlKaQ9PAhnG5XqL-culdoxgiC6AXE0ZUt6YD6LDBRmHv9ZIR5XxNLNIwARAPWWxDQPa2mSvIEyBOmuRSDMz0vnZ9Rg8bMazkPUP3Lp1sL7tgBMRO-gN2Cv3nrmxs2Jjvuv6xUCTsZNEAtxsGSEh8vbDOKTIOV1bbYPjsB1jBo_-S2IjbM9JN0LQFLvXzCOKCZYHG2w6ApnZref1PMgulE-M47pn9XZIYqEwLy-xT',
-    unitPrice: 520,
-    quantity: 10,
-    moq: 5,
-    unitLabel: 'Ft',
-    finish: 'Industrial Black + Teak Shelf',
-    sizeOrSpec: 'Slotted Post & Rod Fixture',
-    gauge: 'Wall Anchor Kits Incl.',
-    packingType: 'Precision Slotting',
-    isLinear: true
-  },
-  {
-    id: 'cart-3',
-    productId: 'ad-mf-880',
-    sku: 'AD-MF-880',
-    title: 'AD-MF-880 Abstract Fiberglass Mannequin',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuANKdoF2fJzGaZ2PkgUR5MBdFVxCvnBmmBU_Kb4p1F4G_EwXokdEU7shOQMhrvEZKqShMqLhYp3J-gJ5zBsovdz1EPxRAYpIa5Hx1tTEuJkYA24crSZgCS1P1TDgfAn-E6jAZeseFqnfjZ7RyoqU48Tx_8wD35xIvoaNaPyEdiPPovNq-9xit2xaZgiplP71oFkS4nZmYIRAMSAGqY7yNZ3H2FMMYU1u3pQ8lvm5qIpD9z0CJ93rqqE',
-    unitPrice: 5200,
-    quantity: 2,
-    moq: 1,
-    unitLabel: 'Unit',
-    finish: 'Matte Off-White Finish',
-    sizeOrSpec: 'Detachable Magnetic Fittings',
-    gauge: 'Heavy Glass Base Included',
-    packingType: 'Shock-Proof Bubble Wrap'
   }
 ];
 

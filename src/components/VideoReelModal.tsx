@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ProjectReel } from '../types';
 import { useScrollLock } from '../hooks/useScrollLock';
+import { getWhatsAppLink } from '../utils/whatsapp';
 
 interface VideoReelModalProps {
   reel: ProjectReel | null;
@@ -135,13 +136,13 @@ export const VideoReelModal: React.FC<VideoReelModalProps> = ({ reel, onClose })
 
           <div className="pt-6 flex flex-col gap-2.5">
             <a
-              href={`https://wa.me/917396127273?text=Hi%20All%20Display,%20I%20saw%20the%20${encodeURIComponent(reel.title)}%20video%20reel%20and%20want%20a%20similar%20setup%20quote.`}
+              href={getWhatsAppLink(`Hi All Display, I saw the ${reel.title} video reel and want a similar setup quote.`)}
               target="_blank"
               rel="noreferrer"
               className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white py-3 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-lg"
             >
               <span className="material-symbols-outlined text-[18px]">chat</span>
-              <span>Inquire This Setup on WhatsApp (+91 73961 27273)</span>
+              <span>Inquire This Setup on WhatsApp</span>
             </a>
 
             <button

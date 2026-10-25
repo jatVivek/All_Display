@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useScrollLock } from '../hooks/useScrollLock';
+import { getWhatsAppLink, getWhatsAppNumber } from '../utils/whatsapp';
 
 export const FloatingWhatsApp: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,13 +28,13 @@ export const FloatingWhatsApp: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="w-10 h-10 rounded-full bg-[#ffdf98] text-[#1a1c20] font-bold flex items-center justify-center text-sm">
-                  RS
+                  AD
                 </div>
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#25D366] ring-2 ring-[#1a1c20]"></span>
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-sm leading-tight">Ramesh Sharma</span>
-                <span className="text-xs text-[#ffdf98]">Showroom Lead • Ranigunj</span>
+                <span className="font-bold text-sm leading-tight">All Display Team</span>
+                <span className="text-xs text-[#ffdf98]">Wholesale Desk • Hyderabad</span>
                 <span className="text-[10px] text-white/60">Typically replies in &lt; 5 mins</span>
               </div>
             </div>
@@ -53,17 +54,17 @@ export const FloatingWhatsApp: React.FC = () => {
 
             <div className="flex flex-col gap-1.5 pt-1">
               <a
-                href="https://wa.me/917396127273?text=Hi%20Ramesh,%20I%20am%20looking%20for%20clothing%20store%20fittings%20and%20display%20fixtures."
+                href={getWhatsAppLink('Hi All Display, I am looking for clothing store fittings and display fixtures.')}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white py-2.5 px-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm"
               >
                 <span className="material-symbols-outlined text-[18px]">chat</span>
-                <span>Chat on WhatsApp (+91 73961 27273)</span>
+                <span>Chat on WhatsApp (+{getWhatsAppNumber()})</span>
               </a>
 
               <a
-                href="https://wa.me/919849023456?text=Hi%20All%20Display,%20I%20have%20a%20store%20floor%20plan%20for%20quotation."
+                href={getWhatsAppLink('Hi All Display, I have a store floor plan for quotation.', true)}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full bg-[#f1ede7] hover:bg-[#ebe8e2] text-[#1c1c18] py-2 px-3 rounded-lg font-medium flex items-center justify-center gap-1.5 transition-colors"
@@ -94,4 +95,3 @@ export const FloatingWhatsApp: React.FC = () => {
     </>
   );
 };
-

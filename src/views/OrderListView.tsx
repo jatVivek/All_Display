@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { ActiveView, CartItem } from '../types';
+import { ActiveView, CartItem, ConsigneeDetails } from '../types';
+import { storeManager } from '../services/storeManager';
+import { getWhatsAppLink } from '../utils/whatsapp';
 
 interface OrderListViewProps {
   onNavigate: (view: ActiveView) => void;
   cart: CartItem[];
   onUpdateQty: (id: string, qty: number) => void;
   onRemoveItem: (id: string) => void;
-  onOpenProforma: () => void;
+  onOpenProforma: (consignee: ConsigneeDetails) => void;
 }
 
 export const OrderListView: React.FC<OrderListViewProps> = ({
@@ -17,14 +19,17 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
   onOpenProforma
 }) => {
   // Consignee state
-  const [storeName, setStoreName] = useState('Kalyan Silks Boutique');
-  const [proprietor, setProprietor] = useState('Rajesh Kalyan');
-  const [whatsapp, setWhatsapp] = useState('9849023456');
-  const [destination, setDestination] = useState('Vijayawada, AP');
-  const [pincode, setPincode] = useState('520002');
+  const [storeName, setStoreName] = useState('');
+  const [proprietor, setProprietor] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
+  const [destination, setDestination] = useState('');
+  const [pincode, setPincode] = useState('');
   const [launchTimeline, setLaunchTimeline] = useState<'7days' | '15days' | 'nextmonth'>('7days');
   const [notes, setNotes] = useState('');
   const [copiedNotification, setCopiedNotification] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [submissionNotice, setSubmissionNotice] = useState<string | null>(null);
 
   // Calculations
   const grossSubtotal = cart.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0);
@@ -37,20 +42,71 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
   // Next slab progress
   const progressPercent = Math.min(100, Math.round((grossSubtotal / 50000) * 100));
 
-  const buildWhatsAppText = () => {
+  const buildWhatsAppText = (orderNo: string) => {
     const lines = cart.map(item => `- ${item.sku} ${item.title} (${item.finish}, ${item.sizeOrSpec}): ${item.quantity} ${item.unitLabel} @ ₹${item.unitPrice.toLocaleString('en-IN')} = ₹${(item.unitPrice * item.quantity).toLocaleString('en-IN')}`).join('\n');
-    return `Hi All Display Team, I want to confirm Wholesale Order #AD-HYD-8492 for ${storeName} (${proprietor}, ${destination} - ${pincode}, Ph: +91 ${whatsapp}).\n\nItems:\n${lines}\n\nGross Subtotal: ₹${grossSubtotal.toLocaleString('en-IN')}\nVolume Discount: -₹${discountAmount.toLocaleString('en-IN')}\n18% GST: ₹${gstAmount.toLocaleString('en-IN')}\nEstimated Total: ₹${totalPayable.toLocaleString('en-IN')}\nTimeline: ${launchTimeline === '7days' ? 'Within 7 Days' : launchTimeline === '15days' ? '15 Days' : 'Next Month'}\nNotes: ${notes || 'None'}\n\nPlease share exact freight estimate and Ranigunj Factory NEFT bank details for payment.`;
+    return `Hi All Display Team, I want to confirm wholesale order *${orderNo}* for ${storeName} (${proprietor}, ${destination} - ${pincode}, Ph: ${whatsapp}).\n\nItems:\n${lines}\n\nGross Subtotal: ₹${grossSubtotal.toLocaleString('en-IN')}\nVolume Discount: -₹${discountAmount.toLocaleString('en-IN')}\n18% GST: ₹${gstAmount.toLocaleString('en-IN')}\nEstimated Total: ₹${totalPayable.toLocaleString('en-IN')}\nTimeline: ${launchTimeline === '7days' ? 'Within 7 Days' : launchTimeline === '15days' ? '15 Days' : 'Next Month'}\nNotes: ${notes || 'None'}\n\nPlease share exact freight estimate and payment details.`;
   };
 
-  const handleWhatsAppSend = () => {
-    const text = encodeURIComponent(buildWhatsAppText());
-    window.open(`https://wa.me/917396127273?text=${text}`, '_blank');
+  const handleWhatsAppSend = async () => {
+    if (isSubmitting || cart.length === 0) return;
+    const phoneDigits = whatsapp.replace(/\D/g, '').replace(/^91(?=\d{10}$)/, '');
+    if (!storeName.trim() || !proprietor.trim() || !destination.trim() || !pincode.trim() || phoneDigits.length !== 10) {
+      setSubmissionError('Enter the store name, contact person, 10-digit WhatsApp number, destination, and pincode before submitting.');
+      return;
+    }
+    setIsSubmitting(true);
+    setSubmissionError(null);
+    setSubmissionNotice(null);
+    const whatsappWindow = window.open('about:blank', '_blank');
+    try {
+      const order = await storeManager.createOrder({
+        customerName: proprietor.trim(),
+        storeName: storeName.trim(),
+        whatsapp: phoneDigits,
+        destination: destination.trim(),
+        pincode: pincode.trim(),
+        items: cart.map((item) => ({
+          sku: item.sku,
+          title: item.title,
+          finish: item.finish,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          unitLabel: item.unitLabel,
+          sizeOrSpec: item.sizeOrSpec,
+          gauge: item.gauge,
+          packingType: item.packingType,
+        })),
+        notes: `${notes.trim()}${notes.trim() ? '\n' : ''}Requested timeline: ${launchTimeline === '7days' ? 'Within 7 Days' : launchTimeline === '15days' ? '15 Days' : 'Next Month'}`,
+      });
+      const orderText = `Hi All Display Team, I want to confirm wholesale order *${order.orderNo}* for ${order.storeName} (${order.customerName}, ${order.destination} - ${order.pincode}, Ph: ${order.whatsapp}).\n\nItems:\n${order.items.map((item) => `- ${item.sku} ${item.title} (${item.finish}): ${item.quantity} ${item.unitLabel} @ ₹${item.unitPrice.toLocaleString('en-IN')}`).join('\n')}\n\nGross Subtotal: ₹${order.subtotal.toLocaleString('en-IN')}\nVolume Discount: -₹${order.discount.toLocaleString('en-IN')}\n18% GST: ₹${order.gst.toLocaleString('en-IN')}\nEstimated Total: ₹${order.total.toLocaleString('en-IN')}\n\n${order.notes}\n\nPlease share exact freight estimate and payment details.`;
+      if (whatsappWindow) whatsappWindow.location.href = getWhatsAppLink(orderText);
+      else setSubmissionError(`Order ${order.orderNo} is saved, but your browser blocked the WhatsApp window.`);
+      setSubmissionNotice(`Order ${order.orderNo} was saved to the admin Orders list.`);
+      window.setTimeout(() => setSubmissionNotice(null), 6000);
+    } catch (error) {
+      whatsappWindow?.close();
+      setSubmissionError(error instanceof Error ? error.message : 'Could not save this order. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCopyOrderRef = () => {
-    navigator.clipboard.writeText(buildWhatsAppText());
+    navigator.clipboard.writeText(buildWhatsAppText('Order draft'));
     setCopiedNotification(true);
     setTimeout(() => setCopiedNotification(false), 2500);
+  };
+
+  const handleOpenProforma = () => {
+    onOpenProforma({
+      storeName,
+      ownerName: proprietor,
+      whatsapp,
+      destination,
+      pincode,
+      launchDate: launchTimeline === '7days' ? 'Within 7 Days' : launchTimeline === '15days' ? '15 Days' : 'Next Month',
+      notes,
+    });
   };
 
   return (
@@ -62,6 +118,8 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
           <span>Order Reference copied to clipboard!</span>
         </div>
       )}
+      {submissionError && <div role="alert" className="mx-4 mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">{submissionError}</div>}
+      {submissionNotice && <div role="status" className="mx-4 mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">{submissionNotice}</div>}
 
       {/* Dimmed Background Preview Canvas */}
       <div className="w-full bg-surface-container-low px-4 lg:px-8 py-8">
@@ -113,10 +171,10 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-xs uppercase font-bold tracking-widest text-secondary">
-                      Manufactured Items Manifest
+                      Selected Items Manifest
                     </span>
                     <span className="text-outline-variant">•</span>
-                    <span className="text-xs text-on-surface-variant">Heavy Gauge Commercial Steel (1.6mm)</span>
+                    <span className="text-xs text-on-surface-variant">Products and options from your selections</span>
                   </div>
                   <button 
                     onClick={() => onNavigate('racks-floor-stands')}
@@ -284,6 +342,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                         <label className="font-semibold text-on-surface">Store / Business Trade Name *</label>
                         <input
                           type="text"
+                              required
                           value={storeName}
                           onChange={(e) => setStoreName(e.target.value)}
                           className="w-full bg-surface-container-low px-3 py-2 rounded-lg text-on-surface border border-surface-container focus:outline-none focus:border-primary"
@@ -304,6 +363,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                           <span className="text-on-surface-variant mr-1 font-mono">+91</span>
                           <input
                             type="tel"
+                            required
                             value={whatsapp}
                             onChange={(e) => setWhatsapp(e.target.value)}
                             className="w-full bg-transparent text-on-surface focus:outline-none font-mono"
@@ -315,6 +375,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                         <label className="font-semibold text-on-surface">Destination City / State *</label>
                         <input
                           type="text"
+                          required
                           value={destination}
                           onChange={(e) => setDestination(e.target.value)}
                           className="w-full bg-surface-container-low px-3 py-2 rounded-lg text-on-surface border border-surface-container focus:outline-none focus:border-primary"
@@ -324,6 +385,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                         <label className="font-semibold text-on-surface">Pincode (For Freight) *</label>
                         <input
                           type="text"
+                          required
                           value={pincode}
                           onChange={(e) => setPincode(e.target.value)}
                           className="w-full bg-surface-container-low px-3 py-2 rounded-lg text-on-surface border border-surface-container focus:outline-none focus:border-primary font-mono"
@@ -430,23 +492,26 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                 <div className="flex flex-col gap-2.5 pt-2">
                   <button
                     onClick={handleWhatsAppSend}
-                    className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white py-3.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all transform hover:-translate-y-0.5"
+                    disabled={cart.length === 0 || isSubmitting}
+                    className="w-full bg-[#25D366] hover:bg-[#128C7E] disabled:opacity-50 disabled:cursor-not-allowed text-white py-3.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all transform hover:-translate-y-0.5"
                   >
                     <span className="material-symbols-outlined text-[20px]">send</span>
-                    <span>Send Order to WhatsApp (+91 73961 27273)</span>
+                    <span>{isSubmitting ? 'Saving Order…' : 'Save Order & Continue to WhatsApp'}</span>
                   </button>
 
                   <div className="grid grid-cols-2 gap-2">
                     <button
-                      onClick={onOpenProforma}
-                      className="w-full bg-surface-container-lowest hover:bg-surface-container-high text-primary py-2.5 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors border border-surface-container"
+                      onClick={handleOpenProforma}
+                      disabled={cart.length === 0}
+                      className="w-full bg-surface-container-lowest hover:bg-surface-container-high disabled:opacity-50 disabled:cursor-not-allowed text-primary py-2.5 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors border border-surface-container"
                     >
                       <span className="material-symbols-outlined text-[18px] text-secondary">picture_as_pdf</span>
                       <span>PDF Proforma</span>
                     </button>
                     <button
                       onClick={handleCopyOrderRef}
-                      className="w-full bg-surface-container-lowest hover:bg-surface-container-high text-primary py-2.5 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors border border-surface-container"
+                      disabled={cart.length === 0}
+                      className="w-full bg-surface-container-lowest hover:bg-surface-container-high disabled:opacity-50 disabled:cursor-not-allowed text-primary py-2.5 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors border border-surface-container"
                     >
                       <span className="material-symbols-outlined text-[18px]">content_copy</span>
                       <span>Copy Order Ref</span>

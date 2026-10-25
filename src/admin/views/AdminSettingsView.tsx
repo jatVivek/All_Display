@@ -13,19 +13,24 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
     setSettings((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (role !== 'Owner') {
       showToast('Staff role cannot modify business settings. Switch to Owner mode.');
       return;
     }
-    storeManager.saveSettings(settings);
+    if (!await storeManager.saveSettings(settings)) {
+      showToast(storeManager.getState().catalogSyncError || 'Could not save business settings.');
+      return;
+    }
     showToast('Business & WhatsApp settings saved successfully!');
   };
 
-  const handleReset = () => {
-    if (window.confirm('Are you sure you want to reset all data and restore factory catalog?')) {
-      storeManager.resetAllData();
+  const handleReset = async () => {
+    if (window.confirm('Restore the factory catalog and default business settings? Submitted orders and quote requests will be kept.')) {
+      if (!await storeManager.resetAllData()) {
+        showToast('Reset failed to sync the shared catalog. Check the database sync error.');
+      }
     }
   };
 
@@ -47,7 +52,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
             onClick={handleReset}
             className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-4 py-2.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
           >
-            Reset Factory Default Data
+            Reset Catalog &amp; Settings
           </button>
         )}
       </div>
@@ -59,9 +64,22 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-[#1c1c18]">Primary WhatsApp Number (Orders Desk)</label>
             <input
-              type="text"
+              type="tel"
               value={settings.whatsappNumber}
               onChange={(e) => handleChange('whatsappNumber', e.target.value)}
+              placeholder="919876543210"
+              className="p-3 rounded-xl bg-[#fdf9f3] border border-[#e6e2dc] text-xs font-mono focus:outline-none focus:border-[#775a00]"
+            />
+            <span className="text-[10px] text-[#76777b]">Saved to the shared database and used by the storefront WhatsApp buttons.</span>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-[#1c1c18]">Alternate WhatsApp Number (CAD / Floor Plans)</label>
+            <input
+              type="tel"
+              value={settings.alternateWhatsapp}
+              onChange={(e) => handleChange('alternateWhatsapp', e.target.value)}
+              placeholder="919876543210"
               className="p-3 rounded-xl bg-[#fdf9f3] border border-[#e6e2dc] text-xs font-mono focus:outline-none focus:border-[#775a00]"
             />
           </div>

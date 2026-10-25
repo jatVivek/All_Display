@@ -1,20 +1,14 @@
 import React, { useState } from 'react';
-import { CartItem } from '../types';
+import { CartItem, ConsigneeDetails } from '../types';
 import { useScrollLock } from '../hooks/useScrollLock';
+import { getWhatsAppLink } from '../utils/whatsapp';
+import { storeManager } from '../services/storeManager';
 
 interface ProformaModalProps {
   isOpen: boolean;
   onClose: () => void;
   cart: CartItem[];
-  consignee: {
-    storeName: string;
-    ownerName: string;
-    whatsapp: string;
-    destination: string;
-    pincode: string;
-    launchDate: string;
-    notes: string;
-  };
+  consignee: ConsigneeDetails;
 }
 
 export const ProformaModal: React.FC<ProformaModalProps> = ({
@@ -24,13 +18,17 @@ export const ProformaModal: React.FC<ProformaModalProps> = ({
   consignee
 }) => {
   const [copied, setCopied] = useState(false);
+  const [orderReference] = useState(() => `AD-${Date.now().toString(36).toUpperCase()}`);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   useScrollLock(isOpen);
 
   if (!isOpen) return null;
 
   const rawSubtotal = cart.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0);
-  const discount = rawSubtotal >= 25000 ? Math.round(rawSubtotal * 0.1) : 0;
+  const discountRate = rawSubtotal >= 50000 ? 0.15 : rawSubtotal >= 25000 ? 0.1 : 0;
+  const discount = Math.round(rawSubtotal * discountRate);
   const taxable = rawSubtotal - discount;
   const gst = Math.round(taxable * 0.18);
   const grandTotal = taxable + gst;
@@ -39,13 +37,14 @@ export const ProformaModal: React.FC<ProformaModalProps> = ({
     .map((item) => `• ${item.title} (${item.sku}): ${item.quantity} ${item.unitLabel} @ ₹${item.unitPrice.toLocaleString('en-IN')}`)
     .join('\n');
 
-  const draftMessage = `Hi All Display Team, I want to confirm Wholesale Order #AD-HYD-8492 for ${consignee.storeName || 'Boutique Store'} (${consignee.destination || 'Hyderabad'} - ${consignee.pincode || '500003'}).\n\n` +
+  const draftMessage = `Hi All Display Team, I want to confirm Wholesale Order #${orderReference} for ${consignee.storeName || 'our store'} (${consignee.ownerName || 'contact not provided'}, ${consignee.destination || 'destination not provided'} - ${consignee.pincode || 'pincode not provided'}, ${consignee.whatsapp || 'phone not provided'}).\n\n` +
     `Manifest:\n${manifestText}\n\n` +
     `Financial Summary:\n` +
     `- Ex-Factory Subtotal: ₹${rawSubtotal.toLocaleString('en-IN')}\n` +
-    (discount > 0 ? `- Volume Slab Discount (10% Tier): -₹${discount.toLocaleString('en-IN')}\n` : '') +
+    (discount > 0 ? `- Volume Slab Discount (${Math.round(discountRate * 100)}% Tier): -₹${discount.toLocaleString('en-IN')}\n` : '') +
     `- 18% Input GST: ₹${gst.toLocaleString('en-IN')}\n` +
     `- Total Commercial Payable: ₹${grandTotal.toLocaleString('en-IN')}\n\n` +
+    (consignee.launchDate ? `Requested timeline: ${consignee.launchDate}\n` : '') +
     (consignee.notes ? `Store Fit Notes: ${consignee.notes}\n\n` : '') +
     `Please share total lorry transport freight estimate to ${consignee.destination || 'our destination'} and Ranigunj Factory NEFT/RTGS bank details for advance payment.`;
 
@@ -56,10 +55,44 @@ export const ProformaModal: React.FC<ProformaModalProps> = ({
     });
   };
 
-  const launchWhatsApp = () => {
-    const encoded = encodeURIComponent(draftMessage);
-    window.open(`https://wa.me/917396127273?text=${encoded}`, '_blank');
-    onClose();
+  const launchWhatsApp = async () => {
+    if (isSubmitting || cart.length === 0) return;
+    const whatsappWindow = window.open('about:blank', '_blank');
+    setIsSubmitting(true);
+    setSubmissionError(null);
+    try {
+      const order = await storeManager.createOrder({
+        customerName: consignee.ownerName.trim(),
+        storeName: consignee.storeName.trim(),
+        whatsapp: consignee.whatsapp.replace(/\D/g, ''),
+        destination: consignee.destination.trim(),
+        pincode: consignee.pincode.trim(),
+        items: cart.map((item) => ({
+          sku: item.sku,
+          title: item.title,
+          finish: item.finish,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          unitLabel: item.unitLabel,
+          sizeOrSpec: item.sizeOrSpec,
+          gauge: item.gauge,
+          packingType: item.packingType,
+        })),
+        notes: `${consignee.notes.trim()}${consignee.notes.trim() ? '\n' : ''}Requested timeline: ${consignee.launchDate}`,
+      });
+      const message = draftMessage.replaceAll(orderReference, order.orderNo);
+      if (whatsappWindow) {
+        whatsappWindow.location.href = getWhatsAppLink(message);
+        onClose();
+      } else {
+        setSubmissionError(`Order ${order.orderNo} was saved, but your browser blocked the WhatsApp window.`);
+      }
+    } catch (error) {
+      whatsappWindow?.close();
+      setSubmissionError(error instanceof Error ? error.message : 'Could not save this order. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -75,7 +108,7 @@ export const ProformaModal: React.FC<ProformaModalProps> = ({
           <div className="flex items-center gap-2.5">
             <span className="w-2.5 h-2.5 rounded-full bg-[#25D366] animate-ping"></span>
             <h2 className="font-serif text-lg font-bold text-white">
-              Wholesale Proforma Draft #AD-HYD-8492
+              Wholesale Proforma Draft #{orderReference}
             </h2>
           </div>
           <button
@@ -95,7 +128,7 @@ export const ProformaModal: React.FC<ProformaModalProps> = ({
                 Ready to transmit directly to All Display Wholesale Desk:
               </span>
               <span className="text-[11px] text-[#45474b]">
-                WhatsApp: +91 73961 27273 / +91 98490 23456
+                WhatsApp order desk
               </span>
             </div>
           </div>
@@ -103,6 +136,7 @@ export const ProformaModal: React.FC<ProformaModalProps> = ({
           <div className="bg-[#f7f3ed] rounded-xl p-4 font-mono text-xs text-[#1c1c18] select-all leading-relaxed whitespace-pre-line border border-[#e6e2dc]">
             {draftMessage}
           </div>
+          {submissionError && <div role="alert" className="rounded-lg bg-red-50 p-3 text-xs text-red-800">{submissionError}</div>}
 
           <div className="flex items-center justify-between text-[11px] text-[#76777b] px-1">
             <span>• 100% advance payment terms</span>
@@ -113,10 +147,11 @@ export const ProformaModal: React.FC<ProformaModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             <button
               onClick={launchWhatsApp}
-              className="bg-[#25D366] hover:bg-[#128C7E] text-white py-3 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-md cursor-pointer"
+              disabled={isSubmitting || cart.length === 0}
+              className="bg-[#25D366] hover:bg-[#128C7E] disabled:opacity-50 text-white py-3 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-md cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px]">open_in_new</span>
-              <span>Open WhatsApp Now</span>
+              <span>{isSubmitting ? 'Saving Order…' : 'Save Order & Open WhatsApp'}</span>
             </button>
 
             <button

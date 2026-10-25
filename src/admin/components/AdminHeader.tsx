@@ -4,7 +4,7 @@ import { AdminTab } from '../AdminApp';
 interface AdminHeaderProps {
   activeTab: AdminTab;
   role: 'Owner' | 'Staff';
-  setRole: (role: 'Owner' | 'Staff') => void;
+  syncStatus: 'local' | 'connecting' | 'connected' | 'error';
   onLogout: () => void;
   onOpenTour: () => void;
   onExitAdmin: () => void;
@@ -13,7 +13,7 @@ interface AdminHeaderProps {
 export const AdminHeader: React.FC<AdminHeaderProps> = ({
   activeTab,
   role,
-  setRole,
+  syncStatus,
   onLogout,
   onOpenTour,
   onExitAdmin
@@ -28,8 +28,14 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
             <span className="font-serif font-bold text-base tracking-tight">All Display Wholesale Admin</span>
-            <span className="bg-[#25D366]/20 text-[#25D366] text-[10px] font-mono px-2 py-0.5 rounded-full border border-[#25D366]/40">
-              Live Sync
+            <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+              syncStatus === 'connected'
+                ? 'bg-[#25D366]/20 text-[#25D366] border-[#25D366]/40'
+                : syncStatus === 'error'
+                  ? 'bg-red-500/20 text-red-300 border-red-400/40'
+                  : 'bg-white/10 text-white/70 border-white/20'
+            }`}>
+              {syncStatus === 'connected' ? 'Shared DB' : syncStatus === 'connecting' ? 'Connecting' : syncStatus === 'error' ? 'Sync Error' : 'Local Only'}
             </span>
           </div>
           <span className="text-[11px] text-[#c6c6cb] capitalize">
@@ -40,26 +46,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 
       {/* Center / Right Controls */}
       <div className="flex items-center gap-3">
-        {/* Role Switcher */}
-        <div className="hidden sm:flex items-center bg-black/40 p-1 rounded-xl border border-white/10 text-xs">
-          <span className="text-white/60 px-2 font-medium">Role:</span>
-          <button
-            onClick={() => setRole('Owner')}
-            className={`px-3 py-1 rounded-lg font-semibold transition-all ${
-              role === 'Owner' ? 'bg-[#ffdf98] text-[#1a1c20] shadow-sm' : 'text-white/80 hover:text-white'
-            }`}
-          >
-            Owner
-          </button>
-          <button
-            onClick={() => setRole('Staff')}
-            className={`px-3 py-1 rounded-lg font-semibold transition-all ${
-              role === 'Staff' ? 'bg-[#ffdf98] text-[#1a1c20] shadow-sm' : 'text-white/80 hover:text-white'
-            }`}
-          >
-            Staff
-          </button>
-        </div>
+        <span className="hidden sm:inline text-xs text-white/70">{role}</span>
 
         {/* Guided Tour */}
         <button

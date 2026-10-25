@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ActiveView, Product, CartItem, ProjectReel } from './types';
-import { INITIAL_CART, PROJECT_REELS } from './data/catalog';
+import { ActiveView, Product, CartItem, ProjectReel, ConsigneeDetails } from './types';
+import { PROJECT_REELS } from './data/catalog';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
@@ -15,6 +15,7 @@ import { ProductDetailView } from './views/ProductDetailView';
 import { ProjectsView } from './views/ProjectsView';
 import { OrderListView } from './views/OrderListView';
 import { CustomQuoteView } from './views/CustomQuoteView';
+import { storeManager } from './services/storeManager';
 
 export default function App() {
   const [activeView, setActiveView] = useState<ActiveView>(() => {
@@ -23,13 +24,31 @@ export default function App() {
     }
     return 'home';
   });
-  const [cart, setCart] = useState<CartItem[]>(INITIAL_CART);
+  const [cart, setCart] = useState<CartItem[]>(() => {
+    try {
+      const savedCart = localStorage.getItem('alldisplay_cart');
+      const parsedCart: unknown = savedCart ? JSON.parse(savedCart) : [];
+      return Array.isArray(parsedCart) ? parsedCart as CartItem[] : [];
+    } catch {
+      return [];
+    }
+  });
+  const [, setStoreVersion] = useState(0);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   // Modals state
   const [selectedReel, setSelectedReel] = useState<ProjectReel | null>(null);
   const [isCadOpen, setIsCadOpen] = useState(false);
   const [isProformaOpen, setIsProformaOpen] = useState(false);
+  const [consignee, setConsignee] = useState<ConsigneeDetails>({
+    storeName: '',
+    ownerName: '',
+    whatsapp: '',
+    destination: '',
+    pincode: '',
+    launchDate: '',
+    notes: '',
+  });
 
   // Toast handler
   const showToast = (msg: string) => {
@@ -43,6 +62,18 @@ export default function App() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [activeView]);
+
+  useEffect(() => storeManager.subscribe(() => {
+    setStoreVersion((version) => version + 1);
+  }), []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('alldisplay_cart', JSON.stringify(cart));
+    } catch (error) {
+      console.error('Could not save the cart locally:', error);
+    }
+  }, [cart]);
 
   // Cart operations
   const handleAddToCart = (productOrItem: Product | Omit<CartItem, 'id'>, quantity: number = 1) => {
@@ -75,12 +106,15 @@ export default function App() {
               image: (productOrItem as Product).image,
               unitPrice: (productOrItem as Product).price,
               quantity,
-              moq: 1,
+              moq: Number((productOrItem as Product).moq.match(/\d+/)?.[0]) || 1,
               unitLabel: (productOrItem as Product).unit,
               finish: (productOrItem as Product).finish,
-              sizeOrSpec: 'Standard Bay 1200mm x 1675mm',
-              gauge: '1.6mm Commercial Heavy Gauge',
-              packingType: 'Heavy Crated Packing'
+              sizeOrSpec: Object.entries((productOrItem as Product).specs || {})
+                .filter(([, value]) => Boolean(value))
+                .map(([key, value]) => `${key}: ${value}`)
+                .join(', ') || (productOrItem as Product).structuralProfile,
+              gauge: (productOrItem as Product).specs?.gauge || 'Not specified',
+              packingType: 'To be confirmed'
             };
 
         showToast(`Added ${newItem.title} to B2B Order List!`);
@@ -106,17 +140,6 @@ export default function App() {
     } else {
       setSelectedReel(PROJECT_REELS[0]);
     }
-  };
-
-  // Consignee state for Proforma modal
-  const consignee = {
-    storeName: 'Kalyan Silks Boutique',
-    ownerName: 'Rajesh Kalyan',
-    whatsapp: '9849023456',
-    destination: 'Vijayawada, AP',
-    pincode: '520002',
-    launchDate: 'Within 7 Days',
-    notes: 'Need 1.8mm heavy duty upright posts for denim weight load; boutique opening scheduled next Friday in Vijayawada.'
   };
 
   const rawSubtotal = cart.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0);
@@ -189,7 +212,10 @@ export default function App() {
             cart={cart}
             onUpdateQty={handleUpdateQty}
             onRemoveItem={handleRemoveFromCart}
-            onOpenProforma={() => setIsProformaOpen(true)}
+            onOpenProforma={(details) => {
+              setConsignee(details);
+              setIsProformaOpen(true);
+            }}
           />
         )}
 

@@ -2,11 +2,9 @@ import React from 'react';
 
 interface AdminTeamViewProps {
   role: 'Owner' | 'Staff';
-  setRole: (role: 'Owner' | 'Staff') => void;
-  showToast: (msg: string) => void;
 }
 
-export const AdminTeamView: React.FC<AdminTeamViewProps> = ({ role, setRole, showToast }) => {
+export const AdminTeamView: React.FC<AdminTeamViewProps> = ({ role }) => {
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl p-6 border border-[#e6e2dc] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -16,7 +14,7 @@ export const AdminTeamView: React.FC<AdminTeamViewProps> = ({ role, setRole, sho
             <h1 className="font-serif text-2xl font-bold text-[#1c1c18]">Team Roles &amp; Permissions</h1>
           </div>
           <p className="text-xs text-[#76777b]">
-            Switch between Store Owner (Full Access) and Warehouse Staff (Orders and Stock Toggles only).
+            Your permissions are assigned to your authenticated admin account and enforced by the database.
           </p>
         </div>
       </div>
@@ -40,17 +38,7 @@ export const AdminTeamView: React.FC<AdminTeamViewProps> = ({ role, setRole, sho
             </p>
           </div>
 
-          <button
-            onClick={() => {
-              setRole('Owner');
-              showToast('Switched to Owner role with full privileges.');
-            }}
-            className={`w-full py-3 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
-              role === 'Owner' ? 'bg-[#1a1c20] text-[#ffdf98]' : 'bg-[#f1ede7] text-[#1c1c18] hover:bg-[#ebe8e2]'
-            }`}
-          >
-            {role === 'Owner' ? 'Active Owner Session' : 'Switch to Owner'}
-          </button>
+          {role === 'Owner' && <span className="bg-[#1a1c20] text-[#ffdf98] w-full py-3 rounded-xl text-xs font-semibold text-center">Assigned to this account</span>}
         </div>
 
         {/* Staff Card */}
@@ -71,17 +59,7 @@ export const AdminTeamView: React.FC<AdminTeamViewProps> = ({ role, setRole, sho
             </p>
           </div>
 
-          <button
-            onClick={() => {
-              setRole('Staff');
-              showToast('Switched to Staff role (pricing and settings protected).');
-            }}
-            className={`w-full py-3 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
-              role === 'Staff' ? 'bg-[#1a1c20] text-[#ffdf98]' : 'bg-[#f1ede7] text-[#1c1c18] hover:bg-[#ebe8e2]'
-            }`}
-          >
-            {role === 'Staff' ? 'Active Staff Session' : 'Switch to Staff'}
-          </button>
+          {role === 'Staff' && <span className="bg-[#1a1c20] text-[#ffdf98] w-full py-3 rounded-xl text-xs font-semibold text-center">Assigned to this account</span>}
         </div>
       </div>
     </div>
