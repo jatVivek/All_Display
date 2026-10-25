@@ -1,3 +1,4 @@
+import { AppIcon } from '../components/AppIcon';
 import React, { useState } from 'react';
 import { ActiveView, CartItem } from '../types';
 import { getWhatsAppLink, getWhatsAppNumber } from '../utils/whatsapp';
@@ -446,11 +447,11 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
                     accept=".dwg,.skp,.pdf,.png,.jpg,.jpeg"
                     onChange={handleFileInput}
                   />
-                  <span className="material-symbols-outlined text-[36px] text-secondary">cloud_upload</span>
+                  <AppIcon name="cloud_upload" className="text-[36px] text-secondary" />
                   <div role="note" className="text-[11px] text-amber-700">The file is not uploaded to the site yet. After WhatsApp opens, attach it in the chat.</div>
                   {uploadedFile ? (
                     <div className="flex items-center gap-2 text-primary font-bold">
-                      <span className="material-symbols-outlined text-[18px] text-[#25D366]">check_circle</span>
+                      <AppIcon name="check_circle" className="text-[18px] text-[#25D366]" />
                       <span>{uploadedFile}</span>
                     </div>
                   ) : (
@@ -503,7 +504,7 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
                   disabled={isSubmitting || submittedFeedback}
                   className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white py-3.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all transform hover:-translate-y-0.5"
                 >
-                  <span className="material-symbols-outlined text-[20px]">send</span>
+                  <AppIcon name="send" className="text-[20px]" />
                   <span>{isSubmitting ? 'Saving Quote…' : submittedFeedback ? 'Quote Request Saved' : 'Save Quote & Continue to WhatsApp'}</span>
                 </button>
 
@@ -511,7 +512,7 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
                   href={`tel:+${getWhatsAppNumber(true)}`}
                   className="w-full bg-surface-container hover:bg-surface-container-high text-primary py-2.5 px-4 rounded-lg font-bold text-xs flex items-center justify-center gap-2 transition-colors border border-surface-container"
                 >
-                  <span className="material-symbols-outlined text-[18px]">phone</span>
+                  <AppIcon name="phone" className="text-[18px]" />
                   <span>Request Call Back from Ranigunj Technical Lead (+{getWhatsAppNumber(true)})</span>
                 </a>
               </div>
@@ -547,14 +548,14 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
             {/* Direct Wholesale Policy Guarantee */}
             <div className="bg-[#1a1c20] text-surface p-5 rounded-xl shadow-sm flex flex-col gap-3 border border-white/10">
               <div className="flex items-center gap-2 text-secondary font-bold text-xs uppercase tracking-wider">
-                <span className="material-symbols-outlined text-[20px]">verified</span>
+                <AppIcon name="verified" className="text-[20px]" />
                 <span>Direct Wholesale Guarantee</span>
               </div>
               <p className="text-xs text-primary-fixed leading-relaxed">
                 We manufacture and assemble everything in-house in Secunderabad / Hyderabad. No middleman margins. 100% advance RTGS / NEFT before transport loading.
               </p>
               <div className="flex items-center gap-2 text-[11px] text-secondary-fixed pt-1 border-t border-white/10">
-                <span className="material-symbols-outlined text-[16px]">videocam</span>
+                <AppIcon name="videocam" className="text-[16px]" />
                 <span>Live video inspection before vehicle handoff guaranteed.</span>
               </div>
             </div>
@@ -573,7 +574,7 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
               {/* Showroom 1 */}
               <div className="flex flex-col gap-1 text-xs border-b border-surface-container pb-3">
                 <div className="flex items-center gap-1.5 font-bold text-primary">
-                  <span className="material-symbols-outlined text-secondary text-[16px]">store</span>
+                  <AppIcon name="store" className="text-secondary text-[16px]" />
                   <span>Begum Bazaar Showroom</span>
                 </div>
                 <p className="text-[11px] text-on-surface-variant">
@@ -585,7 +586,7 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
               {/* Showroom 2 */}
               <div className="flex flex-col gap-1 text-xs">
                 <div className="flex items-center gap-1.5 font-bold text-primary">
-                  <span className="material-symbols-outlined text-secondary text-[16px]">factory</span>
+                  <AppIcon name="factory" className="text-secondary text-[16px]" />
                   <span>Ranigunj Central Manufacturing &amp; Warehouse</span>
                 </div>
                 <p className="text-[11px] text-on-surface-variant">
@@ -611,7 +612,7 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
               className="text-xs font-bold text-secondary hover:underline flex items-center gap-1"
             >
               <span>View Current Order List</span>
-              <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              <AppIcon name="arrow_forward" className="text-[16px]" />
             </button>
           </div>
 
@@ -739,9 +740,7 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
                 className="w-full p-4 text-left flex items-center justify-between font-bold text-xs text-primary hover:bg-surface-container-low transition-colors"
               >
                 <span>{faq.q}</span>
-                <span className="material-symbols-outlined text-[18px] text-secondary">
-                  {openFaq === idx ? 'expand_less' : 'expand_more'}
-                </span>
+                <AppIcon name={openFaq === idx ? 'expand_less' : 'expand_more'} className="text-[18px] text-secondary" />
               </button>
               {openFaq === idx && (
                 <div className="px-4 pb-4 pt-1 text-xs text-on-surface-variant leading-relaxed border-t border-surface-container/60">

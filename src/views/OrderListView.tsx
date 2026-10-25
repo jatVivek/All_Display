@@ -1,3 +1,4 @@
+import { AppIcon } from '../components/AppIcon';
 import React, { useState } from 'react';
 import { ActiveView, CartItem, ConsigneeDetails } from '../types';
 import { storeManager } from '../services/storeManager';
@@ -114,7 +115,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
       {/* Copied Feedback Toast */}
       {copiedNotification && (
         <div className="fixed top-24 right-6 z-50 bg-[#1a1c20] text-white px-5 py-3 rounded-xl shadow-xl flex items-center gap-2 text-xs font-semibold animate-pulse border border-secondary">
-          <span className="material-symbols-outlined text-[#25D366] text-[18px]">check_circle</span>
+          <AppIcon name="check_circle" className="text-[#25D366] text-[18px]" />
           <span>Order Reference copied to clipboard!</span>
         </div>
       )}
@@ -131,7 +132,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
             <div className="bg-[#1a1c20] text-on-primary px-5 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-4 border-b border-white/10">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-secondary-fixed">
-                  <span className="material-symbols-outlined text-[24px]">assignment_turned_in</span>
+                  <AppIcon name="assignment_turned_in" className="text-[24px]" />
                 </div>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
@@ -158,7 +159,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                   className="p-2 rounded-lg bg-surface-container-highest/20 hover:bg-surface-container-highest/40 text-on-primary transition-colors"
                   title="Back to Catalog"
                 >
-                  <span className="material-symbols-outlined text-[20px]">close</span>
+                  <AppIcon name="close" className="text-[20px]" />
                 </button>
               </div>
             </div>
@@ -180,7 +181,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                     onClick={() => onNavigate('racks-floor-stands')}
                     className="text-secondary hover:text-on-secondary-container text-xs font-bold flex items-center gap-1 transition-colors"
                   >
-                    <span className="material-symbols-outlined text-[16px]">add_circle</span> 
+                    <AppIcon name="add_circle" className="text-[16px]" />
                     <span>Add More Items</span>
                   </button>
                 </div>
@@ -188,7 +189,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                 {/* Items List */}
                 {cart.length === 0 ? (
                   <div className="bg-surface-container-low rounded-xl p-8 text-center flex flex-col items-center gap-3">
-                    <span className="material-symbols-outlined text-[48px] text-outline">shopping_bag</span>
+                    <AppIcon name="shopping_bag" className="text-[48px] text-outline" />
                     <h3 className="font-serif text-lg font-bold text-primary">Your Wholesale Order List is Empty</h3>
                     <p className="text-xs text-on-surface-variant max-w-sm">
                       Select heavy-duty floor racks, wall channels, or mannequins from our Hyderabad catalog to build your store quotation.
@@ -255,7 +256,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                                   onClick={() => onUpdateQty(item.id, Math.max(item.moq, item.quantity - 1))}
                                   className="w-7 h-7 flex items-center justify-center rounded bg-surface-container-lowest text-on-surface hover:bg-surface-container-high transition-colors"
                                 >
-                                  <span className="material-symbols-outlined text-[16px]">remove</span>
+                                  <AppIcon name="remove" className="text-[16px]" />
                                 </button>
                                 <span className="w-9 text-center font-bold text-xs text-on-surface">
                                   {item.quantity}
@@ -264,7 +265,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                                   onClick={() => onUpdateQty(item.id, item.quantity + 1)}
                                   className="w-7 h-7 flex items-center justify-center rounded bg-surface-container-lowest text-on-surface hover:bg-surface-container-high transition-colors"
                                 >
-                                  <span className="material-symbols-outlined text-[16px]">add</span>
+                                  <AppIcon name="add" className="text-[16px]" />
                                 </button>
                               </div>
                               <span className="text-[11px] text-outline font-semibold ml-1">{item.packingType}</span>
@@ -274,7 +275,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                               onClick={() => onRemoveItem(item.id)}
                               className="text-error hover:text-red-700 text-xs font-bold flex items-center gap-1 transition-colors"
                             >
-                              <span className="material-symbols-outlined text-[16px]">delete</span>
+                              <AppIcon name="delete" className="text-[16px]" />
                               <span>Remove</span>
                             </button>
                           </div>
@@ -287,18 +288,18 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                 {/* B2B Transparency Notice */}
                 <div className="rounded-xl bg-surface-container-high p-4 flex flex-col gap-2 border border-surface-container">
                   <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
-                    <span className="material-symbols-outlined text-secondary text-[20px]">verified</span>
+                    <AppIcon name="verified" className="text-secondary text-[20px]" />
                     <span>Hyderabad Factory Transparent Terms</span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                     <div className="flex items-start gap-2">
-                      <span className="material-symbols-outlined text-secondary text-[16px] shrink-0 mt-0.5">check_circle</span>
+                      <AppIcon name="check_circle" className="text-secondary text-[16px] shrink-0 mt-0.5" />
                       <span className="text-on-surface-variant leading-relaxed">
                         <strong className="text-on-surface">100% Prepaid Dispatch:</strong> Bank RTGS, NEFT, or Corporate UPI before truck release. No Cash on Delivery.
                       </span>
                     </div>
                     <div className="flex items-start gap-2">
-                      <span className="material-symbols-outlined text-secondary text-[16px] shrink-0 mt-0.5">videocam</span>
+                      <AppIcon name="videocam" className="text-secondary text-[16px] shrink-0 mt-0.5" />
                       <span className="text-on-surface-variant leading-relaxed">
                         <strong className="text-on-surface">Live Video Inspection:</strong> HD WhatsApp call prior to crate loading at Ranigunj depot to inspect finished lot.
                       </span>
@@ -368,7 +369,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                             onChange={(e) => setWhatsapp(e.target.value)}
                             className="w-full bg-transparent text-on-surface focus:outline-none font-mono"
                           />
-                          <span className="material-symbols-outlined text-[#25D366] text-[16px]">check_circle</span>
+                          <AppIcon name="check_circle" className="text-[#25D366] text-[16px]" />
                         </div>
                       </div>
                       <div className="flex flex-col gap-1">
@@ -440,14 +441,14 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                       <div className="flex items-center justify-between text-[#128C7E]">
                         <span className="flex items-center gap-1">
                           <span>Volume Slab Discount ({Math.round(discountRate * 100)}% Tier)</span>
-                          <span className="material-symbols-outlined text-[14px]">high_res</span>
+                          <AppIcon name="high_res" className="text-[14px]" />
                         </span>
                         <span className="font-mono font-bold">-₹{discountAmount.toLocaleString('en-IN')}</span>
                       </div>
                       <div className="flex items-center justify-between text-on-surface-variant">
                         <span className="flex items-center gap-1">
                           <span>B2B Input GST (18% Tax Invoice)</span>
-                          <span className="material-symbols-outlined text-[14px] text-outline" title="Claimable input tax credit on your GSTIN">info</span>
+                          <AppIcon name="info" className="text-[14px] text-outline" />
                         </span>
                         <span className="font-mono text-on-surface">₹{gstAmount.toLocaleString('en-IN')}</span>
                       </div>
@@ -495,7 +496,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                     disabled={cart.length === 0 || isSubmitting}
                     className="w-full bg-[#25D366] hover:bg-[#128C7E] disabled:opacity-50 disabled:cursor-not-allowed text-white py-3.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all transform hover:-translate-y-0.5"
                   >
-                    <span className="material-symbols-outlined text-[20px]">send</span>
+                    <AppIcon name="send" className="text-[20px]" />
                     <span>{isSubmitting ? 'Saving Order…' : 'Save Order & Continue to WhatsApp'}</span>
                   </button>
 
@@ -505,7 +506,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                       disabled={cart.length === 0}
                       className="w-full bg-surface-container-lowest hover:bg-surface-container-high disabled:opacity-50 disabled:cursor-not-allowed text-primary py-2.5 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors border border-surface-container"
                     >
-                      <span className="material-symbols-outlined text-[18px] text-secondary">picture_as_pdf</span>
+                      <AppIcon name="picture_as_pdf" className="text-[18px] text-secondary" />
                       <span>PDF Proforma</span>
                     </button>
                     <button
@@ -513,13 +514,13 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                       disabled={cart.length === 0}
                       className="w-full bg-surface-container-lowest hover:bg-surface-container-high disabled:opacity-50 disabled:cursor-not-allowed text-primary py-2.5 px-3 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors border border-surface-container"
                     >
-                      <span className="material-symbols-outlined text-[18px]">content_copy</span>
+                      <AppIcon name="content_copy" className="text-[18px]" />
                       <span>Copy Order Ref</span>
                     </button>
                   </div>
 
                   <div className="flex items-center justify-center gap-1 text-center text-[11px] text-outline pt-1">
-                    <span className="material-symbols-outlined text-[16px] text-secondary">local_shipping</span>
+                    <AppIcon name="local_shipping" className="text-[16px] text-secondary" />
                     <span>Direct daily dispatches via VRL / Navata / Safechem Logistics</span>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
+import { AppIcon } from './AppIcon';
 import React from 'react';
 import { ActiveView } from '../types';
-import { getWhatsAppNumber } from '../utils/whatsapp';
 
 interface FooterProps {
   setActiveView: (view: ActiveView) => void;
@@ -10,7 +10,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveView }) => {
   return (
     <footer className="w-full bg-[#f7f3ed] pt-12 pb-8 shadow-[0_-1px_6px_rgba(0,0,0,0.02)] border-t border-[#e6e2dc]">
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
           {/* Column 1: Brand Information */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
@@ -25,32 +25,8 @@ export const Footer: React.FC<FooterProps> = ({ setActiveView }) => {
               Premier manufacturer and bulk stockist of boutique retail displays, heavy-duty garment racks, electroplated gold channel systems, and fiberglass mannequins serving Telangana, Andhra Pradesh, and all Indian states.
             </p>
             <div className="flex items-center gap-2 text-xs text-[#45474b] font-medium pt-1">
-              <span className="material-symbols-outlined text-[18px] text-[#775a00]">verified</span>
+              <AppIcon name="verified" className="text-[18px] text-[#775a00]" />
               <span>Govt. GST Registered Wholesale Facility • GSTIN: 36AAHCA1234F1Z8</span>
-            </div>
-          </div>
-
-          {/* Column 2: Hyderabad Showrooms */}
-          <div className="flex flex-col gap-2.5">
-            <h4 className="font-serif text-base font-bold text-[#000102] mb-1">Hyderabad Showrooms</h4>
-            <div className="flex flex-col gap-1 text-xs text-[#45474b]">
-              <strong className="text-[#1c1c18] font-semibold">Ranigunj Flagship Unit:</strong>
-              <p>Plot #14, Ground Floor, Wholesale Hardware Lane, Ranigunj, Secunderabad - 500003</p>
-              <div className="flex items-center gap-2 pt-0.5">
-                <span className="text-[#775a00] font-semibold">Direct:</span>
-                <a href={`tel:+${getWhatsAppNumber()}`} className="hover:underline text-[#1c1c18]">+{getWhatsAppNumber()}</a>
-                <span>/</span>
-                <a href={`tel:+${getWhatsAppNumber(true)}`} className="hover:underline text-[#1c1c18]">+{getWhatsAppNumber(true)}</a>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-1 text-xs text-[#45474b] pt-2 border-t border-[#e6e2dc]/60">
-              <strong className="text-[#1c1c18] font-semibold">Begum Bazaar Depot:</strong>
-              <p>Near Fish Market Commercial Complex, Begum Bazaar, Hyderabad - 500012</p>
-              <div className="flex items-center gap-2 pt-0.5">
-                <span className="text-[#775a00] font-semibold">Phone:</span>
-                <a href="tel:+914024607890" className="hover:underline text-[#1c1c18]">+91 40 2460 7890</a>
-              </div>
             </div>
           </div>
 
@@ -59,14 +35,14 @@ export const Footer: React.FC<FooterProps> = ({ setActiveView }) => {
             <h4 className="font-serif text-base font-bold text-[#000102] mb-1">B2B Commercial Policy</h4>
             <div className="bg-[#ffffff] p-3.5 rounded-lg flex flex-col gap-2 border border-[#e6e2dc]">
               <div className="flex items-center gap-1.5 text-xs text-[#000102] font-semibold">
-                <span className="material-symbols-outlined text-[16px] text-[#775a00]">payments</span>
+                <AppIcon name="payments" className="text-[16px] text-[#775a00]" />
                 <span>100% Prepaid Terms</span>
               </div>
               <p className="text-[11px] text-[#45474b] leading-normal">
                 Payment via NEFT, RTGS, or Corporate UPI before transport dispatch. Strictly Zero Cash on Delivery (COD).
               </p>
               <div className="flex items-center gap-1.5 text-xs text-[#000102] font-semibold pt-1 border-t border-[#f1ede7]">
-                <span className="material-symbols-outlined text-[16px] text-[#775a00]">videocam</span>
+                <AppIcon name="videocam" className="text-[16px] text-[#775a00]" />
                 <span>Video Call Inspection</span>
               </div>
               <p className="text-[11px] text-[#45474b] leading-normal">
@@ -81,72 +57,17 @@ export const Footer: React.FC<FooterProps> = ({ setActiveView }) => {
                 target="_blank"
                 rel="noreferrer"
               >
-                <span className="material-symbols-outlined text-[16px]">photo_camera</span>
+                <AppIcon name="photo_camera" className="text-[16px]" />
                 <span>@all_display_</span>
               </a>
               <button
                 onClick={() => setActiveView('custom-quote')}
                 className="text-[#775a00] hover:underline flex items-center gap-1 font-semibold cursor-pointer"
               >
-                <span className="material-symbols-outlined text-[16px]">map</span>
+                <AppIcon name="map" className="text-[16px]" />
                 <span>View Depot Pin</span>
               </button>
             </div>
-          </div>
-
-          {/* Column 4: Directory */}
-          <div className="flex flex-col gap-2.5">
-            <h4 className="font-serif text-base font-bold text-[#000102] mb-1">Full Catalog Directory</h4>
-            <ul className="flex flex-col gap-1.5 text-xs text-[#45474b]">
-              <li>
-                <button
-                  onClick={() => setActiveView('racks-floor-stands')}
-                  className="hover:text-[#000102] text-left transition-colors cursor-pointer"
-                >
-                  Racks &amp; Floor Stands (SS &amp; MS Heavy Duty)
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => setActiveView('pdp')}
-                  className="hover:text-[#000102] text-left transition-colors cursor-pointer"
-                >
-                  Triple Pipe Island Display Racks (AD-TPR-739)
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => setActiveView('racks-floor-stands')}
-                  className="hover:text-[#000102] text-left transition-colors cursor-pointer"
-                >
-                  Slot Channels &amp; Glass Shelf Brackets
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => setActiveView('racks-floor-stands')}
-                  className="hover:text-[#000102] text-left transition-colors cursor-pointer"
-                >
-                  Brushed Titanium Gold Display Islands
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => setActiveView('shop-setup-projects')}
-                  className="hover:text-[#000102] text-left transition-colors cursor-pointer"
-                >
-                  Shop Setup Projects (Turnkey Showroom Fittings)
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => setActiveView('custom-quote')}
-                  className="hover:text-[#000102] text-left transition-colors font-medium text-[#775a00] cursor-pointer"
-                >
-                  Get Custom Quote &amp; Floor Plan Estimation
-                </button>
-              </li>
-            </ul>
           </div>
         </div>
 
@@ -155,7 +76,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveView }) => {
           <p>© 2025 All Display Fixtures &amp; Fittings Private Limited. All Rights Reserved. Ranigunj &amp; Begum Bazaar, Hyderabad, Telangana.</p>
           <div className="flex items-center gap-3">
             <button onClick={() => setActiveView('admin' as any)} className="text-[#775a00] hover:underline font-bold flex items-center gap-1">
-              <span className="material-symbols-outlined text-[14px]">lock</span>
+              <AppIcon name="lock" className="text-[14px]" />
               <span>Admin Portal (/admin)</span>
             </button>
             <span className="text-[#c6c6cb]">•</span>

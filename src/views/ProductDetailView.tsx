@@ -1,3 +1,4 @@
+import { AppIcon } from '../components/AppIcon';
 import React, { useState } from 'react';
 import { ActiveView, Product, CartItem, ProjectReel } from '../types';
 import { getWhatsAppLink } from '../utils/whatsapp';
@@ -124,7 +125,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
       {/* Toast Notification */}
       {isAddedToast && (
         <div className="fixed bottom-6 right-6 z-50 bg-primary text-on-primary px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 animate-bounce">
-          <span className="material-symbols-outlined text-[#25D366] text-[22px]">check_circle</span>
+          <AppIcon name="check_circle" className="text-[#25D366] text-[22px]" />
           <div>
             <div className="font-semibold text-sm">Added to B2B Order List!</div>
             <div className="text-xs text-outline-variant">{quantity} units @ ₹{totalUnitPrice.toLocaleString('en-IN')}/unit</div>
@@ -180,7 +181,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                   className="w-10 h-10 rounded-lg bg-surface/90 hover:bg-surface text-on-surface flex items-center justify-center shadow-md transition-all hover:scale-105" 
                   title="View CAD Structural Diagram"
                 >
-                  <span className="material-symbols-outlined text-[20px]">architecture</span>
+                  <AppIcon name="architecture" className="text-[20px]" />
                 </button>
               </div>
 
@@ -195,7 +196,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
               <div className="absolute bottom-4 left-4 right-4 bg-primary/90 backdrop-blur-md rounded-lg p-3 text-on-primary flex items-center justify-between transition-transform duration-200 shadow-lg">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-[20px]">play_arrow</span>
+                    <AppIcon name="play_arrow" className="text-[20px]" />
                   </div>
                   <div className="flex flex-col">
                     <span className="font-semibold text-sm leading-tight text-white">Workshop Assembly &amp; Load Demo Video</span>
@@ -231,7 +232,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
             {/* Factory Guarantee Banner */}
             <div className="bg-surface-container-low p-4 rounded-xl flex flex-wrap items-center justify-between gap-4 border border-surface-container">
               <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-secondary text-[32px]">verified_user</span>
+                <AppIcon name="verified_user" className="text-secondary text-[32px]" />
                 <div className="flex flex-col">
                   <span className="font-bold text-sm text-primary">5-Year Structural Defect Warranty</span>
                   <span className="text-on-surface-variant text-xs">Precision MIG welded ERW pipe frame • Zero sag guaranteed</span>
@@ -254,7 +255,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                   Hyderabad Factory Original
                 </span>
                 <div className="flex items-center gap-1 text-[#ffb800]">
-                  <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                  <AppIcon name="star" className="text-[18px]" />
                   <span className="font-bold text-on-surface text-sm">4.9</span>
                   <span className="text-on-surface-variant text-xs">(180+ South India Showrooms Fitted)</span>
                 </div>
@@ -320,7 +321,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
               </div>
               <div className="flex items-center justify-between text-xs text-on-surface-variant pt-1 px-1">
                 <span className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[16px] text-secondary">local_shipping</span>
+                  <AppIcon name="local_shipping" className="text-[16px] text-secondary" />
                   Dispatch from Ranigunj / Begum Bazaar
                 </span>
                 <span>Excl. State Freight &amp; Crate</span>
@@ -420,7 +421,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                   onClick={() => handleQtyChange(-1)}
                   className="w-8 h-8 rounded flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors"
                 >
-                  <span className="material-symbols-outlined text-[18px]">remove</span>
+                  <AppIcon name="remove" className="text-[18px]" />
                 </button>
                 <input 
                   type="number"
@@ -434,7 +435,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                   onClick={() => handleQtyChange(1)}
                   className="w-8 h-8 rounded flex items-center justify-center text-on-surface hover:bg-surface-container transition-colors"
                 >
-                  <span className="material-symbols-outlined text-[18px]">add</span>
+                  <AppIcon name="add" className="text-[18px]" />
                 </button>
               </div>
               <div className="flex flex-col">
@@ -454,7 +455,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                 rel="noopener noreferrer"
                 className="w-full py-3.5 px-4 rounded-lg bg-[#25D366] hover:bg-[#128C7E] text-white flex items-center justify-center gap-2 font-bold text-sm shadow-md transition-all transform hover:-translate-y-0.5"
               >
-                <span className="material-symbols-outlined text-[20px]">chat</span>
+                <AppIcon name="chat" className="text-[20px]" />
                 <span>Direct WhatsApp Order &amp; Proforma Invoice</span>
               </a>
 
@@ -463,14 +464,14 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                   onClick={handleAddToCart}
                   className="py-3 px-3 rounded-lg bg-primary hover:bg-[#2A2D34] text-on-primary flex items-center justify-center gap-1.5 font-bold text-xs transition-colors shadow-sm"
                 >
-                  <span className="material-symbols-outlined text-[18px]">playlist_add</span>
+                  <AppIcon name="playlist_add" className="text-[18px]" />
                   <span>Add to B2B Order List</span>
                 </button>
                 <button 
                   onClick={onOpenCad}
                   className="py-3 px-3 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center gap-1.5 font-bold text-xs transition-colors"
                 >
-                  <span className="material-symbols-outlined text-[18px]">draft</span>
+                  <AppIcon name="draft" className="text-[18px]" />
                   <span>Custom Size &amp; 3D CAD</span>
                 </button>
               </div>
@@ -479,7 +480,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
             {/* Wholesale Commercial Terms Callout */}
             <div className="bg-surface-container-low p-4 rounded-xl flex flex-col gap-1.5 text-xs border border-surface-container">
               <div className="flex items-center gap-2 text-primary font-bold">
-                <span className="material-symbols-outlined text-[18px] text-secondary">account_balance_wallet</span>
+                <AppIcon name="account_balance_wallet" className="text-[18px] text-secondary" />
                 <span>Strict B2B Commercial Payment Terms</span>
               </div>
               <p className="text-on-surface-variant leading-relaxed">
@@ -496,7 +497,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-2">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2 text-xs font-bold text-secondary uppercase tracking-wider">
-                <span className="material-symbols-outlined text-[16px]">photo_camera</span>
+                <AppIcon name="photo_camera" className="text-[16px]" />
                 <span>Live Hyderabad Boutique Installations</span>
               </div>
               <h2 className="font-serif text-2xl lg:text-3xl font-bold text-primary">
@@ -510,7 +511,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
               className="flex items-center gap-1.5 text-xs font-bold text-secondary hover:underline"
             >
               <span>Follow @all_display_ on Instagram for Daily Fit-Out Videos</span>
-              <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              <AppIcon name="arrow_forward" className="text-[16px]" />
             </a>
           </div>
 
@@ -537,7 +538,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                     onClick={() => onNavigate('custom-quote')}
                     className="px-4 py-2 rounded-lg bg-surface text-primary font-bold text-xs hover:bg-surface-variant transition-colors flex items-center gap-1.5 shadow"
                   >
-                    <span className="material-symbols-outlined text-[18px]">storefront</span>
+                    <AppIcon name="storefront" className="text-[18px]" />
                     <span>Get Full Store Fit-Out Estimate</span>
                   </button>
                   <button 
@@ -606,7 +607,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
               {/* Architectural Parameters Card */}
               <div className="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-surface-container flex flex-col gap-3">
                 <div className="flex items-center gap-2 text-primary">
-                  <span className="material-symbols-outlined text-secondary text-[22px]">square_foot</span>
+                  <AppIcon name="square_foot" className="text-secondary text-[22px]" />
                   <h4 className="font-bold text-sm">Millimetric Dimensions</h4>
                 </div>
                 <div className="flex flex-col divide-y divide-surface-container text-xs">
@@ -632,7 +633,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
               {/* Material & Load Capacity */}
               <div className="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-surface-container flex flex-col gap-3">
                 <div className="flex items-center gap-2 text-primary">
-                  <span className="material-symbols-outlined text-secondary text-[22px]">fitness_center</span>
+                  <AppIcon name="fitness_center" className="text-secondary text-[22px]" />
                   <h4 className="font-bold text-sm">Material &amp; Structural Load</h4>
                 </div>
                 <div className="flex flex-col divide-y divide-surface-container text-xs">
@@ -658,7 +659,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
               {/* Surface Coating & Glass */}
               <div className="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-surface-container flex flex-col gap-3">
                 <div className="flex items-center gap-2 text-primary">
-                  <span className="material-symbols-outlined text-secondary text-[22px]">format_paint</span>
+                  <AppIcon name="format_paint" className="text-secondary text-[22px]" />
                   <h4 className="font-bold text-sm">Finishing &amp; Shelving</h4>
                 </div>
                 <div className="flex flex-col divide-y divide-surface-container text-xs">
@@ -697,7 +698,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                     rel="noopener noreferrer"
                     className="px-4 py-2 rounded-lg bg-primary text-on-primary font-bold text-xs hover:bg-[#2A2D34] transition-colors flex items-center gap-2"
                   >
-                    <span className="material-symbols-outlined text-[18px]">download</span>
+                    <AppIcon name="download" className="text-[18px]" />
                     <span>Download 3D CAD Bundle (.ZIP)</span>
                   </a>
                 </div>
@@ -748,7 +749,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
         {activeTab === 'shipping' && (
           <div className="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-surface-container flex flex-col gap-4 pt-6">
             <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-secondary text-[30px]">local_shipping</span>
+              <AppIcon name="local_shipping" className="text-secondary text-[30px]" />
               <div>
                 <h4 className="font-bold text-sm text-primary">Dispatch from Hyderabad Wholesale Market Hub</h4>
                 <p className="text-xs text-on-surface-variant">Direct warehouse transfers to local transporters (VRL, Navata, TCI, SafeXpress, Orange Cargo)</p>
@@ -810,7 +811,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
       <section className="max-w-7xl mx-auto px-4 lg:px-8 py-10 w-full">
         <div className="flex flex-col gap-1 mb-6">
           <div className="flex items-center gap-2 text-xs font-bold text-secondary uppercase tracking-wider">
-            <span className="material-symbols-outlined text-[16px]">hub</span>
+            <AppIcon name="hub" className="text-[16px]" />
             <span>Coordinated Boutique Systems</span>
           </div>
           <h2 className="font-serif text-2xl font-bold text-primary">Frequently Bundled Retail Fixtures</h2>
@@ -864,7 +865,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                 className="w-8 h-8 rounded-lg bg-surface-container hover:bg-primary hover:text-on-primary text-on-surface flex items-center justify-center transition-colors shadow-sm"
                 title="Add 10 rft to order"
               >
-                <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                <AppIcon name="add_shopping_cart" className="text-[18px]" />
               </button>
             </div>
           </div>
@@ -914,7 +915,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                 }}
                 className="w-8 h-8 rounded-lg bg-surface-container hover:bg-primary hover:text-on-primary text-on-surface flex items-center justify-center transition-colors shadow-sm"
               >
-                <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                <AppIcon name="add_shopping_cart" className="text-[18px]" />
               </button>
             </div>
           </div>
@@ -964,7 +965,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                 }}
                 className="w-8 h-8 rounded-lg bg-surface-container hover:bg-primary hover:text-on-primary text-on-surface flex items-center justify-center transition-colors shadow-sm"
               >
-                <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                <AppIcon name="add_shopping_cart" className="text-[18px]" />
               </button>
             </div>
           </div>
@@ -1000,7 +1001,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
                 rel="noopener noreferrer"
                 className="w-8 h-8 rounded-lg bg-surface-container hover:bg-primary hover:text-on-primary text-on-surface flex items-center justify-center transition-colors shadow-sm"
               >
-                <span className="material-symbols-outlined text-[18px]">chat</span>
+                <AppIcon name="chat" className="text-[18px]" />
               </a>
             </div>
           </div>

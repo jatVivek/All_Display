@@ -1,3 +1,4 @@
+import { AppIcon } from './AppIcon';
 import React, { useState } from 'react';
 import { CartItem, ConsigneeDetails } from '../types';
 import { useScrollLock } from '../hooks/useScrollLock';
@@ -115,14 +116,14 @@ export const ProformaModal: React.FC<ProformaModalProps> = ({
             onClick={onClose}
             className="text-white/70 hover:text-white p-1 rounded-lg"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <AppIcon name="close" className="text-[20px]" />
           </button>
         </div>
 
         {/* Content */}
         <div className="p-6 flex flex-col gap-4 max-h-[80vh] overflow-y-auto overscroll-contain" data-scrollable="true">
           <div className="flex items-center gap-3 bg-[#ffdf98]/30 p-3 rounded-xl border border-[#fece57]">
-            <span className="material-symbols-outlined text-[#775a00] text-[24px]">chat</span>
+            <AppIcon name="chat" className="text-[#775a00] text-[24px]" />
             <div className="flex flex-col">
               <span className="text-xs font-bold text-[#1c1c18]">
                 Ready to transmit directly to All Display Wholesale Desk:
@@ -150,7 +151,7 @@ export const ProformaModal: React.FC<ProformaModalProps> = ({
               disabled={isSubmitting || cart.length === 0}
               className="bg-[#25D366] hover:bg-[#128C7E] disabled:opacity-50 text-white py-3 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-md cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+              <AppIcon name="open_in_new" className="text-[18px]" />
               <span>{isSubmitting ? 'Saving Order…' : 'Save Order & Open WhatsApp'}</span>
             </button>
 
@@ -158,9 +159,7 @@ export const ProformaModal: React.FC<ProformaModalProps> = ({
               onClick={copyToClipboard}
               className="bg-[#f1ede7] hover:bg-[#ebe8e2] text-[#1c1c18] py-3 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors border border-[#c6c6cb]/60 cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[18px] text-[#775a00]">
-                {copied ? 'check' : 'content_copy'}
-              </span>
+              <AppIcon name={copied ? 'check' : 'content_copy'} className="text-[18px] text-[#775a00]" />
               <span>{copied ? 'Copied to Clipboard!' : 'Copy Proforma Ref'}</span>
             </button>
           </div>

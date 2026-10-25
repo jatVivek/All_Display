@@ -1,3 +1,4 @@
+import { AppIcon } from '../../components/AppIcon';
 import React, { useState, useEffect } from 'react';
 import { storeManager, AdminCategory } from '../../services/storeManager';
 
@@ -93,7 +94,7 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
       <div className="bg-white rounded-2xl p-6 border border-[#e6e2dc] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#775a00] text-[24px]">category</span>
+            <AppIcon name="category" className="text-[#775a00] text-[24px]" />
             <h1 className="font-serif text-2xl font-bold text-[#1c1c18]">Store Categories Management</h1>
           </div>
           <p className="text-xs text-[#76777b]">
@@ -106,7 +107,7 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
             onClick={() => handleOpenEdit()}
             className="bg-[#1a1c20] hover:bg-black text-[#ffdf98] px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer shadow-sm"
           >
-            <span className="material-symbols-outlined text-[18px]">add</span>
+            <AppIcon name="add" className="text-[18px]" />
             <span>Add New Category</span>
           </button>
         )}
@@ -130,7 +131,7 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
                 return (
                   <tr key={cat.id} className="hover:bg-[#fdf9f3]/60 transition-colors">
                     <td className="p-4 pl-6 font-bold text-[#1c1c18] flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[18px] text-[#775a00]">folder</span>
+                      <AppIcon name="folder" className="text-[18px] text-[#775a00]" />
                       <span>{cat.name}</span>
                     </td>
                     <td className="p-4 text-[#45474b]">{cat.description}</td>
@@ -172,7 +173,7 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
                 {editingCat === 'new' ? 'Add New Category' : 'Edit Category'}
               </h2>
               <button onClick={() => setEditingCat(null)} className="text-white/70 hover:text-white cursor-pointer">
-                <span className="material-symbols-outlined text-[20px]">close</span>
+                <AppIcon name="close" className="text-[20px]" />
               </button>
             </div>
 

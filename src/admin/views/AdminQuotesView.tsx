@@ -1,3 +1,4 @@
+import { AppIcon } from '../../components/AppIcon';
 import React, { useEffect, useState } from 'react';
 import { storeManager, AdminQuote } from '../../services/storeManager';
 import { getContactWhatsAppLink } from '../../utils/whatsapp';
@@ -33,7 +34,7 @@ export const AdminQuotesView: React.FC<AdminQuotesViewProps> = ({ showToast }) =
       <div className="bg-white rounded-2xl p-6 border border-[#e6e2dc] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#775a00] text-[24px]">architecture</span>
+            <AppIcon name="architecture" className="text-[#775a00] text-[24px]" />
             <h1 className="font-serif text-2xl font-bold text-[#1c1c18]">Bespoke Store Quotes &amp; CAD Inquiries</h1>
           </div>
           <p className="text-xs text-[#76777b]">
@@ -106,7 +107,7 @@ export const AdminQuotesView: React.FC<AdminQuotesViewProps> = ({ showToast }) =
                         onClick={() => handleReplyWhatsApp(q)}
                         className="bg-[#25D366] hover:bg-[#128C7E] text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 ml-auto transition-colors cursor-pointer shadow-sm"
                       >
-                        <span className="material-symbols-outlined text-[16px]">chat</span>
+                        <AppIcon name="chat" className="text-[16px]" />
                         <span>Reply WhatsApp</span>
                       </button>
                     </td>

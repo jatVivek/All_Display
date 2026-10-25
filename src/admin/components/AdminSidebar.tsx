@@ -1,3 +1,5 @@
+import { AppIcon } from '../../components/AppIcon';
+import type { AppIconName } from '../../components/AppIcon';
 import React from 'react';
 import { AdminTab } from '../AdminApp';
 import { storeManager } from '../../services/storeManager';
@@ -14,9 +16,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActive
   const quotes = storeManager.getQuotes();
   const pendingQuotesCount = quotes.filter(q => q.status === 'Pending Review').length;
 
-  const menuItems: { id: AdminTab; label: string; icon: string; badge?: number; hinglish: string }[] = [
+  const menuItems: { id: AdminTab; label: string; icon: AppIconName; badge?: number; hinglish: string }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', hinglish: 'Main Overview' },
-    { id: 'orders', label: 'Orders List', icon: 'orders', badge: newOrdersCount > 0 ? newOrdersCount : undefined, hinglish: 'Naye Orders' },
+    { id: 'orders', label: 'Orders List', icon: 'list_alt', badge: newOrdersCount > 0 ? newOrdersCount : undefined, hinglish: 'Naye Orders' },
     { id: 'quotes', label: 'Quote Requests', icon: 'request_quote', badge: pendingQuotesCount > 0 ? pendingQuotesCount : undefined, hinglish: 'Bespoke Inquiries' },
     { id: 'products', label: 'Products & Stock', icon: 'inventory_2', hinglish: 'Racks & Materials' },
     { id: 'categories', label: 'Categories CRUD', icon: 'category', hinglish: 'Store Sections' },
@@ -49,9 +51,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActive
               }`}
             >
               <div className="flex items-center gap-3">
-                <span className={`material-symbols-outlined text-[20px] ${isActive ? 'text-[#ffdf98]' : 'text-[#775a00]'}`}>
-                  {item.icon === 'orders' ? 'list_alt' : item.icon}
-                </span>
+                <AppIcon name={item.icon} className={`text-[20px] ${isActive ? 'text-[#ffdf98]' : 'text-[#775a00]'}`} />
                 <div className="flex flex-col text-left">
                   <span className="leading-tight">{item.label}</span>
                   <span className={`text-[9px] font-normal ${isActive ? 'text-white/75' : 'text-[#76777b]'}`}>

@@ -1,3 +1,4 @@
+import { AppIcon } from '../../components/AppIcon';
 import React, { useState, useEffect } from 'react';
 import { storeManager } from '../../services/storeManager';
 import { Product } from '../../types';
@@ -73,7 +74,7 @@ export const AdminProductsView: React.FC<AdminProductsViewProps> = ({
       <div className="bg-white rounded-2xl p-6 border border-[#e6e2dc] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#775a00] text-[24px]">inventory_2</span>
+            <AppIcon name="inventory_2" className="text-[#775a00] text-[24px]" />
             <h1 className="font-serif text-2xl font-bold text-[#1c1c18]">Products &amp; Wholesale Inventory</h1>
           </div>
           <p className="text-xs text-[#76777b]">
@@ -98,14 +99,14 @@ export const AdminProductsView: React.FC<AdminProductsViewProps> = ({
               }}
               className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
+              <AppIcon name="delete_sweep" className="text-[18px]" />
               <span>Clear Products &amp; Categories</span>
             </button>
             <button
               onClick={() => setEditingProduct('new')}
               className="bg-[#1a1c20] hover:bg-black text-[#ffdf98] px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer shadow-sm"
             >
-              <span className="material-symbols-outlined text-[18px]">add</span>
+              <AppIcon name="add" className="text-[18px]" />
               <span>Add New Wholesale Product</span>
             </button>
           </div>
@@ -116,7 +117,7 @@ export const AdminProductsView: React.FC<AdminProductsViewProps> = ({
       <div className="bg-white rounded-2xl p-4 border border-[#e6e2dc] shadow-sm flex items-center justify-between">
         <div className="relative w-full sm:w-80">
           <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#76777b]">
-            <span className="material-symbols-outlined text-[18px]">search</span>
+            <AppIcon name="search" className="text-[18px]" />
           </span>
           <input
             type="text"

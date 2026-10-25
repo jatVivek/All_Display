@@ -1,3 +1,4 @@
+import { AppIcon } from '../../components/AppIcon';
 import React from 'react';
 import { storeManager } from '../../services/storeManager';
 
@@ -30,7 +31,7 @@ export const AdminCustomersView: React.FC = () => {
       <div className="bg-white rounded-2xl p-6 border border-[#e6e2dc] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#775a00] text-[24px]">group</span>
+            <AppIcon name="group" className="text-[#775a00] text-[24px]" />
             <h1 className="font-serif text-2xl font-bold text-[#1c1c18]">Boutique Owner Directory</h1>
           </div>
           <p className="text-xs text-[#76777b]">
@@ -61,7 +62,7 @@ export const AdminCustomersView: React.FC = () => {
                     </div>
                   </td>
                   <td className="p-4 text-[#25D366] font-semibold flex items-center gap-1 pt-5">
-                    <span className="material-symbols-outlined text-[16px]">chat</span>
+                    <AppIcon name="chat" className="text-[16px]" />
                     <span>+91 {c.whatsapp}</span>
                   </td>
                   <td className="p-4 font-medium text-[#45474b]">{c.city}</td>

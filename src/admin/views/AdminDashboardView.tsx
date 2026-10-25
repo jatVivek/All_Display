@@ -1,3 +1,4 @@
+import { AppIcon } from '../../components/AppIcon';
 import React from 'react';
 import { getWhatsAppLink, getWhatsAppNumber } from '../../utils/whatsapp';
 import { AdminTab } from '../AdminApp';
@@ -48,7 +49,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             onClick={() => setActiveTab('orders')}
             className="bg-[#25D366] hover:bg-[#128C7E] text-white px-5 py-3 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-md cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[18px]">list_alt</span>
+            <AppIcon name="list_alt" className="text-[18px]" />
             <span>View New Orders ({newOrdersCount})</span>
           </button>
         </div>
@@ -66,7 +67,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
               New Orders (Naye)
             </span>
             <span className="w-9 h-9 rounded-xl bg-[#ffdf98]/30 text-[#775a00] flex items-center justify-center">
-              <span className="material-symbols-outlined text-[20px]">shopping_bag</span>
+              <AppIcon name="shopping_bag" className="text-[20px]" />
             </span>
           </div>
           <div className="flex items-baseline justify-between">
@@ -87,7 +88,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
               Payment Pending
             </span>
             <span className="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
-              <span className="material-symbols-outlined text-[20px]">payments</span>
+              <AppIcon name="payments" className="text-[20px]" />
             </span>
           </div>
           <div className="flex items-baseline justify-between">
@@ -108,7 +109,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
               Ready to Dispatch (Packed)
             </span>
             <span className="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
-              <span className="material-symbols-outlined text-[20px]">local_shipping</span>
+              <AppIcon name="local_shipping" className="text-[20px]" />
             </span>
           </div>
           <div className="flex items-baseline justify-between">
@@ -129,7 +130,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
               Bespoke Quotes
             </span>
             <span className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
-              <span className="material-symbols-outlined text-[20px]">architecture</span>
+              <AppIcon name="architecture" className="text-[20px]" />
             </span>
           </div>
           <div className="flex items-baseline justify-between">
@@ -147,7 +148,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
         <div className="lg:col-span-2 bg-white rounded-2xl border border-[#e6e2dc] p-6 shadow-sm flex flex-col gap-4">
           <div className="flex items-center justify-between border-b border-[#e6e2dc] pb-4">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#775a00] text-[22px]">list_alt</span>
+              <AppIcon name="list_alt" className="text-[#775a00] text-[22px]" />
               <h2 className="font-serif font-bold text-lg text-[#1c1c18]">Recent Wholesale Orders</h2>
             </div>
             <button
@@ -206,10 +207,10 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
                 className="w-full bg-[#fdf9f3] hover:bg-[#f1ede7] border border-[#e6e2dc] text-[#1c1c18] p-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="material-symbols-outlined text-[18px] text-[#775a00]">inventory_2</span>
+                  <AppIcon name="inventory_2" className="text-[18px] text-[#775a00]" />
                   <span>Update Racks &amp; Prices</span>
                 </div>
-                <span className="material-symbols-outlined text-[16px] text-[#76777b]">chevron_right</span>
+                <AppIcon name="chevron_right" className="text-[16px] text-[#76777b]" />
               </button>
 
               <button
@@ -217,10 +218,10 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
                 className="w-full bg-[#fdf9f3] hover:bg-[#f1ede7] border border-[#e6e2dc] text-[#1c1c18] p-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="material-symbols-outlined text-[18px] text-[#775a00]">view_carousel</span>
+                  <AppIcon name="view_carousel" className="text-[18px] text-[#775a00]" />
                   <span>Edit Homepage Banners</span>
                 </div>
-                <span className="material-symbols-outlined text-[16px] text-[#76777b]">chevron_right</span>
+                <AppIcon name="chevron_right" className="text-[16px] text-[#76777b]" />
               </button>
 
               <a
@@ -230,10 +231,10 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
                 className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white p-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors shadow-sm"
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="material-symbols-outlined text-[18px]">chat</span>
+                  <AppIcon name="chat" className="text-[18px]" />
                   <span>Open WhatsApp Desk (+{getWhatsAppNumber()})</span>
                 </div>
-                <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                <AppIcon name="open_in_new" className="text-[16px]" />
               </a>
             </div>
           </div>

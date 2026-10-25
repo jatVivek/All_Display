@@ -1,4 +1,4 @@
-import { Product, CartItem, ProjectReel } from '../types';
+import { HomepageBanner, Product, CartItem, ProjectReel } from '../types';
 import { INITIAL_PRODUCTS, PROJECT_REELS, TOP_SELLING_HOMEPAGE } from '../data/catalog';
 
 type AdminRole = 'Owner' | 'Staff';
@@ -86,12 +86,52 @@ const INITIAL_CATEGORIES: AdminCategory[] = [
   { id: 'cat-5', name: 'Hangers, Clips & Hooks', description: 'Lotus wood suit hangers, velvet hangers, and waterfall faceout hooks.' },
 ];
 
+const INITIAL_HOMEPAGE_BANNERS: HomepageBanner[] = [
+  {
+    id: 'banner-main',
+    eyebrow: 'Hyderabad Factory Direct • B2B Wholesale',
+    title: 'Heavy-duty racks that make every piece easy to see',
+    subtitle: 'Strong, stable display for busy retail floors.',
+    description: 'Discover dependable garment racks built for everyday merchandising and fast store setup.',
+    image: INITIAL_PRODUCTS.find((product) => product.id === 'ad-tpr-650')?.image ?? '',
+    linkType: 'category',
+    linkId: INITIAL_CATEGORIES[0].id,
+  },
+  {
+    id: 'banner-gold',
+    eyebrow: 'Boutique Collection • PVD Gold',
+    title: 'Give premium collections a standout first impression',
+    subtitle: 'Refined gold fixtures for your most considered displays.',
+    description: 'Bring a polished finish to occasionwear, bridal and designer collections.',
+    image: INITIAL_PRODUCTS.find((product) => product.id === 'ad-arc-700')?.image ?? '',
+    linkType: 'product',
+    linkId: 'ad-arc-700',
+  },
+  {
+    id: 'banner-wall',
+    eyebrow: 'Wall Systems • Made for Merchandising',
+    title: 'Turn empty walls into high-impact displays',
+    subtitle: 'A flexible wall system that makes every inch useful.',
+    description: 'Pair slotted channels, shelves and hanging rails to shape your shop floor.',
+    image: INITIAL_PRODUCTS.find((product) => product.id === 'ad-wch-dutti')?.image ?? '',
+    linkType: 'product',
+    linkId: 'ad-wch-dutti',
+  },
+];
+
+const isLegacyStarterBanner = (banners: HomepageBanner[]) =>
+  banners.length === 1 &&
+  banners[0].id === 'banner-main' &&
+  banners[0].title === 'Heavy-Duty Display Racks for Modern Retail Stores' &&
+  banners[0].image === 'https://lh3.googleusercontent.com/aida-public/AB6AXuCXybVXMlvZGeKYb_0JXEtHxZmiY36LraReoSDO2Auwjuyr6Nr9AmLN02CqnVSfW5qty_u1k1zBD3_8xhryMVP33uzyGFfJT-Irp_zV2RwgYU3JRLGf_A_X5jCoLJ4YtNB_MLXGfONPve3BhVwvtJJNkGZE4FJ2H53n7H1J-0lWZWLhZREwRq9q-GBEXPajJREpKLmpuAXp1s4ZoBzc79alpLRtJ6Es_FBOpz6L-smTtuCpCvs9H85f';
+
 const STORAGE_KEYS = {
   PRODUCTS: 'alldisplay_admin_products',
   ORDERS: 'alldisplay_admin_orders',
   QUOTES: 'alldisplay_admin_quotes',
   SETTINGS: 'alldisplay_admin_settings',
   HOMEPAGE: 'alldisplay_admin_homepage',
+  HOMEPAGE_DEALS: 'alldisplay_admin_homepage_deals',
   CATEGORIES: 'alldisplay_admin_categories',
 };
 
@@ -111,6 +151,8 @@ const DEFAULT_SETTINGS: AdminSettings = {
 export interface CentralStoreState {
   products: Product[];
   categories: AdminCategory[];
+  homepageBanners: HomepageBanner[];
+  homepageDealProductIds: string[];
   orders: AdminOrder[];
   quotes: AdminQuote[];
   settings: AdminSettings;
@@ -127,6 +169,8 @@ class CentralStoreService {
   private state: CentralStoreState = {
     products: this.loadProducts(),
     categories: this.loadCategories(),
+    homepageBanners: this.loadHomepageBanners(),
+    homepageDealProductIds: this.loadHomepageDealProductIds(),
     orders: this.loadOrders(),
     quotes: this.loadQuotes(),
     settings: this.loadSettings(),
@@ -141,6 +185,7 @@ class CentralStoreService {
       if (this.apiConfigured) {
         void this.loadSharedCatalog();
         void this.loadSharedSettings();
+        void this.loadSharedHomepageBanners();
         if (this.adminAuthenticated) void this.loadOperationalData();
       }
     }, 10000);
@@ -154,6 +199,12 @@ class CentralStoreService {
     }
     if (!this.apiConfigured && (event.key === null || event.key === STORAGE_KEYS.CATEGORIES)) {
       this.state = { ...this.state, categories: this.loadCategories() };
+    }
+    if (event.key === null || event.key === STORAGE_KEYS.HOMEPAGE) {
+      this.state = { ...this.state, homepageBanners: this.loadHomepageBanners() };
+    }
+    if (event.key === null || event.key === STORAGE_KEYS.HOMEPAGE_DEALS) {
+      this.state = { ...this.state, homepageDealProductIds: this.loadHomepageDealProductIds() };
     }
     if (event.key === null || event.key === STORAGE_KEYS.ORDERS) {
       this.state = { ...this.state, orders: this.loadOrders() };
@@ -182,6 +233,28 @@ class CentralStoreService {
       if (stored !== null) return JSON.parse(stored);
     } catch {}
     return INITIAL_CATEGORIES;
+  }
+
+  private loadHomepageBanners(): HomepageBanner[] {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.HOMEPAGE);
+      if (stored !== null) {
+        const banners: HomepageBanner[] = JSON.parse(stored);
+        return isLegacyStarterBanner(banners) ? INITIAL_HOMEPAGE_BANNERS : banners;
+      }
+    } catch {}
+    return INITIAL_HOMEPAGE_BANNERS;
+  }
+
+  private loadHomepageDealProductIds(): string[] {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.HOMEPAGE_DEALS);
+      if (stored !== null) {
+        const parsed: unknown = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.every((id) => typeof id === 'string')) return parsed;
+      }
+    } catch {}
+    return [];
   }
 
   private loadOrders(): AdminOrder[] {
@@ -261,6 +334,31 @@ class CentralStoreService {
     }
   }
 
+  private async loadSharedHomepageBanners() {
+    try {
+      const { banners, dealProductIds } = await this.apiRequest<{
+        banners: HomepageBanner[] | null;
+        dealProductIds: string[] | null;
+      }>('/api/homepage-banners');
+      if (banners) {
+        const homepageBanners = isLegacyStarterBanner(banners) ? INITIAL_HOMEPAGE_BANNERS : banners;
+        this.state = { ...this.state, homepageBanners };
+        try {
+          localStorage.setItem(STORAGE_KEYS.HOMEPAGE, JSON.stringify(homepageBanners));
+        } catch {}
+      }
+      if (dealProductIds) {
+        this.state = { ...this.state, homepageDealProductIds: dealProductIds };
+        try {
+          localStorage.setItem(STORAGE_KEYS.HOMEPAGE_DEALS, JSON.stringify(dealProductIds));
+        } catch {}
+      }
+      this.notify();
+    } catch (error) {
+      this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to load homepage banners.');
+    }
+  }
+
   private async loadOperationalData() {
     try {
       const [orders, quotes] = await Promise.all([
@@ -282,7 +380,7 @@ class CentralStoreService {
         this.state = { ...this.state, catalogSyncStatus: 'local', catalogSyncError: null };
         this.notify();
       } else if (status.connected) {
-        await Promise.all([this.loadSharedCatalog(), this.loadSharedSettings()]);
+        await Promise.all([this.loadSharedCatalog(), this.loadSharedSettings(), this.loadSharedHomepageBanners()]);
       } else {
         this.setCatalogSyncError('The server is configured but cannot connect to MySQL.');
       }
@@ -302,12 +400,21 @@ class CentralStoreService {
         ...options.headers,
       },
     });
+    const contentType = response.headers.get('content-type')?.split(';', 1)[0].trim().toLowerCase();
+    const isJson = contentType === 'application/json' || contentType?.endsWith('+json') === true;
     if (!response.ok) {
-      const result = await response.json().catch(() => null);
-      throw new Error(result?.error || `Request failed (${response.status}).`);
+      const result = isJson ? await response.json().catch(() => null) : null;
+      throw new Error(result?.error || `Request failed (${response.status}) for ${url}.`);
     }
     if (response.status === 204) return undefined as T;
-    return response.json() as Promise<T>;
+    if (!isJson) {
+      throw new Error(`Expected JSON from ${url}, but received ${contentType || 'an unknown content type'}.`);
+    }
+    try {
+      return await response.json() as T;
+    } catch {
+      throw new Error(`Invalid JSON response from ${url}.`);
+    }
   }
 
   private setCatalogSyncError(message: string) {
@@ -374,6 +481,7 @@ class CentralStoreService {
     await Promise.all([
       this.loadSharedCatalog(),
       this.migrateLocalSettingsIfCloudIsEmpty(),
+      this.loadSharedHomepageBanners(),
       this.loadOperationalData(),
     ]);
     return 'Owner';
@@ -403,6 +511,7 @@ class CentralStoreService {
     await Promise.all([
       this.loadSharedCatalog(),
       this.migrateLocalSettingsIfCloudIsEmpty(),
+      this.loadSharedHomepageBanners(),
       this.loadOperationalData(),
     ]);
     return session.role;
@@ -442,6 +551,39 @@ class CentralStoreService {
   // Categories CRUD
   public getCategories(): AdminCategory[] {
     return this.state.categories;
+  }
+
+  public getHomepageBanners(): HomepageBanner[] {
+    return this.state.homepageBanners;
+  }
+
+  public getHomepageDealProductIds(): string[] {
+    return this.state.homepageDealProductIds;
+  }
+
+  public async saveHomepageBanners(banners: HomepageBanner[], dealProductIds = this.state.homepageDealProductIds): Promise<boolean> {
+    if (this.apiConfigured) {
+      try {
+        await this.apiRequest('/api/homepage-banners', {
+          method: 'PUT',
+          headers: { 'X-Admin-Request': '1' },
+          body: JSON.stringify({ banners, dealProductIds }),
+        });
+      } catch (error) {
+        this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to save homepage banners.');
+        return false;
+      }
+    }
+    this.state = { ...this.state, homepageBanners: banners, homepageDealProductIds: dealProductIds };
+    try {
+      localStorage.setItem(STORAGE_KEYS.HOMEPAGE, JSON.stringify(banners));
+      localStorage.setItem(STORAGE_KEYS.HOMEPAGE_DEALS, JSON.stringify(dealProductIds));
+    } catch (error) {
+      console.error('Could not save homepage banners locally:', error);
+      return false;
+    }
+    this.notify();
+    return true;
   }
 
   public async saveCategories(categories: AdminCategory[]): Promise<boolean> {

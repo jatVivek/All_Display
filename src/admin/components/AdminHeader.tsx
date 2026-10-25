@@ -1,3 +1,4 @@
+import { AppIcon } from '../../components/AppIcon';
 import React from 'react';
 import { AdminTab } from '../AdminApp';
 
@@ -54,7 +55,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           className="hidden md:flex items-center gap-1.5 bg-white/10 hover:bg-white/15 text-white px-3 py-2 rounded-xl text-xs font-medium transition-colors"
           title="Guided Tour"
         >
-          <span className="material-symbols-outlined text-[18px] text-[#ffdf98]">help</span>
+          <AppIcon name="help" className="text-[18px] text-[#ffdf98]" />
           <span>Tour</span>
         </button>
 
@@ -63,7 +64,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           onClick={onExitAdmin}
           className="flex items-center gap-1.5 bg-[#25D366] hover:bg-[#128C7E] text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors shadow-sm cursor-pointer"
         >
-          <span className="material-symbols-outlined text-[18px]">storefront</span>
+          <AppIcon name="storefront" className="text-[18px]" />
           <span className="hidden sm:inline">View Website</span>
         </button>
 
@@ -73,7 +74,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           className="w-9 h-9 rounded-xl bg-white/10 hover:bg-red-500/20 hover:text-red-400 text-white flex items-center justify-center transition-colors cursor-pointer"
           title="Lock Admin Panel"
         >
-          <span className="material-symbols-outlined text-[18px]">lock</span>
+          <AppIcon name="lock" className="text-[18px]" />
         </button>
       </div>
     </header>

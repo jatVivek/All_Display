@@ -1,21 +1,21 @@
+import { AppIcon } from '../components/AppIcon';
 import React, { useState, useEffect } from 'react';
-import { ActiveView, Product, ProjectReel } from '../types';
-import { PROJECT_REELS } from '../data/catalog';
+import { ActiveView, HomepageBanner, Product } from '../types';
 import { storeManager } from '../services/storeManager';
 import { getWhatsAppLink, getWhatsAppNumber } from '../utils/whatsapp';
 
 interface HomeViewProps {
   setActiveView: (view: ActiveView) => void;
   onAddToCart: (product: Product, quantity?: number) => void;
-  onOpenReel: (reel: ProjectReel) => void;
   onToast: (msg: string) => void;
+  onOpenBannerTarget: (banner: HomepageBanner) => void;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
   setActiveView,
   onAddToCart,
-  onOpenReel,
-  onToast
+  onToast,
+  onOpenBannerTarget
 }) => {
   const [bumperQty, setBumperQty] = useState(1);
   const [inquiryName, setInquiryName] = useState('');
@@ -24,11 +24,16 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [inquiryCity, setInquiryCity] = useState('');
   const [products, setProducts] = useState<Product[]>(() => storeManager.getProducts());
   const [categories, setCategories] = useState(() => storeManager.getCategories());
+  const [homepageBanners, setHomepageBanners] = useState(() => storeManager.getHomepageBanners());
+  const [dealProductIds, setDealProductIds] = useState(() => storeManager.getHomepageDealProductIds());
+  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
 
   useEffect(() => {
     const handleUpdate = () => {
       setProducts(storeManager.getProducts());
       setCategories(storeManager.getCategories());
+      setHomepageBanners(storeManager.getHomepageBanners());
+      setDealProductIds(storeManager.getHomepageDealProductIds());
     };
     window.addEventListener('alldisplay_catalog_updated', handleUpdate);
     window.addEventListener('alldisplay_data_updated', handleUpdate);
@@ -39,6 +44,35 @@ export const HomeView: React.FC<HomeViewProps> = ({
       window.removeEventListener('storage', handleUpdate);
     };
   }, []);
+  useEffect(() => {
+    if (activeBannerIndex >= homepageBanners.length) setActiveBannerIndex(0);
+  }, [activeBannerIndex, homepageBanners.length]);
+  useEffect(() => {
+    const banner = homepageBanners[activeBannerIndex];
+    if (!banner?.image) return;
+
+    const desktopPreload = document.createElement('link');
+    desktopPreload.rel = 'preload';
+    desktopPreload.as = 'image';
+    desktopPreload.href = banner.image;
+    desktopPreload.fetchPriority = 'high';
+    document.head.appendChild(desktopPreload);
+
+    const mobilePreload = banner.mobileImage ? document.createElement('link') : null;
+    if (mobilePreload && banner.mobileImage) {
+      mobilePreload.rel = 'preload';
+      mobilePreload.as = 'image';
+      mobilePreload.href = banner.mobileImage;
+      mobilePreload.media = '(max-width: 767px)';
+      mobilePreload.fetchPriority = 'high';
+      document.head.appendChild(mobilePreload);
+    }
+
+    return () => {
+      desktopPreload.remove();
+      mobilePreload?.remove();
+    };
+  }, [activeBannerIndex, homepageBanners]);
   const categoryScrollRef = React.useRef<HTMLDivElement>(null);
 
   const scrollCategories = (direction: 'left' | 'right') => {
@@ -112,117 +146,147 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   return (
     <div className="w-full bg-[#fdf9f3] text-[#1c1c18] pb-16">
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 flex flex-col gap-10 pt-4">
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 flex flex-col gap-5 pt-3 sm:gap-6 sm:pt-4">
 
-        {/* 1. CLEAN SINGLE FULL-WIDTH HERO BANNER (Decluttered: no side dark boxes) */}
-        <section className="w-full bg-[#ffffff] rounded-2xl lg:rounded-3xl p-6 lg:p-10 shadow-sm border border-[#e6e2dc] relative overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            
-            {/* Left Content (7 Cols) */}
-            <div className="lg:col-span-7 flex flex-col gap-4">
-              <div className="inline-flex items-center gap-2 bg-[#1a1c20] text-white px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider w-fit shadow-sm">
-                <span className="w-2 h-2 rounded-full bg-[#25D366] animate-pulse"></span>
-                <span>Hyderabad Factory Direct • B2B Wholesale</span>
-              </div>
-
-              <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-[#000102] tracking-tight leading-tight">
-                Heavy-Duty Display Stands &amp; Racks
-              </h1>
-
-              <p className="font-serif italic text-lg sm:text-xl text-[#775a00] font-semibold">
-                Showcase Style • Organise Store • Elevate Sales
-              </p>
-
-              <p className="text-xs sm:text-sm text-[#45474b] max-w-xl leading-relaxed">
-                Direct factory manufacturing in Ranigunj &amp; Begum Bazaar. Engineered with 1.6mm–2.0mm ERW steel, PVD gold electroplating, and boltless 10-minute assembly. Over 180+ South India showrooms fitted.
-              </p>
-
-              {/* CTAs */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
+        {homepageBanners.length > 0 && (() => {
+          const banner = homepageBanners[activeBannerIndex];
+          const targetLabel = banner.linkType === 'category'
+            ? categories.find((category) => category.id === banner.linkId)?.name
+            : products.find((product) => product.id === banner.linkId)?.title;
+          return (
+            <section className="w-full overflow-hidden rounded-2xl border border-[#e6e2dc] bg-white shadow-[0_16px_40px_-24px_rgba(28,28,24,0.28)] sm:rounded-3xl">
+              <div className="grid h-[clamp(260px,54svh,380px)] grid-cols-[minmax(0,1.65fr)_minmax(0,0.8fr)] sm:h-[min(65vh,540px)] sm:min-h-[350px] sm:max-h-[560px] sm:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+                <div className="relative z-10 flex min-w-0 flex-col items-start justify-center overflow-hidden p-3 min-[380px]:p-4 sm:p-8 lg:p-10 xl:p-12">
+                  {banner.eyebrow && (
+                    <p className="mb-1.5 max-w-full truncate text-[clamp(7px,2vw,9px)] font-bold uppercase tracking-[0.12em] text-[#775a00] sm:mb-3 sm:text-xs sm:tracking-[0.22em]">
+                      {banner.eyebrow}
+                    </p>
+                  )}
+                  <h1 className="line-clamp-3 max-w-[15ch] font-serif text-[clamp(1.1rem,5.8vw,1.8rem)] leading-[1.04] tracking-[-0.025em] text-[#1c1c18] min-[380px]:text-[clamp(1.25rem,5.8vw,2rem)] sm:line-clamp-3 sm:text-5xl sm:leading-[1.02] sm:tracking-[-0.03em] lg:text-[clamp(2.8rem,4vw,3.5rem)]">
+                    {banner.title}
+                  </h1>
+                  {banner.subtitle && (
+                    <p className="mt-1.5 line-clamp-2 max-w-[32rem] text-[clamp(9px,2.7vw,11px)] font-semibold leading-[1.3] text-[#45474b] min-[380px]:mt-2 sm:mt-4 sm:text-lg sm:leading-relaxed">
+                      {banner.subtitle}
+                    </p>
+                  )}
+                  {banner.description && (
+                    <p className="mt-1 hidden max-w-[32rem] text-sm leading-6 text-[#76777b] sm:mt-2 sm:line-clamp-2 sm:block sm:text-base sm:leading-7">
+                      {banner.description}
+                    </p>
+                  )}
+                  <div className="mt-2.5 flex flex-wrap items-center gap-2 sm:mt-6 sm:gap-3">
+                    <button
+                      onClick={() => onOpenBannerTarget(banner)}
+                      className="inline-flex min-h-11 items-center gap-1 rounded-full bg-[#1a1c20] px-3 py-2.5 text-[10px] font-bold leading-tight text-white shadow-[0_8px_20px_-10px_rgba(26,28,32,0.65)] transition-colors hover:bg-[#775a00] cursor-pointer min-[380px]:px-4 min-[380px]:text-[11px] sm:gap-2 sm:px-6 sm:py-3.5 sm:text-sm"
+                    >
+                      <span>{banner.linkType === 'product' ? 'View Product' : 'Shop Collection'}</span>
+                      <AppIcon name="arrow_forward" className="text-[14px] sm:text-[18px]" />
+                    </button>
+                    <a
+                      href={getWhatsAppLink(`Hi All Display, I am interested in ${banner.title} wholesale rates.`)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hidden min-h-11 items-center gap-2 rounded-full border border-[#d8d1c6] px-5 py-3 text-sm font-semibold text-[#45474b] transition-colors hover:border-[#775a00] hover:text-[#775a00] sm:inline-flex"
+                    >
+                      Request a quote
+                    </a>
+                  </div>
+                  {homepageBanners.length > 1 && (
+                    <div className="mt-4 flex items-center gap-2.5 sm:mt-7" aria-label="Homepage banners">
+                      {homepageBanners.map((item, index) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => setActiveBannerIndex(index)}
+                          className={`flex h-5 items-center justify-center rounded-full transition-all cursor-pointer sm:h-6 ${index === activeBannerIndex ? 'w-8 bg-[#775a00]' : 'w-5 bg-transparent hover:bg-[#f1ede7] sm:w-6'}`}
+                          aria-label={`Show banner ${index + 1}`}
+                          aria-current={index === activeBannerIndex}
+                        >
+                          <span className={`h-2 rounded-full transition-all ${index === activeBannerIndex ? 'w-4 bg-white' : 'w-2 bg-[#b8ae9d]'}`} />
+                        </button>
+                      ))}
+                      <span className="ml-1 text-[10px] font-medium text-[#76777b] sm:text-xs">
+                        {String(activeBannerIndex + 1).padStart(2, '0')} / {String(homepageBanners.length).padStart(2, '0')}
+                      </span>
+                    </div>
+                  )}
+                </div>
                 <button
-                  onClick={() => setActiveView('racks-floor-stands')}
-                  className="bg-[#000102] hover:bg-[#2A2D34] text-white px-6 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-md cursor-pointer"
+                  type="button"
+                  onClick={() => onOpenBannerTarget(banner)}
+                  className="group relative min-h-0 overflow-hidden border-l border-white/50 bg-[#f1ede7] text-left cursor-pointer"
+                  aria-label={`Open ${targetLabel || banner.title}`}
                 >
-                  <span>Explore Catalog</span>
-                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                </button>
-                <a
-                  href={getWhatsAppLink('Hi All Display, I am interested in Heavy-Duty Display Stands and Racks wholesale rates.')}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="bg-[#25D366] hover:bg-[#128C7E] text-white px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-md"
-                >
-                  <span className="material-symbols-outlined text-[18px]">chat</span>
-                  <span>WhatsApp Quotation</span>
-                </a>
-              </div>
-
-              {/* Trust Features Strip */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 mt-2 border-t border-[#e6e2dc]/80">
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex items-center gap-1.5 text-[#000102] font-semibold text-xs">
-                    <span className="material-symbols-outlined text-[16px] text-[#775a00]">architecture</span>
-                    <span>1.6mm - 2.0mm ERW</span>
-                  </div>
-                  <span className="text-[10px] text-[#76777b]">Structural Steel Gauge</span>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex items-center gap-1.5 text-[#000102] font-semibold text-xs">
-                    <span className="material-symbols-outlined text-[16px] text-[#775a00]">inventory_2</span>
-                    <span>150+ Stock SKUs</span>
-                  </div>
-                  <span className="text-[10px] text-[#76777b]">Ranigunj Warehouse</span>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex items-center gap-1.5 text-[#000102] font-semibold text-xs">
-                    <span className="material-symbols-outlined text-[16px] text-[#775a00]">local_shipping</span>
-                    <span>Pan-India Safe</span>
-                  </div>
-                  <span className="text-[10px] text-[#76777b]">Direct Lorry Freight</span>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex items-center gap-1.5 text-[#000102] font-semibold text-xs">
-                    <span className="material-symbols-outlined text-[16px] text-[#775a00]">videocam</span>
-                    <span>Live Video Proof</span>
-                  </div>
-                  <span className="text-[10px] text-[#76777b]">Crate Inspection Call</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Showcase Image Card (5 Cols) */}
-            <div className="lg:col-span-5 relative">
-              <div 
-                onClick={() => setActiveView('pdp')}
-                className="relative aspect-[4/3.8] rounded-2xl overflow-hidden bg-[#f7f3ed] border border-[#e6e2dc] shadow-md group cursor-pointer"
-              >
-                <img
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXybVXMlvZGeKYb_0JXEtHxZmiY36LraReoSDO2Auwjuyr6Nr9AmLN02CqnVSfW5qty_u1k1zBD3_8xhryMVP33uzyGFfJT-Irp_zV2RwgYU3JRLGf_A_X5jCoLJ4YtNB_MLXGfONPve3BhVwvtJJNkGZE4FJ2H53n7H1J-0lWZWLhZREwRq9q-GBEXPajJREpKLmpuAXp1s4ZoBzc79alpLRtJ6Es_FBOpz6L-smTtuCpCvs9H85f"
-                  alt="Triple pipe rack system showcase"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-
-                {/* Floating Top Badge */}
-                <div className="absolute top-3 left-3 bg-[#1a1c20]/90 backdrop-blur-sm text-white px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow">
-                  Flagship: Triple Pipe System (AD-TPR-739)
-                </div>
-
-                {/* Floating Bottom Info Pill */}
-                <div className="absolute bottom-3 left-3 right-3 bg-white/95 backdrop-blur-md p-3 rounded-xl border border-white/60 shadow-lg flex items-center justify-between">
-                  <div>
-                    <div className="text-[10px] uppercase font-bold text-[#775a00]">140kg Tested Load Capacity</div>
-                    <div className="font-serif font-bold text-xs text-[#000102]">Modular Glass Shelves + Hanging Rod</div>
-                  </div>
-                  <span className="text-xs font-bold text-[#775a00] group-hover:underline flex items-center gap-0.5">
-                    <span>Specs</span>
-                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  <picture className="absolute inset-0">
+                    {banner.mobileImage && <source media="(max-width: 767px)" srcSet={banner.mobileImage} />}
+                    <img
+                      src={banner.image}
+                      alt={banner.title}
+                      fetchPriority="high"
+                      decoding="async"
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.025]"
+                    />
+                  </picture>
+                  <span className="absolute inset-0 border border-white/20"></span>
+                  <span className="absolute inset-0 bg-gradient-to-t from-[#1a1c20]/55 via-transparent to-transparent"></span>
+                  <span className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4 sm:bottom-7 sm:left-7 sm:right-7">
+                    <span className="rounded-full border border-white/30 bg-[#1a1c20]/55 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-white backdrop-blur-sm">
+                      {targetLabel || 'Featured collection'}
+                    </span>
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/15 text-white backdrop-blur-sm transition-colors group-hover:bg-white/25">
+                      <AppIcon name="arrow_outward" className="text-[20px]" />
+                    </span>
                   </span>
-                </div>
+                </button>
               </div>
-            </div>
+            </section>
+          );
+        })()}
 
-          </div>
-        </section>
+        {dealProductIds.length > 0 && (
+          <section className="flex flex-col gap-4" aria-labelledby="deal-of-the-day-heading">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-widest text-[#775a00]">Handpicked for your store</span>
+                <h2 id="deal-of-the-day-heading" className="font-serif text-xl sm:text-2xl font-bold text-[#000102]">Deal of the Day</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveView('shop')}
+                className="text-xs font-bold text-[#775a00] hover:text-[#000102] flex items-center gap-1"
+              >
+                Shop all products <AppIcon name="arrow_forward" className="text-[16px]" />
+              </button>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              {dealProductIds.map((id) => products.find((product) => product.id === id))
+                .filter((product): product is Product => Boolean(product))
+                .map((product) => (
+                  <article key={product.id} className="bg-white rounded-2xl p-3 sm:p-4 border border-[#e6e2dc] shadow-sm flex flex-col gap-3">
+                    <img src={product.image} alt={product.title} className="w-full aspect-[4/3] object-cover rounded-xl bg-[#f7f3ed]" />
+                    {product.videoUrl && (
+                      <video src={product.videoUrl} controls preload="none" playsInline aria-label={`${product.title} product video`} className="w-full rounded-xl bg-black" />
+                    )}
+                    <div>
+                      <h3 className="text-xs sm:text-sm font-semibold text-[#1c1c18] line-clamp-2">{product.title}</h3>
+                      <p className="mt-1 text-xs font-bold text-[#775a00]">₹{product.price.toLocaleString('en-IN')} / {product.unit}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onAddToCart(product);
+                        onToast(`Added ${product.code} to order list`);
+                      }}
+                      className="mt-auto w-full bg-[#1a1c20] hover:bg-[#2A2D34] text-white py-2 rounded-lg text-xs font-semibold"
+                    >
+                      Add to Order
+                    </button>
+                  </article>
+                ))}
+            </div>
+          </section>
+        )}
 
         {/* 2. HORIZONTAL SLIDING CATEGORY CAROUSEL (Manages vertical space on mobile) */}
         <section className="flex flex-col gap-3">
@@ -245,7 +309,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   className="w-7 h-7 rounded-full bg-white border border-[#e6e2dc] shadow-sm flex items-center justify-center text-[#1c1c18] active:bg-[#f1ede7] transition-colors"
                   aria-label="Scroll left"
                 >
-                  <span className="material-symbols-outlined text-[16px]">chevron_left</span>
+                  <AppIcon name="chevron_left" className="text-[16px]" />
                 </button>
                 <button
                   type="button"
@@ -253,7 +317,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   className="w-7 h-7 rounded-full bg-white border border-[#e6e2dc] shadow-sm flex items-center justify-center text-[#1c1c18] active:bg-[#f1ede7] transition-colors"
                   aria-label="Scroll right"
                 >
-                  <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+                  <AppIcon name="chevron_right" className="text-[16px]" />
                 </button>
               </div>
 
@@ -263,7 +327,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               >
                 <span className="hidden sm:inline">View Full Catalog</span>
                 <span className="sm:hidden">Catalog</span>
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                <AppIcon name="arrow_forward" className="text-[16px]" />
               </button>
             </div>
           </div>
@@ -308,25 +372,23 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <section className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-[10px] uppercase font-bold tracking-widest text-[#775a00]">
-                High-Volume Stock Items
-              </span>
+              <span className="text-[10px] uppercase font-bold tracking-widest text-[#775a00]">High-Volume Stock Items</span>
               <h2 className="font-serif text-xl sm:text-2xl font-bold text-[#000102]">
-                Top Selling Products
+                Most Selling Products
               </h2>
             </div>
             <button
-              onClick={() => setActiveView('racks-floor-stands')}
+              onClick={() => setActiveView('shop')}
               className="text-xs font-bold text-[#775a00] hover:text-[#000102] flex items-center gap-1 transition-colors"
             >
-              <span>Explore All Racks</span>
-              <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              <span>All Products</span>
+              <AppIcon name="arrow_forward" className="text-[16px]" />
             </button>
           </div>
 
           {products.length === 0 ? (
             <div className="bg-white rounded-2xl p-8 text-center border border-[#e6e2dc] shadow-sm flex flex-col items-center gap-3">
-              <span className="material-symbols-outlined text-[40px] text-[#76777b]">inventory_2</span>
+              <AppIcon name="inventory_2" className="text-[40px] text-[#76777b]" />
               <h3 className="font-serif text-lg font-bold text-[#1c1c18]">Catalog is currently empty</h3>
               <p className="text-xs text-[#76777b] max-w-md">
                 All product and category data has been cleared. Add products via the Admin Panel (Owner Mode) to display them dynamically here.
@@ -335,13 +397,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 onClick={() => setActiveView('racks-floor-stands')}
                 className="mt-2 bg-[#1a1c20] text-[#ffdf98] px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer"
               >
-                Go to Catalog / Admin
+                Shop Products
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {products.slice(0, 4).map((product) => (
-                <div key={product.id} className="bg-[#ffffff] rounded-2xl p-4 border border-[#e6e2dc] flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow group">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {products.slice(0, 16).map((product, index) => (
+                <div key={product.id} className={`bg-[#ffffff] rounded-2xl p-3 sm:p-4 border border-[#e6e2dc] flex-col justify-between shadow-sm hover:shadow-md transition-shadow group ${index >= 8 ? 'hidden lg:flex' : 'flex'}`}>
                   <div className="flex flex-col gap-2">
                     <div 
                       onClick={() => setActiveView('pdp')}
@@ -358,6 +420,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                       />
                     </div>
+                    {product.videoUrl && (
+                      <video src={product.videoUrl} controls preload="none" playsInline aria-label={`${product.title} product video`} className="w-full rounded-xl bg-black" />
+                    )}
 
                     <div className="flex items-center gap-1 text-[#ffb800] text-xs">
                       {'★★★★★'.split('').map((s, i) => (
@@ -390,7 +455,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                       }}
                       className="w-full bg-[#1a1c20] hover:bg-[#2A2D34] text-white py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >
-                      <span className="material-symbols-outlined text-[16px]">add_shopping_cart</span>
+                      <AppIcon name="add_shopping_cart" className="text-[16px]" />
                       <span>+ Add to Order</span>
                     </button>
                   </div>
@@ -406,7 +471,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-[#fece57] shrink-0">
-                <span className="material-symbols-outlined text-[22px]">local_shipping</span>
+                <AppIcon name="local_shipping" className="text-[22px]" />
               </div>
               <div className="flex flex-col">
                 <span className="font-bold text-xs text-white">Pan-India Freight</span>
@@ -416,7 +481,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-[#25D366] shrink-0">
-                <span className="material-symbols-outlined text-[22px]">videocam</span>
+                <AppIcon name="videocam" className="text-[22px]" />
               </div>
               <div className="flex flex-col">
                 <span className="font-bold text-xs text-white">Live Video Proof</span>
@@ -426,7 +491,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-[#fece57] shrink-0">
-                <span className="material-symbols-outlined text-[22px]">receipt_long</span>
+                <AppIcon name="receipt_long" className="text-[22px]" />
               </div>
               <div className="flex flex-col">
                 <span className="font-bold text-xs text-white">18% GST Input Credit</span>
@@ -436,7 +501,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-[#fece57] shrink-0">
-                <span className="material-symbols-outlined text-[22px]">factory</span>
+                <AppIcon name="factory" className="text-[22px]" />
               </div>
               <div className="flex flex-col">
                 <span className="font-bold text-xs text-white">Direct Factory Rates</span>
@@ -447,84 +512,49 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </section>
 
-        {/* 5. REAL STORE SETUPS & INSTAGRAM VIDEO PROOFS (Unique store photos only here) */}
-        <section className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#1a1c20] text-[#ffdf98] flex items-center justify-center font-bold text-sm ring-2 ring-[#775a00]/30 shrink-0">
-                AD
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <h2 className="font-serif text-lg sm:text-xl font-bold text-[#000102]">Real Store Setups &amp; Video Proofs</h2>
-                  <span className="hidden sm:inline bg-[#f1ede7] text-[#76777b] text-[10px] font-semibold px-2 py-0.5 rounded-full">
-                    @all_display_ • 9,153 Followers
-                  </span>
-                </div>
-                <span className="text-[11px] text-[#76777b]">
-                  Watch real shop walkthroughs filmed in Jubilee Hills, Banjara Hills, Begum Bazaar &amp; Hitec City
-                </span>
-              </div>
-            </div>
-
-            <a
-              href="https://instagram.com/all_display_"
-              target="_blank"
-              rel="noreferrer"
-              className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-[#E1306C] hover:underline"
+        {/* Contact and wholesale inquiry */}
+        <section
+          id="about-us"
+          className="scroll-mt-24 bg-[#ffffff] rounded-2xl lg:rounded-3xl p-6 lg:p-8 border border-[#e6e2dc] shadow-sm grid grid-cols-1 lg:grid-cols-12 gap-8 items-center"
+        >
+          <div className="lg:col-span-7 flex flex-col gap-3">
+            <span className="w-fit bg-[#ffdf98]/40 text-[#775a00] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
+              About All Display
+            </span>
+            <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#000102] leading-tight">
+              Retail display solutions, built for everyday business.
+            </h2>
+            <p className="text-sm text-[#45474b] leading-relaxed">
+              All Display supplies retail fixtures and store fittings to boutiques, apparel stores, and retailers across India. From our Hyderabad wholesale operation, we help businesses find practical display products for their space, merchandising, and budget.
+            </p>
+            <button
+              onClick={() => setActiveView('shop')}
+              className="w-fit bg-[#1a1c20] hover:bg-[#2A2D34] text-white px-5 py-2.5 rounded-lg text-xs font-bold transition-colors"
             >
-              <span>Follow @all_display_</span>
-              <span className="material-symbols-outlined text-[16px]">open_in_new</span>
-            </a>
+              Explore the Shop
+            </button>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {PROJECT_REELS.slice(0, 4).map((reel) => (
-              <div
-                key={reel.id}
-                onClick={() => onOpenReel(reel)}
-                className="relative aspect-[4/5] rounded-2xl overflow-hidden shadow-sm group cursor-pointer border border-[#e6e2dc]"
-              >
-                <img
-                  src={reel.image}
-                  alt={reel.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-black/25 flex flex-col justify-between p-4">
-                  <div className="flex justify-between items-center">
-                    <span className="bg-black/60 backdrop-blur-sm text-white px-2 py-0.5 rounded-md text-[10px] font-bold uppercase">
-                      {reel.location.split(',')[0]}
-                    </span>
-                    <span className="bg-[#E1306C] text-white px-2 py-0.5 rounded-full text-[10px] flex items-center gap-1 font-bold">
-                      <span className="material-symbols-outlined text-[12px]">play_arrow</span>
-                      <span>{reel.duration}</span>
-                    </span>
-                  </div>
-
-                  <div className="flex flex-col gap-1 text-white">
-                    <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white mb-1 group-hover:scale-110 transition-transform">
-                      <span className="material-symbols-outlined text-[18px]">play_arrow</span>
-                    </div>
-                    <span className="font-semibold text-xs leading-tight line-clamp-1">
-                      {reel.title}
-                    </span>
-                    <span className="text-[10px] text-white/70">
-                      {reel.categoryLabel}
-                    </span>
-                  </div>
-                </div>
+          <div className="lg:col-span-5 grid grid-cols-2 gap-3">
+            {[
+              ['Retail-ready range', 'Fixtures for a variety of store formats'],
+              ['Wholesale support', 'Practical help choosing products'],
+              ['Hyderabad base', 'Serving retailers across India'],
+              ['Made to fit', 'Options for different layouts and needs'],
+            ].map(([title, description]) => (
+              <div key={title} className="rounded-xl bg-[#f7f3ed] border border-[#e6e2dc] p-4">
+                <h3 className="text-xs font-bold text-[#000102]">{title}</h3>
+                <p className="mt-1 text-[11px] leading-relaxed text-[#76777b]">{description}</p>
               </div>
             ))}
           </div>
         </section>
 
-        {/* 6. CONDENSED QUICK BULK INQUIRY (Simplified 2-column layout) */}
-        <section className="bg-[#ffffff] rounded-2xl lg:rounded-3xl p-6 lg:p-8 border border-[#e6e2dc] shadow-sm grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <section id="contact-us" className="scroll-mt-24 bg-[#ffffff] rounded-2xl lg:rounded-3xl p-6 lg:p-8 border border-[#e6e2dc] shadow-sm grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
           {/* Left Simple Heading & Direct WhatsApp CTA */}
           <div className="lg:col-span-6 flex flex-col gap-3">
             <span className="w-fit bg-[#ffdf98]/40 text-[#775a00] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
-              Direct Wholesale Desk
+              Contact Us · Direct Wholesale Desk
             </span>
             <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#000102] leading-tight">
               Need an Itemized Store Quotation?
@@ -540,7 +570,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 rel="noreferrer"
                 className="bg-[#25D366] hover:bg-[#128C7E] text-white px-5 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-md transition-all"
               >
-                <span className="material-symbols-outlined text-[18px]">chat</span>
+                <AppIcon name="chat" className="text-[18px]" />
                 <span>Chat on WhatsApp</span>
               </a>
 
@@ -548,7 +578,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 href={`tel:+${getWhatsAppNumber(true)}`}
                 className="bg-[#f7f3ed] hover:bg-[#ebe8e2] text-[#000102] px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors border border-[#e6e2dc]"
               >
-                <span className="material-symbols-outlined text-[16px] text-[#775a00]">phone</span>
+                <AppIcon name="phone" className="text-[16px] text-[#775a00]" />
                 <span>Call Showroom Lead</span>
               </a>
             </div>
@@ -611,7 +641,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 type="submit"
                 className="mt-1 w-full bg-[#1a1c20] hover:bg-[#2A2D34] text-white py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors shadow cursor-pointer"
               >
-                <span className="material-symbols-outlined text-[16px] text-[#fece57]">send</span>
+                <AppIcon name="send" className="text-[16px] text-[#fece57]" />
                 <span>Send Estimate Request</span>
               </button>
             </form>

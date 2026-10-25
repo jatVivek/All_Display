@@ -1,3 +1,4 @@
+import { AppIcon } from '../../components/AppIcon';
 import React, { useState } from 'react';
 import { storeManager, AdminSettings } from '../../services/storeManager';
 
@@ -39,7 +40,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
       <div className="bg-white rounded-2xl p-6 border border-[#e6e2dc] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#775a00] text-[24px]">settings</span>
+            <AppIcon name="settings" className="text-[#775a00] text-[24px]" />
             <h1 className="font-serif text-2xl font-bold text-[#1c1c18]">Business &amp; WhatsApp Settings</h1>
           </div>
           <p className="text-xs text-[#76777b]">

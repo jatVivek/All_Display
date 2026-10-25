@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { ActiveView, Product, CartItem, ProjectReel, ConsigneeDetails } from './types';
+import { AppIcon } from './components/AppIcon';
+import React, { useState, useEffect, useRef } from 'react';
+import { ActiveView, HomepageBanner, Product, CartItem, ProjectReel, ConsigneeDetails } from './types';
 import { PROJECT_REELS } from './data/catalog';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -16,14 +17,42 @@ import { ProjectsView } from './views/ProjectsView';
 import { OrderListView } from './views/OrderListView';
 import { CustomQuoteView } from './views/CustomQuoteView';
 import { storeManager } from './services/storeManager';
+import { AuthDialog } from './auth/AuthDialog';
+
+const viewPaths: Record<ActiveView, string> = {
+  home: '/',
+  shop: '/shop',
+  'racks-floor-stands': '/shop/racks-and-floor-stands',
+  pdp: '/products/triple-pipe-rack-system',
+  'shop-setup-projects': '/projects',
+  'quote-cart': '/orders',
+  'custom-quote': '/quote',
+  'wall-systems-channels': '/shop/wall-systems-and-channels',
+  'mannequins-forms': '/shop/mannequins-and-dress-forms',
+  'luxury-gold-fixtures': '/shop/gold-boutique-fixtures',
+  'hangers-accessories': '/shop/hangers-clips-and-hooks',
+  admin: '/admin',
+};
+
+const defaultCategories: Partial<Record<ActiveView, string>> = {
+  'racks-floor-stands': 'Floor Stands & Bumper Racks',
+  'wall-systems-channels': 'Wall Systems & Channels',
+  'mannequins-forms': 'Mannequins & Dress Forms',
+  'luxury-gold-fixtures': 'Gold Luxury Boutique Fixtures',
+  'hangers-accessories': 'Hangers, Clips & Hooks',
+};
+
+const getRouteFromLocation = () => {
+  const path = window.location.pathname.replace(/\/+$/, '') || '/';
+  const section = path === '/about-us' ? 'about-us' : path === '/contact-us' ? 'contact-us' : null;
+  const view = (Object.entries(viewPaths).find(([, routePath]) => routePath === path)?.[0] ?? 'home') as ActiveView;
+  return { view, section, path };
+};
 
 export default function App() {
-  const [activeView, setActiveView] = useState<ActiveView>(() => {
-    if (window.location.pathname === '/admin' || window.location.hash === '#admin') {
-      return 'admin';
-    }
-    return 'home';
-  });
+  const [activeView, setActiveView] = useState<ActiveView>(() => (
+    window.location.hash === '#admin' ? 'admin' : getRouteFromLocation().view
+  ));
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
       const savedCart = localStorage.getItem('alldisplay_cart');
@@ -35,6 +64,16 @@ export default function App() {
   });
   const [, setStoreVersion] = useState(0);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [bannerCategoryName, setBannerCategoryName] = useState(() => (
+    new URLSearchParams(window.location.search).get('category') ||
+    defaultCategories[getRouteFromLocation().view] ||
+    'All Categories'
+  ));
+  const [bannerProductId, setBannerProductId] = useState<string | null>(() => (
+    new URLSearchParams(window.location.search).get('product')
+  ));
+  const pendingHomeSectionRef = useRef<string | null>(getRouteFromLocation().section);
+  const pendingScrollPositionRef = useRef<number | null>(null);
 
   // Modals state
   const [selectedReel, setSelectedReel] = useState<ProjectReel | null>(null);
@@ -58,10 +97,90 @@ export default function App() {
     }, 3000);
   };
 
+  useEffect(() => {
+    const route = getRouteFromLocation();
+    if (window.location.hash === '#admin' && route.view !== 'admin') {
+      window.history.replaceState({ scrollY: 0 }, '', viewPaths.admin);
+    } else if (!route.section && route.path !== viewPaths[route.view]) {
+      window.history.replaceState({ scrollY: 0 }, '', viewPaths[route.view]);
+    }
+  }, []);
+
   // Scroll to top on view change
   useEffect(() => {
+    const sectionId = pendingHomeSectionRef.current;
+    if (activeView === 'home' && sectionId) {
+      pendingHomeSectionRef.current = null;
+      requestAnimationFrame(() => {
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      return;
+    }
+    const savedScrollPosition = pendingScrollPositionRef.current;
+    if (savedScrollPosition !== null) {
+      pendingScrollPositionRef.current = null;
+      requestAnimationFrame(() => window.scrollTo({ top: savedScrollPosition, behavior: 'instant' }));
+      return;
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [activeView]);
+
+  const navigateToView = (view: ActiveView, path = viewPaths[view]) => {
+    window.history.replaceState({ ...(window.history.state || {}), scrollY: window.scrollY }, '');
+    if (`${window.location.pathname}${window.location.search}` !== path) {
+      window.history.pushState({ scrollY: 0 }, '', path);
+    }
+    pendingHomeSectionRef.current = null;
+    pendingScrollPositionRef.current = null;
+    const params = new URLSearchParams(path.split('?')[1] || '');
+    setBannerCategoryName(params.get('category') || defaultCategories[view] || 'All Categories');
+    setBannerProductId(params.get('product'));
+    setActiveView(view);
+  };
+
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const route = getRouteFromLocation();
+      const params = new URLSearchParams(window.location.search);
+      pendingHomeSectionRef.current = route.section;
+      pendingScrollPositionRef.current = route.section
+        ? null
+        : typeof event.state?.scrollY === 'number' ? event.state.scrollY : null;
+      setBannerCategoryName(params.get('category') || defaultCategories[route.view] || 'All Categories');
+      setBannerProductId(params.get('product'));
+      setActiveView(route.view);
+      if (route.view === activeView && route.view === 'home' && route.section) {
+        requestAnimationFrame(() => {
+          document.getElementById(route.section!)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          pendingHomeSectionRef.current = null;
+        });
+      } else if (route.view === activeView && pendingScrollPositionRef.current !== null) {
+        const scrollY = pendingScrollPositionRef.current;
+        pendingScrollPositionRef.current = null;
+        requestAnimationFrame(() => window.scrollTo({ top: scrollY, behavior: 'instant' }));
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [activeView]);
+
+  const navigateToHomeSection = (sectionId: string) => {
+    const path = sectionId === 'about-us' ? '/about-us' : '/contact-us';
+    window.history.replaceState({ ...(window.history.state || {}), scrollY: window.scrollY }, '');
+    window.history.pushState({ scrollY: 0 }, '', path);
+    if (activeView === 'home') {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    pendingHomeSectionRef.current = sectionId;
+    setActiveView('home');
+  };
+
+  const navigateToShop = () => {
+    setBannerCategoryName('All Categories');
+    setBannerProductId(null);
+    navigateToView('shop');
+  };
 
   useEffect(() => storeManager.subscribe(() => {
     setStoreVersion((version) => version + 1);
@@ -142,10 +261,30 @@ export default function App() {
     }
   };
 
+  const handleOpenBannerTarget = (banner: HomepageBanner) => {
+    const categoryName = banner.linkType === 'category'
+      ? storeManager.getCategories().find((category) => category.id === banner.linkId)?.name
+      : storeManager.getProducts().find((product) => product.id === banner.linkId)?.category;
+    const categoryViews: Record<string, ActiveView> = {
+      'Floor Stands & Bumper Racks': 'racks-floor-stands',
+      'Wall Systems & Channels': 'wall-systems-channels',
+      'Mannequins & Dress Forms': 'mannequins-forms',
+      'Gold Luxury Boutique Fixtures': 'luxury-gold-fixtures',
+      'Hangers, Clips & Hooks': 'hangers-accessories',
+    };
+    setBannerCategoryName(categoryName || 'All Categories');
+    setBannerProductId(banner.linkType === 'product' ? banner.linkId : null);
+    const view = categoryViews[categoryName || ''] || 'racks-floor-stands';
+    const params = new URLSearchParams();
+    if (categoryName) params.set('category', categoryName);
+    if (banner.linkType === 'product') params.set('product', banner.linkId);
+    navigateToView(view, `${viewPaths[view]}?${params.toString()}`);
+  };
+
   const rawSubtotal = cart.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0);
 
   if (activeView === 'admin') {
-    return <AdminApp onExitAdmin={() => setActiveView('home')} />;
+    return <AdminApp onExitAdmin={() => navigateToView('home')} />;
   }
 
   return (
@@ -153,7 +292,7 @@ export default function App() {
       {/* Toast Feedback */}
       {toastMsg && (
         <div className="fixed top-24 right-6 z-50 bg-[#1a1c20] text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-[#fece57]/40 animate-in fade-in slide-in-from-top-2 duration-200">
-          <span className="material-symbols-outlined text-[#25D366] text-[20px]">check_circle</span>
+          <AppIcon name="check_circle" className="text-[#25D366] text-[20px]" />
           <span className="text-xs font-semibold">{toastMsg}</span>
         </div>
       )}
@@ -161,38 +300,45 @@ export default function App() {
       {/* Global Header */}
       <Header
         activeView={activeView}
-        setActiveView={setActiveView}
+        setActiveView={navigateToView}
+        onNavigateToShop={navigateToShop}
+        onNavigateToSection={navigateToHomeSection}
         cart={cart}
       />
+      <AuthDialog />
 
       {/* Main Screen Router */}
       <main className="flex-1 w-full pt-18 sm:pt-22">
         {activeView === 'home' && (
           <HomeView
-            setActiveView={setActiveView}
+            setActiveView={navigateToView}
             onAddToCart={(prod, qty) => handleAddToCart(prod, qty || 1)}
-            onOpenReel={handleOpenReel}
             onToast={showToast}
+            onOpenBannerTarget={handleOpenBannerTarget}
           />
         )}
 
-        {(activeView === 'racks-floor-stands' ||
+        {(activeView === 'shop' ||
+          activeView === 'racks-floor-stands' ||
           activeView === 'wall-systems-channels' ||
           activeView === 'mannequins-forms' ||
           activeView === 'luxury-gold-fixtures' ||
           activeView === 'hangers-accessories') && (
           <CatalogView
-            setActiveView={setActiveView}
+            setActiveView={navigateToView}
             onAddToCart={(prod, qty) => handleAddToCart(prod, qty || 1)}
             onToast={showToast}
             cartCount={cart.length}
             cartSubtotal={rawSubtotal}
+            initialCategoryName={bannerCategoryName}
+            initialProductId={bannerProductId}
+            showAllProducts={activeView === 'shop'}
           />
         )}
 
         {activeView === 'pdp' && (
           <ProductDetailView
-            onNavigate={setActiveView}
+            onNavigate={navigateToView}
             onAddToCart={handleAddToCart}
             onOpenCad={() => setIsCadOpen(true)}
             onOpenReel={handleOpenReel}
@@ -201,14 +347,14 @@ export default function App() {
 
         {activeView === 'shop-setup-projects' && (
           <ProjectsView
-            onNavigate={setActiveView}
+            onNavigate={navigateToView}
             onOpenReel={handleOpenReel}
           />
         )}
 
         {activeView === 'quote-cart' && (
           <OrderListView
-            onNavigate={setActiveView}
+            onNavigate={navigateToView}
             cart={cart}
             onUpdateQty={handleUpdateQty}
             onRemoveItem={handleRemoveFromCart}
@@ -221,14 +367,14 @@ export default function App() {
 
         {activeView === 'custom-quote' && (
           <CustomQuoteView
-            onNavigate={setActiveView}
+            onNavigate={navigateToView}
             onAddToCart={handleAddToCart}
           />
         )}
       </main>
 
       {/* Global Footer */}
-      <Footer setActiveView={setActiveView} />
+      <Footer setActiveView={navigateToView} />
 
       {/* Floating WhatsApp Specialist Drawer */}
       <FloatingWhatsApp />

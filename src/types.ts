@@ -1,5 +1,6 @@
 export type ActiveView = 
   | 'home' 
+  | 'shop'
   | 'racks-floor-stands' 
   | 'pdp' 
   | 'shop-setup-projects' 
@@ -32,6 +33,7 @@ export interface Product {
   badgeType?: 'primary' | 'secondary' | 'neutral' | 'success';
   image: string;
   images?: string[];
+  videoUrl?: string;
   finishes: { name: string; color: string }[];
   specs?: {
     height?: string;
@@ -40,6 +42,18 @@ export interface Product {
     steelAlloy?: string;
     gauge?: string;
   };
+}
+
+export interface HomepageBanner {
+  id: string;
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  image: string;
+  mobileImage?: string;
+  linkType: 'category' | 'product';
+  linkId: string;
 }
 
 export interface CartItem {

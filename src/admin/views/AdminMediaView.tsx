@@ -1,3 +1,4 @@
+import { AppIcon } from '../../components/AppIcon';
 import React from 'react';
 import { storeManager } from '../../services/storeManager';
 
@@ -18,7 +19,7 @@ export const AdminMediaView: React.FC<AdminMediaViewProps> = ({ showToast }) => 
       <div className="bg-white rounded-2xl p-6 border border-[#e6e2dc] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#775a00] text-[24px]">perm_media</span>
+            <AppIcon name="perm_media" className="text-[#775a00] text-[24px]" />
             <h1 className="font-serif text-2xl font-bold text-[#1c1c18]">Storefront Media Library</h1>
           </div>
           <p className="text-xs text-[#76777b]">
@@ -45,7 +46,7 @@ export const AdminMediaView: React.FC<AdminMediaViewProps> = ({ showToast }) => 
                 onClick={() => handleCopyUrl(p.image)}
                 className="w-full bg-[#f1ede7] hover:bg-[#ebe8e2] text-[#1c1c18] py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
-                <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                <AppIcon name="content_copy" className="text-[16px]" />
                 <span>Copy URL</span>
               </button>
             </div>

@@ -1,3 +1,4 @@
+import { AppIcon } from './AppIcon';
 import React, { useState } from 'react';
 import { useScrollLock } from '../hooks/useScrollLock';
 import { getWhatsAppLink, getWhatsAppNumber } from '../utils/whatsapp';
@@ -43,7 +44,7 @@ export const FloatingWhatsApp: React.FC = () => {
               className="text-white/70 hover:text-white p-1 rounded"
               title="Close"
             >
-              <span className="material-symbols-outlined text-[20px]">close</span>
+              <AppIcon name="close" className="text-[20px]" />
             </button>
           </div>
 
@@ -59,7 +60,7 @@ export const FloatingWhatsApp: React.FC = () => {
                 rel="noreferrer"
                 className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white py-2.5 px-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm"
               >
-                <span className="material-symbols-outlined text-[18px]">chat</span>
+                <AppIcon name="chat" className="text-[18px]" />
                 <span>Chat on WhatsApp (+{getWhatsAppNumber()})</span>
               </a>
 
@@ -69,7 +70,7 @@ export const FloatingWhatsApp: React.FC = () => {
                 rel="noreferrer"
                 className="w-full bg-[#f1ede7] hover:bg-[#ebe8e2] text-[#1c1c18] py-2 px-3 rounded-lg font-medium flex items-center justify-center gap-1.5 transition-colors"
               >
-                <span className="material-symbols-outlined text-[16px] text-[#775a00]">upload_file</span>
+                <AppIcon name="upload_file" className="text-[16px] text-[#775a00]" />
                 <span>Send CAD Floor Plan</span>
               </a>
             </div>
@@ -85,7 +86,7 @@ export const FloatingWhatsApp: React.FC = () => {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2.5 bg-[#25D366] hover:bg-[#128C7E] text-white px-4 py-3 rounded-full font-semibold text-xs shadow-[0_8px_24px_-4px_rgba(26,28,32,0.22)] transition-all transform hover:-translate-y-0.5 cursor-pointer"
       >
-        <span className="material-symbols-outlined text-[22px]">support_agent</span>
+        <AppIcon name="support_agent" className="text-[22px]" />
         <div className="flex flex-col text-left pr-1 hidden sm:flex">
           <span className="text-[9px] uppercase tracking-wider text-white/90 leading-tight">Showroom Specialist</span>
           <span className="font-semibold text-white leading-tight">Chat with Showroom Lead</span>

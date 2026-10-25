@@ -1,3 +1,4 @@
+import { AppIcon } from '../../components/AppIcon';
 import React, { useEffect, useState } from 'react';
 import { AdminTab } from '../AdminApp';
 import { storeManager, AdminOrder, AdminSettings } from '../../services/storeManager';
@@ -109,7 +110,7 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
             onClick={() => setActiveTab('orders')}
             className="w-10 h-10 rounded-xl bg-[#f1ede7] hover:bg-[#ebe8e2] text-[#1c1c18] flex items-center justify-center transition-colors cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+            <AppIcon name="arrow_back" className="text-[20px]" />
           </button>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
@@ -129,7 +130,7 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
             onClick={handlePrintInvoice}
             className="bg-[#f1ede7] hover:bg-[#ebe8e2] text-[#1c1c18] px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[18px]">print</span>
+            <AppIcon name="print" className="text-[18px]" />
             <span>Print Invoice</span>
           </button>
         </div>
@@ -149,7 +150,7 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
                 <span className="font-bold text-sm text-[#1c1c18]">{order.storeName}</span>
                 <span className="text-[#45474b]">Prop: {order.customerName}</span>
                 <span className="text-[#25D366] font-semibold flex items-center gap-1 mt-1">
-                  <span className="material-symbols-outlined text-[16px]">chat</span>
+                  <AppIcon name="chat" className="text-[16px]" />
                   <span>WhatsApp: +91 {order.whatsapp}</span>
                 </span>
               </div>
@@ -237,7 +238,7 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
                 onClick={handleWhatsAppReply}
                 className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white p-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
               >
-                <span className="material-symbols-outlined text-[18px]">chat</span>
+                <AppIcon name="chat" className="text-[18px]" />
                 <span>1. Reply &amp; Confirm on WhatsApp</span>
               </button>
 
@@ -245,7 +246,7 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
                 onClick={handleSendPaymentDetails}
                 className="w-full bg-[#ffdf98] hover:bg-[#f6ce78] text-[#1c1c18] p-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
               >
-                <span className="material-symbols-outlined text-[18px]">payments</span>
+                <AppIcon name="payments" className="text-[18px]" />
                 <span>2. Send UPI/Bank Proforma Details</span>
               </button>
 
@@ -253,7 +254,7 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
                 onClick={handleSendDispatchNotice}
                 className="w-full bg-[#1a1c20] hover:bg-black text-white p-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
               >
-                <span className="material-symbols-outlined text-[18px]">local_shipping</span>
+                <AppIcon name="local_shipping" className="text-[18px]" />
                 <span>3. Send Transport LR &amp; Dispatch Notice</span>
               </button>
             </div>

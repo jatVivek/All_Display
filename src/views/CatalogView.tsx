@@ -1,3 +1,4 @@
+import { AppIcon } from '../components/AppIcon';
 import React, { useState, useMemo, useEffect } from 'react';
 import { ActiveView, Product } from '../types';
 import { storeManager } from '../services/storeManager';
@@ -9,6 +10,9 @@ interface CatalogViewProps {
   onToast: (msg: string) => void;
   cartCount: number;
   cartSubtotal: number;
+  initialCategoryName?: string;
+  initialProductId?: string | null;
+  showAllProducts?: boolean;
 }
 
 export const CatalogView: React.FC<CatalogViewProps> = ({
@@ -16,7 +20,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   onAddToCart,
   onToast,
   cartCount,
-  cartSubtotal
+  cartSubtotal,
+  initialCategoryName = 'All Categories',
+  initialProductId = null,
+  showAllProducts = false,
 }) => {
   const [products, setProducts] = useState<Product[]>(() => storeManager.getProducts());
   const [categories, setCategories] = useState(() => storeManager.getCategories());
@@ -37,11 +44,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   }, []);
 
   // Filter States
-  const [selectedCategory, setSelectedCategory] = useState('All Categories');
-  const [selectedFinishes, setSelectedFinishes] = useState<string[]>(['Matte Black Powder Coat']);
+  const [selectedCategory, setSelectedCategory] = useState(initialCategoryName);
+  const [selectedFinishes, setSelectedFinishes] = useState<string[]>(showAllProducts ? [] : ['Matte Black Powder Coat']);
   const [selectedProfile, setSelectedProfile] = useState('All Configurations');
-  const [selectedLoads, setSelectedLoads] = useState<string[]>(['>100kg Heavy Duty']);
-  const [maxPrice, setMaxPrice] = useState(12000);
+  const [selectedLoads, setSelectedLoads] = useState<string[]>(showAllProducts ? [] : ['>100kg Heavy Duty']);
+  const [maxPrice, setMaxPrice] = useState(showAllProducts ? Infinity : 12000);
+  const maxPriceLimit = Math.max(12000, Math.ceil(Math.max(0, ...products.map((product) => product.price)) / 1000) * 1000);
   const [dispatchType, setDispatchType] = useState<string[]>(['Same-Day Hyderabad Dispatch']);
   const [sortBy, setSortBy] = useState('Most Popular for New Stores');
   const [isTableView, setIsTableView] = useState(false);
@@ -89,6 +97,39 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     }
   }, [categories, selectedCategory]);
 
+  useEffect(() => {
+    if (showAllProducts) {
+      setSelectedCategory('All Categories');
+      setSelectedFinishes([]);
+      setSelectedLoads([]);
+      setSelectedProfile('All Configurations');
+      setMaxPrice(Infinity);
+      setIsTableView(false);
+      return;
+    }
+    setSelectedCategory(initialCategoryName);
+    setSelectedFinishes(initialProductId ? [] : ['Matte Black Powder Coat']);
+    setSelectedLoads(initialProductId ? [] : ['>100kg Heavy Duty']);
+    setSelectedProfile('All Configurations');
+    setMaxPrice(initialProductId ? Infinity : 12000);
+    setIsTableView(false);
+  }, [initialCategoryName, initialProductId, showAllProducts]);
+
+  useEffect(() => {
+    const targetProduct = products.find((product) => product.id === initialProductId);
+    if (!initialProductId || !targetProduct) return;
+    setSelectedCategory(targetProduct.category);
+  }, [initialCategoryName, initialProductId, products, showAllProducts]);
+
+  useEffect(() => {
+    if (initialProductId && filteredProducts.some((product) => product.id === initialProductId)) {
+      document.getElementById(`catalog-product-${initialProductId}`)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    }
+  }, [filteredProducts, initialProductId]);
+
   const toggleFinish = (f: string) => {
     setSelectedFinishes((prev) =>
       prev.includes(f) ? prev.filter((item) => item !== f) : [...prev, f]
@@ -105,7 +146,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     setSelectedFinishes([]);
     setSelectedProfile('All Configurations');
     setSelectedLoads([]);
-    setMaxPrice(12000);
+    setMaxPrice(showAllProducts ? Infinity : 12000);
     setDispatchType(['Same-Day Hyderabad Dispatch']);
   };
 
@@ -119,10 +160,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             <button onClick={() => setActiveView('home')} className="hover:text-[#000102] transition-colors">
               Home
             </button>
-            <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+            <AppIcon name="chevron_right" className="text-[14px]" />
             <span className="hover:text-[#000102]">Store Fixtures</span>
-            <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-            <span className="text-[#000102] font-semibold">Floor Stands &amp; Bumper Racks</span>
+            <AppIcon name="chevron_right" className="text-[14px]" />
+            <span className="text-[#000102] font-semibold">{showAllProducts ? 'Shop All Products' : 'Floor Stands &amp; Bumper Racks'}</span>
           </nav>
 
           {/* Headline & Engineered Proposition */}
@@ -137,15 +178,17 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 </span>
               </div>
               <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#000102] tracking-tight">
-                Commercial Floor Display Stands &amp; Island Racks
+                {showAllProducts ? 'Shop All Products' : 'Commercial Floor Display Stands &amp; Island Racks'}
               </h1>
               <p className="text-xs sm:text-sm text-[#45474b] max-w-3xl leading-relaxed">
-                Heavy-duty commercial clothing racks engineered for garment showrooms, ethnic boutiques, and multi-brand apparel stores. Fabricated with 1.6mm industrial mild steel and 304-grade stainless steel with scratch-proof powder coat and electroplated PVD titanium gold finishes.
+                {showAllProducts
+                  ? 'Explore our complete range of retail display fixtures. Filter by category, finish, configuration, load capacity, or price to find the right fit for your store.'
+                  : 'Heavy-duty commercial clothing racks engineered for garment showrooms, ethnic boutiques, and multi-brand apparel stores. Fabricated with 1.6mm industrial mild steel and 304-grade stainless steel with scratch-proof powder coat and electroplated PVD titanium gold finishes.'}
               </p>
             </div>
 
             {/* Quick Spec Highlights Matrix */}
-            <div className="lg:col-span-4 bg-[#ffffff] p-4 rounded-xl shadow-sm border border-[#e6e2dc] flex flex-col gap-2">
+            {!showAllProducts && <div className="lg:col-span-4 bg-[#ffffff] p-4 rounded-xl shadow-sm border border-[#e6e2dc] flex flex-col gap-2">
               <div className="flex items-center justify-between pb-1.5 border-b border-[#f1ede7]">
                 <span className="text-[11px] uppercase font-bold text-[#76777b]">Standard Stock Gauge</span>
                 <span className="text-xs font-bold text-[#000102]">16 SWG (1.6mm)</span>
@@ -158,7 +201,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 <span className="text-[11px] uppercase font-bold text-[#76777b]">Structural Warranty</span>
                 <span className="text-xs font-bold text-[#000102]">5 Years Weld Guarantee</span>
               </div>
-            </div>
+            </div>}
           </div>
 
           {/* Active Filter Strip */}
@@ -171,7 +214,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 className="flex items-center gap-1.5 bg-[#e6e2dc] hover:bg-[#ddd9d4] text-[#1c1c18] px-3 py-1 rounded-full text-xs font-medium transition-colors"
               >
                 <span>Finish: {f.split(' ')[0]}</span>
-                <span className="material-symbols-outlined text-[14px]">close</span>
+                <AppIcon name="close" className="text-[14px]" />
               </button>
             ))}
             {selectedLoads.map((l) => (
@@ -181,7 +224,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 className="flex items-center gap-1.5 bg-[#e6e2dc] hover:bg-[#ddd9d4] text-[#1c1c18] px-3 py-1 rounded-full text-xs font-medium transition-colors"
               >
                 <span>Load: {l}</span>
-                <span className="material-symbols-outlined text-[14px]">close</span>
+                <AppIcon name="close" className="text-[14px]" />
               </button>
             ))}
             {(selectedFinishes.length > 0 || selectedLoads.length > 0) && (
@@ -196,6 +239,32 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         </div>
       </section>
 
+      {showAllProducts && products.length > 0 && (
+        <section className="w-full px-4 lg:px-8 pt-8" aria-labelledby="most-selling-heading">
+          <div className="max-w-7xl mx-auto flex flex-col gap-4">
+            <div>
+              <span className="text-[10px] uppercase font-bold tracking-widest text-[#775a00]">Popular with retailers</span>
+              <h2 id="most-selling-heading" className="font-serif text-2xl font-bold text-[#000102]">Most Selling Products</h2>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              {products.slice(0, 4).map((product) => (
+                <button
+                  key={product.id}
+                  type="button"
+                  onClick={() => document.getElementById(`catalog-product-${product.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                  className="text-left bg-white rounded-xl border border-[#e6e2dc] p-3 shadow-sm hover:shadow-md transition-shadow"
+                  aria-label={`View ${product.title} in all products`}
+                >
+                  <img src={product.image} alt="" className="w-full aspect-[4/3] object-cover rounded-lg bg-[#f7f3ed]" />
+                  <span className="mt-2 block text-xs font-semibold text-[#1c1c18] line-clamp-2">{product.title}</span>
+                  <span className="mt-1 block text-xs font-bold text-[#775a00]">₹{product.price.toLocaleString('en-IN')} / {product.unit}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Main Catalog Architecture: Sidebar + Product Grid */}
       <section className="w-full px-4 lg:px-8 py-8">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -204,7 +273,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           <aside className="lg:col-span-3 flex flex-col gap-5 bg-[#f7f3ed] p-5 rounded-2xl border border-[#e6e2dc]">
             <div className="flex items-center justify-between pb-2 border-b border-[#e6e2dc]">
               <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[20px] text-[#000102]">tune</span>
+                <AppIcon name="tune" className="text-[20px] text-[#000102]" />
                 <h2 className="font-serif text-base font-bold text-[#000102]">Fixtures Filter</h2>
               </div>
               <span className="text-[11px] bg-[#e6e2dc] px-2 py-0.5 rounded text-[#45474b] font-medium">
@@ -343,21 +412,23 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 <label className="text-[10px] font-bold uppercase tracking-wider text-[#76777b]">
                   B2B Trade Rate (INR)
                 </label>
-                <span className="text-xs font-bold text-[#775a00]">₹1,000 – ₹{maxPrice.toLocaleString('en-IN')}</span>
+                <span className="text-xs font-bold text-[#775a00]">
+                  ₹1,000 – {Number.isFinite(maxPrice) ? `₹${maxPrice.toLocaleString('en-IN')}` : 'Any price'}
+                </span>
               </div>
               <input
                 type="range"
                 min="1000"
-                max="12000"
+                max={maxPriceLimit}
                 step="500"
-                value={maxPrice}
+                value={Number.isFinite(maxPrice) ? Math.min(maxPrice, maxPriceLimit) : maxPriceLimit}
                 onChange={(e) => setMaxPrice(parseInt(e.target.value, 10))}
                 className="w-full accent-[#000102] cursor-pointer"
               />
               <div className="flex items-center justify-between text-[11px] text-[#76777b]">
                 <span>₹1,000</span>
-                <span>Max: ₹{maxPrice.toLocaleString('en-IN')}</span>
-                <span>₹12,000</span>
+                <span>{Number.isFinite(maxPrice) ? `Max: ₹${maxPrice.toLocaleString('en-IN')}` : 'Any price'}</span>
+                <span>₹{maxPriceLimit.toLocaleString('en-IN')}</span>
               </div>
             </div>
 
@@ -409,7 +480,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             {/* Store Layout Support Banner */}
             <div className="bg-[#1a1c20] text-white p-4 rounded-xl flex flex-col gap-3 shadow-md mt-2">
               <div className="flex items-center gap-2 text-[#ffdf98]">
-                <span className="material-symbols-outlined text-[20px]">architecture</span>
+                <AppIcon name="architecture" className="text-[20px]" />
                 <span className="text-[10px] font-bold uppercase tracking-wider">Store Layout Support</span>
               </div>
               <p className="text-xs text-[#c6c6cb] leading-relaxed">
@@ -421,7 +492,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 rel="noreferrer"
                 className="w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white py-2.5 rounded-lg text-xs font-semibold transition-all shadow-sm"
               >
-                <span className="material-symbols-outlined text-[18px]">upload_file</span>
+                <AppIcon name="upload_file" className="text-[18px]" />
                 <span>Send Floor Plan on WhatsApp</span>
               </a>
             </div>
@@ -467,7 +538,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                     }`}
                     title="Catalog Grid View"
                   >
-                    <span className="material-symbols-outlined text-[18px] block">grid_view</span>
+                    <AppIcon name="grid_view" className="text-[18px] block" />
                   </button>
                   <button
                     onClick={() => setIsTableView(true)}
@@ -476,7 +547,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                     }`}
                     title="Dense Commercial Spec Table"
                   >
-                    <span className="material-symbols-outlined text-[18px] block">table_rows</span>
+                    <AppIcon name="table_rows" className="text-[18px] block" />
                   </button>
                 </div>
               </div>
@@ -488,6 +559,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 {filteredProducts.map((product) => (
                   <article
                     key={product.id}
+                    id={`catalog-product-${product.id}`}
                     className="bg-[#ffffff] rounded-2xl p-4 shadow-sm border border-[#e6e2dc] flex flex-col justify-between hover:shadow-md transition-shadow group"
                   >
                     <div className="flex flex-col gap-3">
@@ -513,6 +585,17 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           {product.moq}
                         </div>
                       </div>
+
+                      {product.videoUrl && (
+                        <video
+                          src={product.videoUrl}
+                          controls
+                          preload="none"
+                          playsInline
+                          aria-label={`${product.title} product video`}
+                          className="w-full rounded-xl bg-black"
+                        />
+                      )}
 
                       {/* Product Metadata & Title */}
                       <div className="flex flex-col gap-1">
@@ -569,7 +652,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           }}
                           className="flex items-center justify-center gap-1 bg-[#000102] hover:bg-[#2A2D34] text-white py-2 px-3 rounded-lg text-xs font-semibold transition-all shadow-sm cursor-pointer"
                         >
-                          <span className="material-symbols-outlined text-[16px]">add_shopping_cart</span>
+                          <AppIcon name="add_shopping_cart" className="text-[16px]" />
                           <span>Add to Order</span>
                         </button>
                         <a
@@ -578,7 +661,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                           rel="noreferrer"
                           className="flex items-center justify-center gap-1 bg-[#25D366] hover:bg-[#128C7E] text-white py-2 px-3 rounded-lg text-xs font-semibold transition-all shadow-sm"
                         >
-                          <span className="material-symbols-outlined text-[16px]">chat</span>
+                          <AppIcon name="chat" className="text-[16px]" />
                           <span>WhatsApp</span>
                         </a>
                       </div>
@@ -593,7 +676,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#ffdf98]">
                         Turnkey Setup Assistance
                       </span>
-                      <span className="material-symbols-outlined text-[24px] text-[#fece57]">domain_verification</span>
+                      <AppIcon name="domain_verification" className="text-[24px] text-[#fece57]" />
                     </div>
 
                     <div className="flex flex-col gap-1.5">
@@ -627,7 +710,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                       onClick={() => setActiveView('custom-quote')}
                       className="w-full flex items-center justify-center gap-2 bg-[#775a00] hover:bg-[#5a4300] text-white py-2.5 rounded-lg text-xs font-semibold transition-colors shadow-sm cursor-pointer"
                     >
-                      <span className="material-symbols-outlined text-[18px]">receipt_long</span>
+                      <AppIcon name="receipt_long" className="text-[18px]" />
                       <span>Get B2B Project Quote</span>
                     </button>
                   </div>
@@ -649,7 +732,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                   </thead>
                   <tbody className="divide-y divide-[#f1ede7]">
                     {filteredProducts.map((p) => (
-                      <tr key={p.id} className="hover:bg-[#fdf9f3] transition-colors">
+                      <tr key={p.id} id={`catalog-product-${p.id}`} className="hover:bg-[#fdf9f3] transition-colors">
                         <td className="p-3 font-semibold text-[#000102]">
                           <div className="flex items-center gap-3">
                             <img src={p.image} alt={p.title} className="w-10 h-10 object-cover rounded-lg border border-[#e6e2dc]" />
@@ -733,7 +816,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               <tbody className="divide-y divide-[#f1ede7]">
                 <tr className="hover:bg-[#fdf9f3] transition-colors">
                   <td className="p-4 font-bold text-[#000102] flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#775a00] text-[18px]">view_column</span>
+                    <AppIcon name="view_column" className="text-[#775a00] text-[18px]" />
                     <span>Triple Pipe Island Rack</span>
                   </td>
                   <td className="p-4">Heavy Sarees, Designer Kurtis, Suiting &amp; Denim</td>
@@ -744,7 +827,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 </tr>
                 <tr className="bg-[#fdf9f3]/60 hover:bg-[#fdf9f3] transition-colors">
                   <td className="p-4 font-bold text-[#000102] flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#775a00] text-[18px]">line_style</span>
+                    <AppIcon name="line_style" className="text-[#775a00] text-[18px]" />
                     <span>Single Rail Minimalist Stand</span>
                   </td>
                   <td className="p-4">Bridal Gowns, Long Anarkalis, Premium Lehengas</td>
@@ -755,7 +838,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 </tr>
                 <tr className="hover:bg-[#fdf9f3] transition-colors">
                   <td className="p-4 font-bold text-[#000102] flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#775a00] text-[18px]">reorder</span>
+                    <AppIcon name="reorder" className="text-[#775a00] text-[18px]" />
                     <span>4-Way Stepped Bumper Stand</span>
                   </td>
                   <td className="p-4">Shirts, Trousers, Kidswear, Promotional Sales</td>
@@ -772,7 +855,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-[#ffffff] p-5 rounded-2xl shadow-sm border border-[#e6e2dc] flex flex-col gap-2">
               <div className="flex items-center gap-2 text-[#000102]">
-                <span className="material-symbols-outlined text-[20px] text-[#775a00]">straighten</span>
+                <AppIcon name="straighten" className="text-[20px] text-[#775a00]" />
                 <h3 className="font-serif text-base font-bold">Aisle Clearance Rule</h3>
               </div>
               <p className="text-xs text-[#45474b] leading-relaxed">
@@ -782,7 +865,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
             <div className="bg-[#ffffff] p-5 rounded-2xl shadow-sm border border-[#e6e2dc] flex flex-col gap-2">
               <div className="flex items-center gap-2 text-[#000102]">
-                <span className="material-symbols-outlined text-[20px] text-[#775a00]">layers</span>
+                <AppIcon name="layers" className="text-[20px] text-[#775a00]" />
                 <h3 className="font-serif text-base font-bold">Finish Uniformity</h3>
               </div>
               <p className="text-xs text-[#45474b] leading-relaxed">
@@ -792,7 +875,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
             <div className="bg-[#ffffff] p-5 rounded-2xl shadow-sm border border-[#e6e2dc] flex flex-col gap-2">
               <div className="flex items-center gap-2 text-[#000102]">
-                <span className="material-symbols-outlined text-[20px] text-[#775a00]">local_shipping</span>
+                <AppIcon name="local_shipping" className="text-[20px] text-[#775a00]" />
                 <h3 className="font-serif text-base font-bold">Depot Pickups</h3>
               </div>
               <p className="text-xs text-[#45474b] leading-relaxed">
@@ -808,7 +891,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
         <div className="pointer-events-auto bg-[#1a1c20] text-white p-3.5 sm:p-4 rounded-2xl shadow-2xl flex flex-wrap items-center justify-between gap-4 border border-white/10">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#ffdf98]/20 flex items-center justify-center text-[#ffdf98]">
-              <span className="material-symbols-outlined text-[22px]">assignment</span>
+              <AppIcon name="assignment" className="text-[22px]" />
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
@@ -838,7 +921,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               rel="noreferrer"
               className="flex items-center gap-1.5 bg-[#25D366] hover:bg-[#128C7E] text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shadow-md"
             >
-              <span className="material-symbols-outlined text-[16px]">send</span>
+              <AppIcon name="send" className="text-[16px]" />
               <span>Export Order to WhatsApp</span>
             </a>
           </div>

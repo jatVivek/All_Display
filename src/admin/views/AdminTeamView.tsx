@@ -1,3 +1,4 @@
+import { AppIcon } from '../../components/AppIcon';
 import React from 'react';
 
 interface AdminTeamViewProps {
@@ -10,7 +11,7 @@ export const AdminTeamView: React.FC<AdminTeamViewProps> = ({ role }) => {
       <div className="bg-white rounded-2xl p-6 border border-[#e6e2dc] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#775a00] text-[24px]">admin_panel_settings</span>
+            <AppIcon name="admin_panel_settings" className="text-[#775a00] text-[24px]" />
             <h1 className="font-serif text-2xl font-bold text-[#1c1c18]">Team Roles &amp; Permissions</h1>
           </div>
           <p className="text-xs text-[#76777b]">

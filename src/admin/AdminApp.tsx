@@ -1,3 +1,4 @@
+import { AppIcon } from '../components/AppIcon';
 import React, { useState, useEffect } from 'react';
 import { AdminHeader } from './components/AdminHeader';
 import { AdminSidebar } from './components/AdminSidebar';
@@ -15,6 +16,7 @@ import { AdminSettingsView } from './views/AdminSettingsView';
 import { AdminTeamView } from './views/AdminTeamView';
 import { storeManager, AdminOrder } from '../services/storeManager';
 import { Product } from '../types';
+import { AdminProgress, Spinner } from '../components/LoadingStates';
 
 interface AdminAppProps {
   onExitAdmin: () => void;
@@ -116,7 +118,12 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
   // If not authenticated, render the server-side admin password login.
   if (!isAuthenticated) {
     if (isCheckingSession) {
-      return <div className="min-h-screen bg-[#1a1c20] flex items-center justify-center text-white">Checking admin session...</div>;
+      return (
+        <div className="min-h-screen bg-[#1a1c20] flex items-center justify-center gap-3 text-white" role="status" aria-live="polite">
+          <Spinner label="Checking admin session" />
+          <span>Checking admin session...</span>
+        </div>
+      );
     }
 
     return (
@@ -160,7 +167,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
               type="submit"
               className="w-full bg-[#1a1c20] hover:bg-black text-[#ffdf98] py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
             >
-              <span className="material-symbols-outlined text-[18px]">lock_open</span>
+              <AppIcon name="lock_open" className="text-[18px]" />
               <span>Sign In</span>
             </button>
           </form>
@@ -170,7 +177,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
               onClick={onExitAdmin}
               className="text-[#76777b] hover:text-[#1c1c18] font-medium flex items-center gap-1 transition-colors"
             >
-              <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+              <AppIcon name="arrow_back" className="text-[16px]" />
               <span>Back to Storefront</span>
             </button>
             <span className="text-[11px] font-mono text-[#76777b]">Server authenticated</span>
@@ -182,6 +189,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
 
   return (
     <div className="min-h-screen bg-[#f7f3ed] text-[#1c1c18] flex flex-col font-sans select-none">
+      <AdminProgress active={syncStatus === 'connecting'} label="Connecting to shared store data" />
       {/* Toast Notification */}
       {toast && (
         <div className="fixed top-5 right-5 z-50 bg-[#1a1c20] text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-semibold animate-in fade-in slide-in-from-top-2 duration-200 border border-[#ffdf98]/30">

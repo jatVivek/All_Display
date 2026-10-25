@@ -1,3 +1,4 @@
+import { AppIcon } from './AppIcon';
 import React from 'react';
 import { useScrollLock } from '../hooks/useScrollLock';
 import { getWhatsAppLink } from '../utils/whatsapp';
@@ -30,7 +31,7 @@ export const CadBlueprintModal: React.FC<CadBlueprintModalProps> = ({
         {/* Modal Top Header */}
         <div className="bg-[#1a1c20] text-white p-4 px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined text-[#ffdf98] text-[24px]">architecture</span>
+            <AppIcon name="architecture" className="text-[#ffdf98] text-[24px]" />
             <div>
               <h3 className="font-serif text-lg font-bold text-white leading-tight">
                 Architectural CAD Schematic &amp; Blueprint Spec
@@ -44,7 +45,7 @@ export const CadBlueprintModal: React.FC<CadBlueprintModalProps> = ({
             onClick={onClose}
             className="text-white/70 hover:text-white p-1 rounded-lg"
           >
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <AppIcon name="close" className="text-[20px]" />
           </button>
         </div>
 
@@ -115,7 +116,7 @@ export const CadBlueprintModal: React.FC<CadBlueprintModalProps> = ({
               rel="noreferrer"
               className="flex-1 bg-[#25D366] hover:bg-[#128C7E] text-white py-3 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-md"
             >
-              <span className="material-symbols-outlined text-[18px]">download</span>
+              <AppIcon name="download" className="text-[18px]" />
               <span>Request CAD 3D Bundle (.ZIP) on WhatsApp</span>
             </a>
 

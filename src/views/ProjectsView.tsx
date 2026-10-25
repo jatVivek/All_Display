@@ -1,3 +1,4 @@
+import { AppIcon } from '../components/AppIcon';
 import React, { useState } from 'react';
 import { ActiveView, ProjectReel } from '../types';
 import { PROJECT_REELS, REVIEWS } from '../data/catalog';
@@ -89,7 +90,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
           {/* B2B Transparency Banner */}
           <div className="bg-surface-container-highest/60 border border-surface-container rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2.5 text-xs text-on-surface">
-              <span className="material-symbols-outlined text-secondary text-[22px] shrink-0">verified</span>
+              <AppIcon name="verified" className="text-secondary text-[22px] shrink-0" />
               <span>
                 <strong>B2B Direct Wholesale Policy:</strong> Strictly 100% Prepaid Orders before transport loading. Zero Cash-On-Delivery. Live video call inspection provided prior to freight dispatch.
               </span>
@@ -100,7 +101,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 bg-primary hover:bg-[#2A2D34] text-on-primary px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm"
             >
-              <span className="material-symbols-outlined text-[16px] text-secondary">videocam</span>
+              <AppIcon name="videocam" className="text-[16px] text-secondary" />
               <span>Schedule Video Call</span>
             </a>
           </div>
@@ -126,7 +127,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             ))}
           </div>
           <div className="hidden md:flex items-center gap-2 flex-shrink-0 text-on-surface-variant text-xs font-mono">
-            <span className="material-symbols-outlined text-secondary text-[18px]">play_circle</span>
+            <AppIcon name="play_circle" className="text-secondary text-[18px]" />
             <span>Includes Video Load Demonstrations</span>
           </div>
         </div>
@@ -158,7 +159,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                     {project.location.split(',')[0]} • {project.area}
                   </span>
                   <span className="bg-[#E1306C] text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                    <span className="material-symbols-outlined text-[13px]">play_arrow</span> {project.duration}
+                    <AppIcon name="play_arrow" className="text-[13px]" /> {project.duration}
                   </span>
                 </div>
 
@@ -166,7 +167,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                 <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-surface">
                   <div className="flex items-center gap-2">
                     <div className="w-9 h-9 rounded-full bg-secondary text-primary flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                      <span className="material-symbols-outlined text-[20px] ml-0.5">play_arrow</span>
+                      <AppIcon name="play_arrow" className="text-[20px] ml-0.5" />
                     </div>
                     <div className="flex flex-col">
                       <span className="font-bold text-xs text-white">Walkthrough Video Proof</span>
@@ -225,7 +226,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                     className="inline-flex items-center gap-1 text-primary hover:text-secondary font-bold text-xs transition-colors"
                   >
                     <span>Get Similar Setup</span>
-                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                    <AppIcon name="arrow_forward" className="text-[16px]" />
                   </a>
                 </div>
               </div>
@@ -240,7 +241,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
           <div className="lg:col-span-7 flex flex-col gap-4">
             <div className="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full w-fit">
-              <span className="material-symbols-outlined text-secondary text-[18px]">architecture</span>
+              <AppIcon name="architecture" className="text-secondary text-[18px]" />
               <span className="text-[10px] uppercase tracking-wider text-secondary-fixed font-bold">
                 Free CAD &amp; Floor-Plan Estimation Service
               </span>
@@ -286,21 +287,21 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                 <h3 className="font-serif text-lg font-bold text-primary">WhatsApp Direct Desk</h3>
               </div>
               <div className="w-10 h-10 rounded-full bg-[#25D366]/20 text-[#25D366] flex items-center justify-center">
-                <span className="material-symbols-outlined text-[24px]">chat</span>
+                <AppIcon name="chat" className="text-[24px]" />
               </div>
             </div>
 
             <div className="flex flex-col gap-2 text-xs text-on-surface-variant">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#25D366] text-[18px]">check_circle</span>
+                <AppIcon name="check_circle" className="text-[#25D366] text-[18px]" />
                 <span>Average estimate response time: <strong>45 - 90 Minutes</strong></span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#25D366] text-[18px]">check_circle</span>
+                <AppIcon name="check_circle" className="text-[#25D366] text-[18px]" />
                 <span>Includes 3D fixture arrangement suggestions</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#25D366] text-[18px]">check_circle</span>
+                <AppIcon name="check_circle" className="text-[#25D366] text-[18px]" />
                 <span>GST B2B invoice with Pan-India transport freight bill</span>
               </div>
             </div>
@@ -311,7 +312,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
               rel="noopener noreferrer"
               className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-md transition-all"
             >
-              <span className="material-symbols-outlined text-[18px]">send</span>
+              <AppIcon name="send" className="text-[18px]" />
               <span>Send Floor Plan on WhatsApp</span>
             </a>
 
@@ -326,7 +327,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
       <section className="max-w-7xl mx-auto px-4 lg:px-8 py-12 w-full">
         <div className="flex flex-col gap-2 mb-8 text-center max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-1.5 justify-center bg-surface-container px-3 py-1 rounded-full w-fit mx-auto text-secondary text-xs uppercase font-bold">
-            <span className="material-symbols-outlined text-[16px]">rate_review</span>
+            <AppIcon name="rate_review" className="text-[16px]" />
             <span>Verified Trade Customer Feedback</span>
           </div>
           <h2 className="font-serif text-2xl lg:text-3xl font-bold text-primary tracking-tight">
@@ -343,7 +344,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-1 text-[#ffb800]">
                   {[...Array(rev.rating)].map((_, i) => (
-                    <span key={i} className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                    <AppIcon name="star" className="text-[18px]" />
                   ))}
                 </div>
                 <p className="text-xs text-on-surface-variant italic leading-relaxed">

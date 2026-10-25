@@ -1,3 +1,4 @@
+import { AppIcon } from '../../components/AppIcon';
 import React, { useState } from 'react';
 import { Product } from '../../types';
 import { storeManager } from '../../services/storeManager';
@@ -29,6 +30,8 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
   const [images, setImages] = useState<string[]>(initialImages);
   const [newImgInput, setNewImgInput] = useState('');
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [videoUrl, setVideoUrl] = useState(isNew ? '' : product.videoUrl ?? '');
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
 
   const [finish, setFinish] = useState(isNew ? 'Matte Black Powder Coat' : product.finish);
   const [stockStatus, setStockStatus] = useState(isNew ? 'Ranigunj In Stock' : product.stockStatus);
@@ -84,6 +87,30 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
     setImages((current) => current.filter((_, imageIndex) => imageIndex !== index));
   };
 
+  const handleUploadVideo = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    setIsUploadingVideo(true);
+    try {
+      const formData = new FormData();
+      formData.append('video', file);
+      const response = await fetch('/api/admin/video-uploads', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'X-Admin-Request': '1' },
+        body: formData,
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || `Video upload failed (${response.status}).`);
+      setVideoUrl(result.url);
+    } catch (error) {
+      onError(error instanceof Error ? error.message : 'Video upload failed.');
+    } finally {
+      setIsUploadingVideo(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (images.length === 0) {
@@ -114,6 +141,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
         moq: 'MOQ: 1 Unit',
         image: primaryImage,
         images,
+        ...(videoUrl.trim() ? { videoUrl: videoUrl.trim() } : {}),
         finishes: [
           { name: finish, color: '#1A1C20' },
           { name: 'Brushed Gold', color: '#D4AF37' }
@@ -130,6 +158,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
         unit,
         image: primaryImage,
         images,
+        videoUrl: videoUrl.trim() || undefined,
         finish,
         stockStatus
       } : p));
@@ -149,13 +178,13 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
         {/* Header */}
         <div className="bg-[#1a1c20] text-white p-4 px-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#ffdf98]">add_photo_alternate</span>
+            <AppIcon name="add_photo_alternate" className="text-[#ffdf98]" />
             <h2 className="font-serif font-bold text-base sm:text-lg">
               {isNew ? 'Add New Wholesale Product' : `Edit Product: ${code}`}
             </h2>
           </div>
           <button onClick={onClose} className="text-white/70 hover:text-white cursor-pointer">
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <AppIcon name="close" className="text-[20px]" />
           </button>
         </div>
 
@@ -255,7 +284,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
           <div className="flex flex-col gap-2 p-4 bg-[#fdf9f3] rounded-2xl border border-[#e6e2dc]">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-[#1c1c18] flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-sm text-[#775a00]">imagesmode</span>
+                <AppIcon name="imagesmode" className="text-sm text-[#775a00]" />
                 Product Photos ({images.length}) - First photo is primary thumbnail
               </label>
             </div>
@@ -276,7 +305,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
                     className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-90 hover:opacity-100 hover:scale-110 transition-all cursor-pointer shadow"
                     title="Remove image"
                   >
-                    <span className="material-symbols-outlined text-[14px] block">delete</span>
+                    <AppIcon name="delete" className="text-[14px] block" />
                   </button>
                 </div>
               ))}
@@ -296,16 +325,14 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
                 onClick={handleAddImageUrl}
                 className="bg-[#1a1c20] hover:bg-black text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer shrink-0"
               >
-                <span className="material-symbols-outlined text-sm">add_a_photo</span>
+                <AppIcon name="add_a_photo" className="text-sm" />
                 Add URL
               </button>
             </div>
             <label className={`mt-1 flex items-center justify-center gap-2 rounded-xl border border-dashed border-[#775a00]/50 px-4 py-3 text-xs font-semibold text-[#775a00] ${
               isUploadingImage ? 'opacity-60 cursor-wait' : 'cursor-pointer hover:bg-[#ffdf98]/20'
             }`}>
-              <span className="material-symbols-outlined text-[18px]">
-                {isUploadingImage ? 'progress_activity' : 'upload_file'}
-              </span>
+              <AppIcon name={isUploadingImage ? 'progress_activity' : 'upload_file'} className="text-[18px]" />
               {isUploadingImage ? 'Uploading image...' : 'Choose image(s) from this device'}
               <input
                 type="file"
@@ -319,6 +346,46 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
             <p className="text-[10px] text-[#63635e] italic">
               JPEG, PNG, WebP, or GIF; max 5 MB per image. The first image is used on the storefront.
             </p>
+          </div>
+
+          <div className="flex flex-col gap-3 p-4 bg-[#fdf9f3] rounded-2xl border border-[#e6e2dc]">
+            <div>
+              <label htmlFor="product-video-url" className="text-xs font-bold text-[#1c1c18]">Product Video (optional)</label>
+              <p className="mt-1 text-[10px] text-[#76777b]">Upload an MP4, WebM, or MOV file (maximum 50 MB), or enter a hosted video URL.</p>
+            </div>
+            <input
+              id="product-video-url"
+              type="url"
+              value={videoUrl}
+              onChange={(event) => setVideoUrl(event.target.value)}
+              placeholder="https://... or upload a video below"
+              className="p-3 rounded-xl bg-white border border-[#e6e2dc] text-xs font-mono focus:outline-none focus:border-[#775a00]"
+            />
+            <div className="flex flex-wrap items-center gap-3">
+              <label className={`inline-flex items-center gap-2 rounded-xl border border-dashed border-[#775a00]/50 px-4 py-3 text-xs font-semibold text-[#775a00] ${
+                isUploadingVideo ? 'opacity-60 cursor-wait' : 'cursor-pointer hover:bg-[#ffdf98]/20'
+              }`}>
+                <AppIcon name={isUploadingVideo ? 'progress_activity' : 'videocam'} className="text-[18px]" />
+                {isUploadingVideo ? 'Uploading video...' : 'Choose video'}
+                <input
+                  type="file"
+                  accept="video/mp4,video/webm,video/quicktime"
+                  disabled={isUploadingVideo}
+                  onChange={(event) => void handleUploadVideo(event)}
+                  className="sr-only"
+                />
+              </label>
+              {videoUrl && (
+                <button
+                  type="button"
+                  onClick={() => setVideoUrl('')}
+                  className="text-xs font-semibold text-red-700 hover:text-red-900"
+                >
+                  Remove video
+                </button>
+              )}
+            </div>
+            {videoUrl && <video src={videoUrl} controls preload="metadata" className="w-full max-h-56 rounded-xl bg-black" />}
           </div>
 
           <div className="pt-4 border-t border-[#e6e2dc] flex items-center justify-end gap-3">

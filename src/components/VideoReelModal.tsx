@@ -1,3 +1,4 @@
+import { AppIcon } from './AppIcon';
 import React, { useState } from 'react';
 import { ProjectReel } from '../types';
 import { useScrollLock } from '../hooks/useScrollLock';
@@ -29,7 +30,7 @@ export const VideoReelModal: React.FC<VideoReelModalProps> = ({ reel, onClose })
           onClick={onClose}
           className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center transition-colors cursor-pointer"
         >
-          <span className="material-symbols-outlined text-[20px]">close</span>
+          <AppIcon name="close" className="text-[20px]" />
         </button>
 
         {/* Video Reel Player Frame */}
@@ -47,9 +48,7 @@ export const VideoReelModal: React.FC<VideoReelModalProps> = ({ reel, onClose })
               onClick={() => setIsPlaying(!isPlaying)}
               className="w-16 h-16 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md text-white flex items-center justify-center transition-transform hover:scale-110 cursor-pointer shadow-lg"
             >
-              <span className="material-symbols-outlined text-[36px]">
-                {isPlaying ? 'pause' : 'play_arrow'}
-              </span>
+              <AppIcon name={isPlaying ? 'pause' : 'play_arrow'} className="text-[36px]" />
             </button>
           </div>
 
@@ -66,9 +65,7 @@ export const VideoReelModal: React.FC<VideoReelModalProps> = ({ reel, onClose })
               onClick={() => setIsMuted(!isMuted)}
               className="p-1.5 rounded-full bg-black/50 text-white hover:bg-black/80 transition-colors"
             >
-              <span className="material-symbols-outlined text-[18px]">
-                {isMuted ? 'volume_off' : 'volume_up'}
-              </span>
+              <AppIcon name={isMuted ? 'volume_off' : 'volume_up'} className="text-[18px]" />
             </button>
           </div>
         </div>
@@ -88,7 +85,7 @@ export const VideoReelModal: React.FC<VideoReelModalProps> = ({ reel, onClose })
                 {reel.title}
               </h3>
               <p className="text-xs text-[#c6c6cb] flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[15px] text-[#ffdf98]">location_on</span>
+                <AppIcon name="location_on" className="text-[15px] text-[#ffdf98]" />
                 <span>{reel.location}</span>
               </p>
             </div>
@@ -141,7 +138,7 @@ export const VideoReelModal: React.FC<VideoReelModalProps> = ({ reel, onClose })
               rel="noreferrer"
               className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white py-3 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-lg"
             >
-              <span className="material-symbols-outlined text-[18px]">chat</span>
+              <AppIcon name="chat" className="text-[18px]" />
               <span>Inquire This Setup on WhatsApp</span>
             </a>
 
