@@ -425,6 +425,17 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 All Shop Categories
               </button>
+              <button
+                type="button"
+                onClick={() => navigateTo('deals')}
+                className={`transition-colors hover:text-orange-600 cursor-pointer flex items-center gap-1 font-semibold ${
+                  activeView === 'deals' ? 'text-orange-600 font-extrabold' : 'text-slate-800'
+                }`}
+              >
+                <span>🔥</span>
+                <span>Daily Deals</span>
+                <span className="bg-rose-500 text-white text-[8px] font-black px-1.5 py-0.2 rounded-full uppercase">HOT</span>
+              </button>
               {categories.slice(0, 5).map((cat) => (
                 <button
                   key={cat.id}
@@ -498,6 +509,13 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="flex flex-col gap-3 text-sm font-semibold text-slate-800">
                 <button onClick={() => navigateTo('home')} className="text-left py-2 hover:text-orange-600">Home</button>
                 <button onClick={() => navigateTo('shop')} className="text-left py-2 hover:text-orange-600">All Products</button>
+                <button onClick={() => navigateTo('deals')} className="text-left py-2 hover:text-orange-600 flex items-center justify-between text-rose-600 font-bold">
+                  <span className="flex items-center gap-1.5">
+                    <span>🔥</span>
+                    <span>Daily Deals</span>
+                  </span>
+                  <span className="bg-rose-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase">HOT</span>
+                </button>
                 <button onClick={() => { onOpenWishlist(); setMobileMenuOpen(false); }} className="text-left py-2 hover:text-orange-600 flex items-center justify-between">
                   <span>My Wishlist</span>
                   <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full text-xs">{wishlistCount}</span>

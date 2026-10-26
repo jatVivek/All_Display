@@ -1,6 +1,7 @@
 export type ActiveView = 
   | 'home' 
   | 'shop'
+  | 'deals'
   | 'contact'
   | 'about'
   | 'racks-floor-stands' 

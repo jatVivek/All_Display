@@ -17,6 +17,7 @@ import { ProjectsView } from './views/ProjectsView';
 import { OrderListView } from './views/OrderListView';
 import { CustomQuoteView } from './views/CustomQuoteView';
 import { ContactView } from './views/ContactView';
+import { DealsView } from './views/DealsView';
 import { storeManager } from './services/storeManager';
 import { AuthDialog } from './auth/AuthDialog';
 import { WishlistModal } from './components/WishlistModal';
@@ -25,6 +26,7 @@ import { AccountModal } from './components/AccountModal';
 const viewPaths: Record<ActiveView, string> = {
   home: '/',
   shop: '/shop',
+  deals: '/deals',
   contact: '/contact-us',
   about: '/about-us',
   'racks-floor-stands': '/shop/racks-and-floor-stands',
@@ -433,6 +435,15 @@ export default function App() {
         {activeView === 'contact' && (
           <ContactView
             setActiveView={navigateToView}
+            onToast={showToast}
+          />
+        )}
+
+        {activeView === 'deals' && (
+          <DealsView
+            setActiveView={navigateToView}
+            onAddToCart={(prod, qty) => handleAddToCart(prod, qty || 1)}
+            onSelectProduct={handleSelectProduct}
             onToast={showToast}
           />
         )}

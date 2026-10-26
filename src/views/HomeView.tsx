@@ -397,9 +397,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
             {/* Deal of the Day Highlight Banner */}
             <div className="lg:col-span-3 bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex flex-col justify-between gap-4 sm:gap-6 shadow-xs relative overflow-hidden">
               <div className="relative z-10 flex flex-col gap-1.5 sm:gap-2">
-                <span className="w-fit bg-orange-500 text-white px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">
-                  Deal Of The Day
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="w-fit bg-orange-500 text-white px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">
+                    Deal Of The Day
+                  </span>
+                  <span className="text-[10px] font-bold text-orange-300 uppercase tracking-wider">
+                    🔥 24h Flash
+                  </span>
+                </div>
                 <h3 className="text-base sm:text-xl font-bold tracking-tight">
                   Global Seller <br className="hidden sm:block" />
                   <span className="text-orange-400 font-extrabold">Wholesale Price</span>
@@ -409,11 +414,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </p>
               </div>
 
-              <div className="relative z-10 aspect-video sm:aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/10 p-1.5 sm:p-2">
+              <div
+                onClick={() => setActiveView('deals')}
+                className="relative z-10 aspect-video sm:aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/10 p-1.5 sm:p-2 cursor-pointer group"
+              >
                 <img
                   src="/assets/vinayak/deal_left_banner.png"
                   alt="Deal of the day showcase"
-                  className="w-full h-full object-cover rounded-lg"
+                  className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=400&q=80';
                   }}
@@ -423,10 +431,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <div className="relative z-10">
                 <button
                   type="button"
-                  onClick={() => setActiveView('shop')}
-                  className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider py-2.5 sm:py-3 rounded-xl sm:rounded-2xl shadow-xs transition-colors cursor-pointer"
+                  onClick={() => setActiveView('deals')}
+                  className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider py-2.5 sm:py-3 rounded-xl sm:rounded-2xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  Show More Deals
+                  <span>Show More Deals</span>
+                  <AppIcon name="arrow_forward" className="text-xs" />
                 </button>
               </div>
             </div>
