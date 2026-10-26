@@ -107,7 +107,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
             <h2 className="font-bold text-base text-slate-900">Brand Identity &amp; Logo</h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-slate-800">Brand Name</label>
               <input
@@ -128,6 +128,17 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
                 onChange={(e) => handleChange('brandTagline', e.target.value)}
                 placeholder="Jewellery Displays & Packaging Manufacturer"
                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-slate-800">Live Base URL</label>
+              <input
+                type="text"
+                value={settings.siteUrl || 'https://all-display.vercel.app/'}
+                onChange={(e) => handleChange('siteUrl', e.target.value)}
+                placeholder="https://all-display.vercel.app/"
+                className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
               />
             </div>
           </div>

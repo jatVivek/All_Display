@@ -2,6 +2,7 @@ import { AppIcon } from '../../components/AppIcon';
 import React, { useState } from 'react';
 import { Product, ProductVariation, ProductVariationOption } from '../../types';
 import { storeManager } from '../../services/storeManager';
+import { useScrollLock } from '../../hooks/useScrollLock';
 
 interface AdminProductEditorModalProps {
   product: Product | 'new';
@@ -23,6 +24,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
   onSave,
   onError
 }) => {
+  useScrollLock(Boolean(product));
   const isNew = product === 'new';
   const [title, setTitle] = useState(isNew ? '' : product.title);
   const [code, setCode] = useState(isNew ? 'VP-NEW-001' : product.code);
@@ -272,8 +274,8 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white max-w-3xl w-full rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 touch-none overscroll-none">
+      <div className="bg-white max-w-3xl w-full rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] overscroll-contain">
         {/* Header */}
         <div className="bg-slate-900 text-white p-4 px-6 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
@@ -288,7 +290,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5 overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5 overflow-y-auto overscroll-contain" data-scrollable="true">
           
           {/* Title & SKU */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

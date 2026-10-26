@@ -225,8 +225,8 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
 
       {/* Onboarding Tour Modal */}
       {showTour && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white max-w-lg w-full rounded-2xl p-6 shadow-2xl border border-slate-200 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 touch-none overscroll-none">
+          <div className="bg-white max-w-lg w-full rounded-2xl p-6 shadow-2xl border border-slate-200 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200 overscroll-contain">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-orange-500"></span>

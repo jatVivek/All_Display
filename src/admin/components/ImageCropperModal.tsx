@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { AppIcon } from '../../components/AppIcon';
+import { useScrollLock } from '../../hooks/useScrollLock';
 
 export type CropAspectRatio = '16:9' | '4:3' | '1:1';
 
@@ -26,6 +27,7 @@ export const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
   onClose,
   onCropComplete,
 }) => {
+  useScrollLock(isOpen);
   const [selectedRatio, setSelectedRatio] = useState<CropAspectRatio>(defaultAspectRatio);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -148,8 +150,8 @@ export const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
   const currentConfig = RATIO_CONFIG[selectedRatio];
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/80 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-slate-200 flex flex-col overflow-hidden max-h-[92vh]">
+    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/80 backdrop-blur-xs p-4 animate-in fade-in duration-200 touch-none overscroll-none">
+      <div className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-slate-200 flex flex-col overflow-hidden max-h-[92vh] overscroll-contain">
         
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-900 text-white">

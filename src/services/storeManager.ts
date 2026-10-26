@@ -77,6 +77,7 @@ export interface AdminSettings {
   supportEmail?: string;
   supportPhone?: string;
   showroomAddress?: string;
+  siteUrl?: string;
 }
 
 export interface AdminCategory {
@@ -167,6 +168,7 @@ const DEFAULT_SETTINGS: AdminSettings = {
   headerNotice: 'Direct Factory Wholesale • Sowcarpet Depot, Chennai • Same-Day Dispatch Across India',
   supportEmail: 'contact@www.vinayakpack.com',
   supportPhone: '+91 94622 47004',
+  siteUrl: 'https://all-display.vercel.app',
 };
 
 export interface CentralStoreState {

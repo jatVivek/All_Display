@@ -3,6 +3,7 @@ import { AppIcon } from './AppIcon';
 import { Product } from '../types';
 import { storeManager } from '../services/storeManager';
 import { INITIAL_PRODUCTS } from '../data/catalog';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 interface WishlistModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({
   onNavigateToProduct,
   onSelectProduct,
 }) => {
+  useScrollLock(isOpen);
   const [wishlistIds, setWishlistIds] = React.useState<string[]>(() => storeManager.getWishlist());
   const allProducts = storeManager.getProducts().length > 0 ? storeManager.getProducts() : INITIAL_PRODUCTS;
 
@@ -71,11 +73,11 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200 touch-none overscroll-none"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl max-w-xl w-full max-h-[85vh] shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        className="bg-white rounded-3xl max-w-xl w-full max-h-[85vh] shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 overscroll-contain"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -113,7 +115,7 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({
         </div>
 
         {/* Content list */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 divide-y divide-slate-100">
+        <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 divide-y divide-slate-100" data-scrollable="true">
           {wishlistedProducts.length === 0 ? (
             <div className="py-12 flex flex-col items-center justify-center text-center gap-3">
               <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center">

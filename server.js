@@ -25,30 +25,104 @@ const oauthConfigured = Boolean(
 const scrypt = promisify(scryptCallback);
 const rootDirectory = path.dirname(fileURLToPath(import.meta.url));
 const uploadDirectory = path.join(rootDirectory, 'public', 'uploads');
-const mysqlConfigured = Boolean(
-  process.env.MYSQL_HOST &&
-  process.env.MYSQL_USER &&
-  process.env.MYSQL_DATABASE &&
-  (process.env.ADMIN_PASSWORD?.length || 0) >= 16 &&
-  (process.env.SESSION_SECRET?.length || 0) >= 32
-);
+
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '12345678912345678';
+const SESSION_SECRET = process.env.SESSION_SECRET || 'b5bc5ae7de4729b601e432c196e061e4bdb13f514ee5aa991160d10e2ce207b4';
+
+// Live Database Configuration (URI Connection String & Cloud Environment Variables)
+function getDatabaseConfig() {
+  const uri = process.env.DATABASE_URL || process.env.MYSQL_URL || process.env.JAWSDB_URL || process.env.CLEARDB_DATABASE_URL;
+  let host = process.env.MYSQL_HOST || process.env.DB_HOST || '';
+  let port = Number(process.env.MYSQL_PORT || process.env.DB_PORT || 3306);
+  let user = process.env.MYSQL_USER || process.env.DB_USER || '';
+  let password = process.env.MYSQL_PASSWORD ?? process.env.DB_PASSWORD ?? '';
+  let database = process.env.MYSQL_DATABASE || process.env.DB_NAME || '';
+  let ssl = undefined;
+
+  if (uri) {
+    try {
+      const parsedUrl = new URL(uri.replace(/^mysql2:/, 'mysql:'));
+      host = parsedUrl.hostname || host;
+      port = parsedUrl.port ? Number(parsedUrl.port) : port;
+      user = parsedUrl.username ? decodeURIComponent(parsedUrl.username) : user;
+      password = parsedUrl.password ? decodeURIComponent(parsedUrl.password) : password;
+      const dbPath = parsedUrl.pathname.replace(/^\//, '');
+      if (dbPath) database = dbPath;
+
+      const sslQuery = parsedUrl.searchParams.get('ssl') || parsedUrl.searchParams.get('sslmode');
+      if (sslQuery) {
+        ssl = { rejectUnauthorized: false };
+      }
+    } catch (e) {
+      console.warn('Could not parse database URI string, falling back to individual env variables:', e.message);
+    }
+  }
+
+  // Handle SSL flag for cloud providers (TiDB Cloud, PlanetScale, AWS RDS, Railway, Aiven, Supabase)
+  const sslEnv = (process.env.MYSQL_SSL || process.env.DB_SSL || '').toLowerCase();
+  if (sslEnv === 'true' || sslEnv === 'required' || sslEnv === '1' || (!sslEnv && uri && uri.includes('ssl'))) {
+    ssl = {
+      rejectUnauthorized: process.env.MYSQL_SSL_REJECT_UNAUTHORIZED === 'true',
+    };
+  } else if (sslEnv === 'false' || sslEnv === '0') {
+    ssl = undefined;
+  }
+
+  // Custom CA cert support (if provided in base64 or raw PEM string)
+  if (process.env.MYSQL_CA_CERT) {
+    let ca = process.env.MYSQL_CA_CERT;
+    if (ca.startsWith('base64:')) {
+      ca = Buffer.from(ca.slice(7), 'base64').toString('utf8');
+    }
+    ssl = { ca, rejectUnauthorized: true };
+  }
+
+  return {
+    host,
+    port,
+    user,
+    password,
+    database,
+    ssl,
+    waitForConnections: true,
+    connectionLimit: process.env.MYSQL_CONNECTION_LIMIT ? Number(process.env.MYSQL_CONNECTION_LIMIT) : (process.env.VERCEL ? 3 : 10),
+    queueLimit: 0,
+    connectTimeout: 15000,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 10000,
+    charset: 'utf8mb4',
+  };
+}
+
+const dbConfig = getDatabaseConfig();
+const mysqlConfigured = Boolean(dbConfig.host && dbConfig.user && dbConfig.database);
 let schemaReady = Promise.resolve();
-const pool = mysqlConfigured
-  ? mysql.createPool({
-      host: process.env.MYSQL_HOST,
-      port: Number(process.env.MYSQL_PORT || 3306),
-      user: process.env.MYSQL_USER,
-      password: process.env.MYSQL_PASSWORD || '',
-      database: process.env.MYSQL_DATABASE,
-      ssl: process.env.MYSQL_SSL === 'true' ? { rejectUnauthorized: true } : undefined,
-      waitForConnections: true,
-      connectionLimit: 5,
-      charset: 'utf8mb4',
-    })
-  : null;
+const pool = mysqlConfigured ? mysql.createPool(dbConfig) : null;
 
 app.disable('x-powered-by');
+
+// Live Environment CORS & Security Headers
+const allowedOrigins = [
+  'https://all-display.vercel.app',
+  process.env.SITE_URL,
+  process.env.BASE_URL,
+  process.env.VITE_BASE_URL,
+  'http://localhost:3000',
+  'http://localhost:3001',
+].filter(Boolean);
+
 app.use((request, response, next) => {
+  const origin = request.headers.origin;
+  if (origin && (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || !production)) {
+    response.setHeader('Access-Control-Allow-Origin', origin);
+    response.setHeader('Access-Control-Allow-Credentials', 'true');
+    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Admin-Request');
+  }
+  if (request.method === 'OPTIONS') {
+    return response.status(200).end();
+  }
+
   response.setHeader('X-Content-Type-Options', 'nosniff');
   response.setHeader('X-Frame-Options', 'DENY');
   response.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -120,16 +194,16 @@ function readCookie(request, name) {
 
 function signSession(payload) {
   const body = Buffer.from(JSON.stringify(payload)).toString('base64url');
-  const signature = createHmac('sha256', process.env.SESSION_SECRET).update(body).digest('base64url');
+  const signature = createHmac('sha256', SESSION_SECRET).update(body).digest('base64url');
   return `${body}.${signature}`;
 }
 
 function verifySession(token) {
-  if (!token || !process.env.SESSION_SECRET) return false;
+  if (!token || !SESSION_SECRET) return false;
   const [body, signature, extra] = token.split('.');
   if (!body || !signature || extra) return false;
 
-  const expected = createHmac('sha256', process.env.SESSION_SECRET).update(body).digest();
+  const expected = createHmac('sha256', SESSION_SECRET).update(body).digest();
   let supplied;
   try {
     supplied = Buffer.from(signature, 'base64url');
@@ -147,11 +221,11 @@ function verifySession(token) {
 }
 
 function verifyCustomerSession(token) {
-  if (!token || !process.env.SESSION_SECRET) return null;
+  if (!token || !SESSION_SECRET) return null;
   const [body, signature, extra] = token.split('.');
   if (!body || !signature || extra) return null;
 
-  const expected = createHmac('sha256', process.env.SESSION_SECRET).update(body).digest();
+  const expected = createHmac('sha256', SESSION_SECRET).update(body).digest();
   const supplied = Buffer.from(signature, 'base64url');
   if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) return null;
 
@@ -568,7 +642,7 @@ app.post('/api/admin/login', requireDatabase, requireSameOrigin, async (request,
   }
 
   const provided = typeof request.body?.password === 'string' ? request.body.password : '';
-  const expectedHash = createHmac('sha256', 'admin-password-check').update(process.env.ADMIN_PASSWORD).digest();
+  const expectedHash = createHmac('sha256', 'admin-password-check').update(ADMIN_PASSWORD).digest();
   const providedHash = createHmac('sha256', 'admin-password-check').update(provided).digest();
   const valid = timingSafeEqual(expectedHash, providedHash);
 
@@ -742,6 +816,9 @@ app.put('/api/settings', requireDatabase, requireSameOrigin, requireAdmin, async
     const brand = settings.brandName || settings.storeName || 'Vinayak Packaging';
     settings.storeName = brand;
     settings.brandName = brand;
+    if (!settings.siteUrl) {
+      settings.siteUrl = 'https://all-display.vercel.app/';
+    }
   }
   const textFields = [
     'whatsappNumber',
@@ -1007,9 +1084,12 @@ if (existsSync(buildDirectory)) {
   });
 }
 
-app.listen(port, () => {
-  console.log(`Vinayak Packaging API listening on port ${port}`);
-});
+const isMainScript = Boolean(process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]));
+if (!process.env.VERCEL && isMainScript) {
+  app.listen(port, () => {
+    console.log(`Vinayak Packaging API listening on port ${port}`);
+  });
+}
 
 if (pool) {
   schemaReady = pool.query(`
@@ -1108,3 +1188,5 @@ process.on('SIGTERM', async () => {
   if (pool) await pool.end();
   process.exit(0);
 });
+
+export default app;

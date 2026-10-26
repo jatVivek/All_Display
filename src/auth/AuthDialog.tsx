@@ -1,9 +1,11 @@
 import { AppIcon } from '../components/AppIcon';
 import React, { FormEvent, useState } from 'react';
 import { useAuth } from './AuthContext';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 export const AuthDialog: React.FC = () => {
   const { isAuthDialogOpen, closeAuthDialog, login, signup } = useAuth();
+  useScrollLock(isAuthDialogOpen);
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -30,14 +32,14 @@ export const AuthDialog: React.FC = () => {
 
   return (
     <div
-      className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200 touch-none overscroll-none"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) closeAuthDialog();
       }}
     >
       <section
-        className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl sm:p-8 animate-in zoom-in-95 duration-200"
+        className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl sm:p-8 animate-in zoom-in-95 duration-200 overscroll-contain"
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-dialog-title"

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AppIcon } from './AppIcon';
 import { useAuth } from '../auth/AuthContext';
 import { storeManager } from '../services/storeManager';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 interface AccountModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   onNavigateToShop,
 }) => {
   const { user, logout } = useAuth();
+  useScrollLock(isOpen && Boolean(user));
   const [activeTab, setActiveTab] = useState<'orders' | 'profile' | 'address'>('orders');
   const [savedPhone, setSavedPhone] = useState(() => localStorage.getItem('vinayak_user_phone') || '');
   const [savedAddress, setSavedAddress] = useState(() => localStorage.getItem('vinayak_user_address') || '');
@@ -42,11 +44,11 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200 touch-none overscroll-none"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 overscroll-contain"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Profile Card Header */}
@@ -113,7 +115,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         </div>
 
         {/* Tab Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto overscroll-contain p-6" data-scrollable="true">
           {activeTab === 'orders' && (
             <div className="flex flex-col gap-4">
               {userOrders.length === 0 ? (
