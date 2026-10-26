@@ -133,7 +133,7 @@ export const VideoReelModal: React.FC<VideoReelModalProps> = ({ reel, onClose })
 
           <div className="pt-6 flex flex-col gap-2.5">
             <a
-              href={getWhatsAppLink(`Hi All Display, I saw the ${reel.title} video reel and want a similar setup quote.`)}
+              href={getWhatsAppLink(`Hi Vinayak Packaging, I saw the ${reel.title} video reel and want a similar setup quote.`)}
               target="_blank"
               rel="noreferrer"
               className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white py-3 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-lg"

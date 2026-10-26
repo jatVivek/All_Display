@@ -16,12 +16,17 @@ import { ProductDetailView } from './views/ProductDetailView';
 import { ProjectsView } from './views/ProjectsView';
 import { OrderListView } from './views/OrderListView';
 import { CustomQuoteView } from './views/CustomQuoteView';
+import { ContactView } from './views/ContactView';
 import { storeManager } from './services/storeManager';
 import { AuthDialog } from './auth/AuthDialog';
+import { WishlistModal } from './components/WishlistModal';
+import { AccountModal } from './components/AccountModal';
 
 const viewPaths: Record<ActiveView, string> = {
   home: '/',
   shop: '/shop',
+  contact: '/contact-us',
+  about: '/about-us',
   'racks-floor-stands': '/shop/racks-and-floor-stands',
   pdp: '/products/triple-pipe-rack-system',
   'shop-setup-projects': '/projects',
@@ -35,16 +40,24 @@ const viewPaths: Record<ActiveView, string> = {
 };
 
 const defaultCategories: Partial<Record<ActiveView, string>> = {
-  'racks-floor-stands': 'Floor Stands & Bumper Racks',
-  'wall-systems-channels': 'Wall Systems & Channels',
-  'mannequins-forms': 'Mannequins & Dress Forms',
-  'luxury-gold-fixtures': 'Gold Luxury Boutique Fixtures',
-  'hangers-accessories': 'Hangers, Clips & Hooks',
+  'racks-floor-stands': 'Display Stand',
+  'wall-systems-channels': 'Display Tray',
+  'mannequins-forms': 'Display Bust',
+  'luxury-gold-fixtures': 'Bangle & Bracelet Display Stand',
+  'hangers-accessories': 'Packaging Tools',
 };
 
 const getRouteFromLocation = () => {
+  const searchParams = new URLSearchParams(window.location.search);
+  const viewParam = searchParams.get('view') as ActiveView | null;
+  if (viewParam) {
+    return { view: viewParam, section: null, path: window.location.pathname };
+  }
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
-  const section = path === '/about-us' ? 'about-us' : path === '/contact-us' ? 'contact-us' : null;
+  if (path.startsWith('/products/')) {
+    return { view: 'pdp' as ActiveView, section: null, path };
+  }
+  const section = path === '/about-us' ? 'about-us' : null;
   const view = (Object.entries(viewPaths).find(([, routePath]) => routePath === path)?.[0] ?? 'home') as ActiveView;
   return { view, section, path };
 };
@@ -79,6 +92,21 @@ export default function App() {
   const [selectedReel, setSelectedReel] = useState<ProjectReel | null>(null);
   const [isCadOpen, setIsCadOpen] = useState(false);
   const [isProformaOpen, setIsProformaOpen] = useState(false);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(() => (
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('wishlist') === '1'
+  ));
+  const [isAccountOpen, setIsAccountOpen] = useState(() => (
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('account') === '1'
+  ));
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(() => {
+    const path = typeof window !== 'undefined' ? window.location.pathname : '';
+    if (path.startsWith('/products/')) {
+      const slug = path.replace('/products/', '').toLowerCase();
+      const match = storeManager.getProducts().find((p) => p.code.toLowerCase() === slug || p.id.toLowerCase() === slug);
+      if (match) return match;
+    }
+    return storeManager.getProducts()[0] || null;
+  });
   const [consignee, setConsignee] = useState<ConsigneeDetails>({
     storeName: '',
     ownerName: '',
@@ -101,7 +129,7 @@ export default function App() {
     const route = getRouteFromLocation();
     if (window.location.hash === '#admin' && route.view !== 'admin') {
       window.history.replaceState({ scrollY: 0 }, '', viewPaths.admin);
-    } else if (!route.section && route.path !== viewPaths[route.view]) {
+    } else if (!route.section && !route.path.startsWith('/products/') && route.path !== viewPaths[route.view]) {
       window.history.replaceState({ scrollY: 0 }, '', viewPaths[route.view]);
     }
   }, []);
@@ -165,6 +193,10 @@ export default function App() {
   }, [activeView]);
 
   const navigateToHomeSection = (sectionId: string) => {
+    if (sectionId === 'contact-us') {
+      navigateToView('contact');
+      return;
+    }
     const path = sectionId === 'about-us' ? '/about-us' : '/contact-us';
     window.history.replaceState({ ...(window.history.state || {}), scrollY: window.scrollY }, '');
     window.history.pushState({ scrollY: 0 }, '', path);
@@ -176,11 +208,30 @@ export default function App() {
     setActiveView('home');
   };
 
-  const navigateToShop = () => {
-    setBannerCategoryName('All Categories');
+  const navigateToShop = (category = 'All Categories') => {
+    setBannerCategoryName(category);
     setBannerProductId(null);
-    navigateToView('shop');
+    navigateToView('shop', category !== 'All Categories' ? `/shop?category=${encodeURIComponent(category)}` : '/shop');
   };
+
+  const handleSelectProduct = (product: Product) => {
+    setSelectedProduct(product);
+    navigateToView('pdp', `/products/${encodeURIComponent(product.code.toLowerCase())}`);
+  };
+
+  useEffect(() => {
+    if (window.location.pathname.startsWith('/products/')) {
+      const slug = window.location.pathname.replace('/products/', '').toLowerCase();
+      const match = storeManager.getProducts().find((p) => p.code.toLowerCase() === slug || p.id.toLowerCase() === slug);
+      if (match) setSelectedProduct(match);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeView === 'account') {
+      setIsAccountOpen(true);
+    }
+  }, [activeView]);
 
   useEffect(() => storeManager.subscribe(() => {
     setStoreVersion((version) => version + 1);
@@ -288,7 +339,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fdf9f3] text-[#1c1c18] font-sans flex flex-col selection:bg-[#fece57] selection:text-black antialiased">
+    <div className="min-h-screen bg-white text-slate-900 font-sans flex flex-col selection:bg-orange-100 selection:text-orange-900 antialiased">
       {/* Toast Feedback */}
       {toastMsg && (
         <div className="fixed top-24 right-6 z-50 bg-[#1a1c20] text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-[#fece57]/40 animate-in fade-in slide-in-from-top-2 duration-200">
@@ -304,15 +355,19 @@ export default function App() {
         onNavigateToShop={navigateToShop}
         onNavigateToSection={navigateToHomeSection}
         cart={cart}
+        onOpenWishlist={() => setIsWishlistOpen(true)}
+        onOpenAccount={() => setIsAccountOpen(true)}
+        onSelectProduct={handleSelectProduct}
       />
       <AuthDialog />
 
       {/* Main Screen Router */}
-      <main className="flex-1 w-full pt-18 sm:pt-22">
+      <main className="flex-1 w-full pt-18 sm:pt-20 xl:pt-36">
         {activeView === 'home' && (
           <HomeView
             setActiveView={navigateToView}
             onAddToCart={(prod, qty) => handleAddToCart(prod, qty || 1)}
+            onSelectProduct={handleSelectProduct}
             onToast={showToast}
             onOpenBannerTarget={handleOpenBannerTarget}
           />
@@ -327,6 +382,7 @@ export default function App() {
           <CatalogView
             setActiveView={navigateToView}
             onAddToCart={(prod, qty) => handleAddToCart(prod, qty || 1)}
+            onSelectProduct={handleSelectProduct}
             onToast={showToast}
             cartCount={cart.length}
             cartSubtotal={rawSubtotal}
@@ -338,8 +394,10 @@ export default function App() {
 
         {activeView === 'pdp' && (
           <ProductDetailView
+            product={selectedProduct}
             onNavigate={navigateToView}
             onAddToCart={handleAddToCart}
+            onSelectProduct={handleSelectProduct}
             onOpenCad={() => setIsCadOpen(true)}
             onOpenReel={handleOpenReel}
           />
@@ -371,10 +429,42 @@ export default function App() {
             onAddToCart={handleAddToCart}
           />
         )}
+
+        {activeView === 'contact' && (
+          <ContactView
+            setActiveView={navigateToView}
+            onToast={showToast}
+          />
+        )}
       </main>
 
       {/* Global Footer */}
-      <Footer setActiveView={navigateToView} />
+      <Footer
+        setActiveView={navigateToView}
+        onOpenWishlist={() => setIsWishlistOpen(true)}
+        onOpenAccount={() => setIsAccountOpen(true)}
+      />
+
+      {/* Wishlist Modal Drawer */}
+      <WishlistModal
+        isOpen={isWishlistOpen}
+        onClose={() => setIsWishlistOpen(false)}
+        onAddToCart={(prod) => handleAddToCart(prod, 1)}
+        onSelectProduct={(p) => {
+          setIsWishlistOpen(false);
+          handleSelectProduct(p);
+        }}
+        onNavigateToProduct={(p) => {
+          setIsWishlistOpen(false);
+          handleSelectProduct(p);
+        }}
+      />
+
+      {/* Customer Account & Order History Modal */}
+      <AccountModal
+        isOpen={isAccountOpen}
+        onClose={() => setIsAccountOpen(false)}
+      />
 
       {/* Floating WhatsApp Specialist Drawer */}
       <FloatingWhatsApp />

@@ -45,7 +45,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
 
   const buildWhatsAppText = (orderNo: string) => {
     const lines = cart.map(item => `- ${item.sku} ${item.title} (${item.finish}, ${item.sizeOrSpec}): ${item.quantity} ${item.unitLabel} @ ₹${item.unitPrice.toLocaleString('en-IN')} = ₹${(item.unitPrice * item.quantity).toLocaleString('en-IN')}`).join('\n');
-    return `Hi All Display Team, I want to confirm wholesale order *${orderNo}* for ${storeName} (${proprietor}, ${destination} - ${pincode}, Ph: ${whatsapp}).\n\nItems:\n${lines}\n\nGross Subtotal: ₹${grossSubtotal.toLocaleString('en-IN')}\nVolume Discount: -₹${discountAmount.toLocaleString('en-IN')}\n18% GST: ₹${gstAmount.toLocaleString('en-IN')}\nEstimated Total: ₹${totalPayable.toLocaleString('en-IN')}\nTimeline: ${launchTimeline === '7days' ? 'Within 7 Days' : launchTimeline === '15days' ? '15 Days' : 'Next Month'}\nNotes: ${notes || 'None'}\n\nPlease share exact freight estimate and payment details.`;
+    return `Hi Vinayak Packaging Team, I want to confirm order *${orderNo}* for ${storeName} (${proprietor}, ${destination} - ${pincode}, Ph: ${whatsapp}).\n\nItems:\n${lines}\n\nGross Subtotal: ₹${grossSubtotal.toLocaleString('en-IN')}\nVolume Discount: -₹${discountAmount.toLocaleString('en-IN')}\n18% GST: ₹${gstAmount.toLocaleString('en-IN')}\nEstimated Total: ₹${totalPayable.toLocaleString('en-IN')}\nTimeline: ${launchTimeline === '7days' ? 'Within 7 Days' : launchTimeline === '15days' ? '15 Days' : 'Next Month'}\nNotes: ${notes || 'None'}\n\nPlease share dispatch details.`;
   };
 
   const handleWhatsAppSend = async () => {
@@ -79,7 +79,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
         })),
         notes: `${notes.trim()}${notes.trim() ? '\n' : ''}Requested timeline: ${launchTimeline === '7days' ? 'Within 7 Days' : launchTimeline === '15days' ? '15 Days' : 'Next Month'}`,
       });
-      const orderText = `Hi All Display Team, I want to confirm wholesale order *${order.orderNo}* for ${order.storeName} (${order.customerName}, ${order.destination} - ${order.pincode}, Ph: ${order.whatsapp}).\n\nItems:\n${order.items.map((item) => `- ${item.sku} ${item.title} (${item.finish}): ${item.quantity} ${item.unitLabel} @ ₹${item.unitPrice.toLocaleString('en-IN')}`).join('\n')}\n\nGross Subtotal: ₹${order.subtotal.toLocaleString('en-IN')}\nVolume Discount: -₹${order.discount.toLocaleString('en-IN')}\n18% GST: ₹${order.gst.toLocaleString('en-IN')}\nEstimated Total: ₹${order.total.toLocaleString('en-IN')}\n\n${order.notes}\n\nPlease share exact freight estimate and payment details.`;
+      const orderText = `Hi Vinayak Packaging Team, I want to confirm order *${order.orderNo}* for ${order.storeName} (${order.customerName}, ${order.destination} - ${order.pincode}, Ph: ${order.whatsapp}).\n\nItems:\n${order.items.map((item) => `- ${item.sku} ${item.title} (${item.finish}): ${item.quantity} ${item.unitLabel} @ ₹${item.unitPrice.toLocaleString('en-IN')}`).join('\n')}\n\nGross Subtotal: ₹${order.subtotal.toLocaleString('en-IN')}\nVolume Discount: -₹${order.discount.toLocaleString('en-IN')}\n18% GST: ₹${order.gst.toLocaleString('en-IN')}\nEstimated Total: ₹${order.total.toLocaleString('en-IN')}\n\n${order.notes}\n\nPlease share dispatch details.`;
       if (whatsappWindow) whatsappWindow.location.href = getWhatsAppLink(orderText);
       else setSubmissionError(`Order ${order.orderNo} is saved, but your browser blocked the WhatsApp window.`);
       setSubmissionNotice(`Order ${order.orderNo} was saved to the admin Orders list.`);
@@ -142,7 +142,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                     </span>
                   </div>
                   <p className="text-[11px] text-outline-variant">
-                    Ranigunj Central Warehouse Direct Dispatch • Ex-Factory Hyderabad Commercial Pricing
+                    Sowcarpet Central Depot Direct Dispatch • Vinayak Packaging Wholesale Pricing
                   </p>
                 </div>
               </div>
@@ -192,7 +192,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                     <AppIcon name="shopping_bag" className="text-[48px] text-outline" />
                     <h3 className="font-serif text-lg font-bold text-primary">Your Wholesale Order List is Empty</h3>
                     <p className="text-xs text-on-surface-variant max-w-sm">
-                      Select heavy-duty floor racks, wall channels, or mannequins from our Hyderabad catalog to build your store quotation.
+                      Select jewellery display stands, velvet busts, trays, or packaging items from our catalog to build your order.
                     </p>
                     <button
                       onClick={() => onNavigate('racks-floor-stands')}
@@ -289,19 +289,19 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                 <div className="rounded-xl bg-surface-container-high p-4 flex flex-col gap-2 border border-surface-container">
                   <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
                     <AppIcon name="verified" className="text-secondary text-[20px]" />
-                    <span>Hyderabad Factory Transparent Terms</span>
+                    <span>Vinayak Packaging Transparent Terms</span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                     <div className="flex items-start gap-2">
                       <AppIcon name="check_circle" className="text-secondary text-[16px] shrink-0 mt-0.5" />
                       <span className="text-on-surface-variant leading-relaxed">
-                        <strong className="text-on-surface">100% Prepaid Dispatch:</strong> Bank RTGS, NEFT, or Corporate UPI before truck release. No Cash on Delivery.
+                        <strong className="text-on-surface">100% Secure Orders:</strong> Bank RTGS, NEFT, or Corporate UPI before transport release.
                       </span>
                     </div>
                     <div className="flex items-start gap-2">
                       <AppIcon name="videocam" className="text-secondary text-[16px] shrink-0 mt-0.5" />
                       <span className="text-on-surface-variant leading-relaxed">
-                        <strong className="text-on-surface">Live Video Inspection:</strong> HD WhatsApp call prior to crate loading at Ranigunj depot to inspect finished lot.
+                        <strong className="text-on-surface">Fast Dispatch:</strong> Same-day dispatch from Sowcarpet depot for ready stock items.
                       </span>
                     </div>
                   </div>

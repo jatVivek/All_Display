@@ -55,7 +55,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
 
   // Onboarding tour state
   const [showTour, setShowTour] = useState<boolean>(() => {
-    return localStorage.getItem('alldisplay_admin_tour_seen') !== 'true';
+    return localStorage.getItem('vinayak_admin_tour_seen') === 'open';
   });
   const [tourStep, setTourStep] = useState(1);
 
@@ -72,6 +72,31 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
 
   useEffect(() => {
     let active = true;
+    const searchParams = new URLSearchParams(window.location.search);
+    const pass = searchParams.get('admin_pass');
+    const tabParam = searchParams.get('tab') as AdminTab | null;
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+
+    if (pass) {
+      storeManager.signInAdmin(pass)
+        .then((adminRole) => {
+          if (!active) return;
+          setRole(adminRole);
+          setIsAuthenticated(true);
+        })
+        .catch((error: Error) => {
+          if (active) setLoginError(error.message);
+        })
+        .finally(() => {
+          if (active) setIsCheckingSession(false);
+        });
+      return () => {
+        active = false;
+      };
+    }
+
     storeManager.getAdminRole()
       .then((adminRole) => {
         if (!active) return;
@@ -98,7 +123,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
       const adminRole = await storeManager.signInAdmin(passwordInput);
       setRole(adminRole);
       setIsAuthenticated(true);
-      showToast('Signed in to All Display Admin.');
+      showToast('Signed in to Vinayak Packaging Admin.');
     } catch (error) {
       setLoginError(error instanceof Error ? error.message : 'Unable to sign in.');
     }
@@ -119,7 +144,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
   if (!isAuthenticated) {
     if (isCheckingSession) {
       return (
-        <div className="min-h-screen bg-[#1a1c20] flex items-center justify-center gap-3 text-white" role="status" aria-live="polite">
+        <div className="min-h-screen bg-slate-900 flex items-center justify-center gap-3 text-white" role="status" aria-live="polite">
           <Spinner label="Checking admin session" />
           <span>Checking admin session...</span>
         </div>
@@ -127,16 +152,16 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
     }
 
     return (
-      <div className="min-h-screen bg-[#1a1c20] flex items-center justify-center p-4">
-        <div className="bg-white max-w-md w-full rounded-2xl shadow-2xl overflow-hidden border border-[#e6e2dc] p-8 flex flex-col items-center animate-in fade-in duration-300">
-          <div className="w-14 h-14 rounded-2xl bg-[#1a1c20] text-[#ffdf98] flex items-center justify-center font-serif font-bold text-2xl mb-4 shadow-md">
-            AD
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
+        <div className="bg-white max-w-md w-full rounded-3xl shadow-2xl overflow-hidden border border-slate-200 p-8 flex flex-col items-center animate-in fade-in duration-300">
+          <div className="w-14 h-14 rounded-2xl bg-orange-600 text-white flex items-center justify-center font-extrabold text-2xl mb-4 shadow-md">
+            VP
           </div>
-          <h1 className="font-serif text-2xl font-bold text-[#1c1c18] text-center mb-1">
-            All Display Wholesale Admin
+          <h1 className="text-2xl font-extrabold text-slate-900 text-center mb-1">
+            Vinayak Packaging Admin
           </h1>
-          <p className="text-xs text-[#76777b] text-center mb-6">
-            Sign in with an authorized admin account
+          <p className="text-xs text-slate-500 text-center mb-6">
+            Sign in with your authorized admin password
           </p>
 
           <form onSubmit={handleLogin} className="w-full flex flex-col gap-4">
@@ -146,7 +171,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
               </div>
             )}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-[#1c1c18]">Admin password</label>
+              <label className="text-xs font-semibold text-slate-800">Admin password</label>
               <input
                 type="password"
                 required
@@ -154,10 +179,10 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
                 placeholder="Server-configured admin password"
-                className="w-full px-4 py-3 rounded-xl bg-[#fdf9f3] border border-[#e6e2dc] outline-none focus:border-[#775a00]"
+                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all"
               />
               {loginError && (
-                <span role="alert" className="text-xs text-red-600 text-center font-medium">
+                <span role="alert" className="text-xs text-rose-600 text-center font-medium">
                   {loginError}
                 </span>
               )}
@@ -165,22 +190,22 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
 
             <button
               type="submit"
-              className="w-full bg-[#1a1c20] hover:bg-black text-[#ffdf98] py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+              className="w-full bg-slate-900 hover:bg-orange-600 text-white py-3.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-colors shadow-md cursor-pointer flex items-center justify-center gap-2"
             >
               <AppIcon name="lock_open" className="text-[18px]" />
-              <span>Sign In</span>
+              <span>Sign In to Dashboard</span>
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-[#e6e2dc] w-full flex items-center justify-between text-xs">
+          <div className="mt-8 pt-6 border-t border-slate-100 w-full flex items-center justify-between text-xs">
             <button
               onClick={onExitAdmin}
-              className="text-[#76777b] hover:text-[#1c1c18] font-medium flex items-center gap-1 transition-colors"
+              className="text-slate-500 hover:text-slate-900 font-medium flex items-center gap-1 transition-colors cursor-pointer"
             >
               <AppIcon name="arrow_back" className="text-[16px]" />
               <span>Back to Storefront</span>
             </button>
-            <span className="text-[11px] font-mono text-[#76777b]">Server authenticated</span>
+            <span className="text-[11px] font-mono text-slate-400">Server authenticated</span>
           </div>
         </div>
       </div>
@@ -188,7 +213,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f3ed] text-[#1c1c18] flex flex-col font-sans select-none">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans select-none">
       <AdminProgress active={syncStatus === 'connecting'} label="Connecting to shared store data" />
       {/* Toast Notification */}
       {toast && (
@@ -200,19 +225,19 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
 
       {/* Onboarding Tour Modal */}
       {showTour && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white max-w-lg w-full rounded-2xl p-6 shadow-2xl border border-[#e6e2dc] flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-[#e6e2dc] pb-3">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white max-w-lg w-full rounded-2xl p-6 shadow-2xl border border-slate-200 flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-[#ffdf98]"></span>
-                <span className="font-serif font-bold text-base">Quick Tour for Shop Owner ({tourStep}/3)</span>
+                <span className="w-3 h-3 rounded-full bg-orange-500"></span>
+                <span className="font-bold text-base text-slate-900">Quick Tour for Store Owner ({tourStep}/3)</span>
               </div>
               <button
                 onClick={() => {
                   setShowTour(false);
-                  localStorage.setItem('alldisplay_admin_tour_seen', 'true');
+                  localStorage.setItem('vinayak_admin_tour_seen', 'true');
                 }}
-                className="text-gray-400 hover:text-gray-600 text-xs"
+                className="text-slate-400 hover:text-slate-600 text-xs cursor-pointer"
               >
                 Skip Tour
               </button>
@@ -220,23 +245,23 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
 
             {tourStep === 1 && (
               <div className="flex flex-col gap-3 py-2">
-                <h3 className="font-bold text-sm text-[#1c1c18]">1. WhatsApp Orders arrive instantly</h3>
-                <p className="text-xs text-[#45474b] leading-relaxed">
-                  When customers click 'Order List' on your website, orders are formatted for WhatsApp and logged here automatically. You can review items, totals, and dispatch status in 1 click.
+                <h3 className="font-bold text-sm text-slate-900">1. Customer Orders arrive instantly</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  When customers submit items on your website, orders are logged directly into your shared database and forwarded to WhatsApp. You can review items, totals, and dispatch status in 1 click.
                 </p>
-                <div className="bg-[#fdf9f3] p-3 rounded-xl border border-[#e6e2dc] text-xs font-mono">
-                  👉 Check 'Orders' tab to reply on WhatsApp with prefilled proforma in 1 click!
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs font-mono text-slate-800">
+                  👉 Check the 'Orders' tab to reply on WhatsApp with prefilled order proformas!
                 </div>
               </div>
             )}
 
             {tourStep === 2 && (
               <div className="flex flex-col gap-3 py-2">
-                <h3 className="font-bold text-sm text-[#1c1c18]">2. Manage Products &amp; Prices instantly</h3>
-                <p className="text-xs text-[#45474b] leading-relaxed">
-                  Need to update pipe rack prices or toggle stock status when sold out at Ranigunj godown? Go to the 'Products' tab to change prices, stock toggles, and bulk price slabs.
+                <h3 className="font-bold text-sm text-slate-900">2. Manage Products &amp; Prices instantly</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Need to update jewellery display prices, upload photos, or toggle stock status when sold out at Sowcarpet godown? Go to the 'Products' tab to change prices, stock toggles, and multi-angle photos.
                 </p>
-                <div className="bg-[#fdf9f3] p-3 rounded-xl border border-[#e6e2dc] text-xs font-mono">
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs font-mono text-slate-800">
                   ⚡ Updates reflect on your public customer website immediately.
                 </div>
               </div>
@@ -244,20 +269,20 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
 
             {tourStep === 3 && (
               <div className="flex flex-col gap-3 py-2">
-                <h3 className="font-bold text-sm text-[#1c1c18]">3. Role Security &amp; Settings</h3>
-                <p className="text-xs text-[#45474b] leading-relaxed">
-                  You are currently logged in as <span className="font-bold text-[#775a00]">Owner</span>. You can switch to Staff mode in the top bar to restrict pricing edits, and configure your UPI ID &amp; WhatsApp number in 'Settings'.
+                <h3 className="font-bold text-sm text-slate-900">3. Role Security &amp; Settings</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  You are currently logged in with <span className="font-bold text-orange-600">Owner</span> privileges. You can configure your UPI ID, bank details, and primary WhatsApp destination number in 'Business Settings'.
                 </p>
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-3 border-t border-[#e6e2dc]">
-              <span className="text-[11px] text-[#76777b]">Step {tourStep} of 3</span>
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+              <span className="text-[11px] text-slate-500">Step {tourStep} of 3</span>
               <div className="flex items-center gap-2">
                 {tourStep < 3 ? (
                   <button
                     onClick={() => setTourStep(tourStep + 1)}
-                    className="bg-[#1a1c20] text-white px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer"
+                    className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer"
                   >
                     Next Step
                   </button>
@@ -265,10 +290,10 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
                   <button
                     onClick={() => {
                       setShowTour(false);
-                      localStorage.setItem('alldisplay_admin_tour_seen', 'true');
-                      showToast('Tour completed! Enjoy managing your wholesale store.');
+                      localStorage.setItem('vinayak_admin_tour_seen', 'true');
+                      showToast('Tour completed! Welcome to Vinayak Packaging Admin.');
                     }}
-                    className="bg-[#25D366] text-white px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer"
+                    className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer shadow-xs"
                   >
                     Start Managing Now
                   </button>

@@ -1,931 +1,789 @@
-import { AppIcon } from '../components/AppIcon';
 import React, { useState, useMemo, useEffect } from 'react';
+import { AppIcon } from '../components/AppIcon';
 import { ActiveView, Product } from '../types';
 import { storeManager } from '../services/storeManager';
 import { getWhatsAppLink } from '../utils/whatsapp';
 
 interface CatalogViewProps {
-  setActiveView: (view: ActiveView) => void;
+  setActiveView: (view: ActiveView, path?: string) => void;
   onAddToCart: (product: Product, quantity?: number) => void;
+  onSelectProduct?: (product: Product) => void;
   onToast: (msg: string) => void;
   cartCount: number;
   cartSubtotal: number;
   initialCategoryName?: string;
   initialProductId?: string | null;
+  initialRequirements?: string[];
   showAllProducts?: boolean;
 }
+
+const REQUIREMENT_OPTIONS = [
+  { id: 'online-sellers', label: 'Online Sellers', icon: 'storefront' },
+  { id: 'instagram-shop', label: 'Instagram Shop', icon: 'photo_camera' },
+  { id: 'new-jewellery', label: 'New Jewellery Sellers', icon: 'diamond' },
+  { id: 'retail-shops', label: 'Retail Shops', icon: 'store' },
+];
+
+const MATERIAL_OPTIONS = [
+  'Velvet',
+  'Solid Wood',
+  'Paper / Board',
+  'Acrylic',
+  'Leatherette',
+  'Ceramic / Metal'
+];
 
 export const CatalogView: React.FC<CatalogViewProps> = ({
   setActiveView,
   onAddToCart,
+  onSelectProduct,
   onToast,
-  cartCount,
-  cartSubtotal,
   initialCategoryName = 'All Categories',
-  initialProductId = null,
-  showAllProducts = false,
+  initialRequirements = [],
 }) => {
   const [products, setProducts] = useState<Product[]>(() => storeManager.getProducts());
   const [categories, setCategories] = useState(() => storeManager.getCategories());
+  const [wishlistIds, setWishlistIds] = useState<string[]>(() => storeManager.getWishlist());
 
+  // Listen to catalog & wishlist updates
   useEffect(() => {
     const handleUpdate = () => {
       setProducts(storeManager.getProducts());
       setCategories(storeManager.getCategories());
+      setWishlistIds(storeManager.getWishlist());
     };
     window.addEventListener('alldisplay_catalog_updated', handleUpdate);
     window.addEventListener('alldisplay_data_updated', handleUpdate);
+    window.addEventListener('vinayak_wishlist_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
     return () => {
       window.removeEventListener('alldisplay_catalog_updated', handleUpdate);
       window.removeEventListener('alldisplay_data_updated', handleUpdate);
+      window.removeEventListener('vinayak_wishlist_updated', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
     };
   }, []);
 
+  // Read URL query params on mount for requirement
+  const [selectedRequirements, setSelectedRequirements] = useState<string[]>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const reqParam = params.get('requirement');
+    if (reqParam) {
+      return [reqParam];
+    }
+    return initialRequirements;
+  });
+
   // Filter States
   const [selectedCategory, setSelectedCategory] = useState(initialCategoryName);
-  const [selectedFinishes, setSelectedFinishes] = useState<string[]>(showAllProducts ? [] : ['Matte Black Powder Coat']);
-  const [selectedProfile, setSelectedProfile] = useState('All Configurations');
-  const [selectedLoads, setSelectedLoads] = useState<string[]>(showAllProducts ? [] : ['>100kg Heavy Duty']);
-  const [maxPrice, setMaxPrice] = useState(showAllProducts ? Infinity : 12000);
-  const maxPriceLimit = Math.max(12000, Math.ceil(Math.max(0, ...products.map((product) => product.price)) / 1000) * 1000);
-  const [dispatchType, setDispatchType] = useState<string[]>(['Same-Day Hyderabad Dispatch']);
-  const [sortBy, setSortBy] = useState('Most Popular for New Stores');
-  const [isTableView, setIsTableView] = useState(false);
+  const [categorySearch, setCategorySearch] = useState('');
+  const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
+  const [priceRange, setPriceRange] = useState(10500);
+  const [stockStatusFilter, setStockStatusFilter] = useState<'all' | 'in_stock' | 'on_sale'>('all');
+  const [sortBy, setSortBy] = useState('default');
+  const [itemsPerPage, setItemsPerPage] = useState(12);
+  const [gridColumns, setGridColumns] = useState<4 | 3 | 1>(4);
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+
+  // Sync category when initialCategoryName changes
+  useEffect(() => {
+    if (initialCategoryName) {
+      setSelectedCategory(initialCategoryName);
+    }
+  }, [initialCategoryName]);
+
+  // Dynamic Category counts
+  const categoryFacets = useMemo(() => {
+    const map = new Map<string, number>();
+    products.forEach(p => {
+      if (p.category) {
+        map.set(p.category, (map.get(p.category) || 0) + 1);
+      }
+    });
+
+    const list = Array.from(map.entries()).map(([name, count]) => ({ name, count }));
+    return list.filter((c) =>
+      c.name.toLowerCase().includes(categorySearch.toLowerCase().trim())
+    );
+  }, [products, categorySearch]);
+
+  const handleQtyChange = (productId: string, delta: number) => {
+    setQuantities((prev) => {
+      const current = prev[productId] || 1;
+      const updated = Math.max(1, current + delta);
+      return { ...prev, [productId]: updated };
+    });
+  };
+
+  const toggleRequirement = (reqId: string) => {
+    setSelectedRequirements(prev =>
+      prev.includes(reqId) ? prev.filter(r => r !== reqId) : [...prev, reqId]
+    );
+  };
+
+  const toggleMaterial = (mat: string) => {
+    setSelectedMaterials(prev =>
+      prev.includes(mat) ? prev.filter(m => m !== mat) : [...prev, mat]
+    );
+  };
 
   // Filter application
   const filteredProducts = useMemo(() => {
     return products.filter((prod) => {
       // Category filter
-      if (selectedCategory !== 'All Categories' && prod.category !== selectedCategory) {
+      if (selectedCategory !== 'All Categories' && selectedCategory !== 'All') {
+        const matchesCategory =
+          prod.category.toLowerCase().includes(selectedCategory.toLowerCase()) ||
+          selectedCategory.toLowerCase().includes(prod.category.toLowerCase());
+        if (!matchesCategory) return false;
+      }
+
+      // Requirement filter (support multiple)
+      if (selectedRequirements.length > 0) {
+        const prodReqs = prod.requirements || [];
+        const matchesReq = selectedRequirements.some(req => prodReqs.includes(req));
+        if (!matchesReq) return false;
+      }
+
+      // Material filter (support multiple)
+      if (selectedMaterials.length > 0) {
+        const prodMat = prod.material || '';
+        const matchesMat = selectedMaterials.some(m =>
+          prodMat.toLowerCase().includes(m.toLowerCase())
+        );
+        if (!matchesMat) return false;
+      }
+
+      // Price filter
+      if (prod.price > priceRange) {
         return false;
       }
-      // Finish filter
-      if (selectedFinishes.length > 0 && !selectedFinishes.includes(prod.finish)) {
+
+      // Status filter
+      if (stockStatusFilter === 'on_sale' && (!prod.originalPrice || prod.originalPrice <= prod.price)) {
         return false;
       }
-      // Structural Profile
-      if (selectedProfile !== 'All Configurations' && prod.structuralProfile !== selectedProfile) {
+      if (stockStatusFilter === 'in_stock' && prod.stockStatus && !prod.stockStatus.toLowerCase().includes('in stock')) {
         return false;
       }
-      // Certified Load Capacity
-      if (selectedLoads.length > 0) {
-        const matchesLoad = selectedLoads.some((l) => {
-          if (l === '>100kg Heavy Duty') return prod.loadCapacity.includes('>100kg') || prod.loadCapacity.includes('150') || prod.loadCapacity.includes('120') || prod.loadCapacity.includes('140');
-          if (l === '50 kg – 100 kg') return prod.loadCapacity.includes('50') || prod.loadCapacity.includes('80');
-          if (l === 'Up to 50 kg') return prod.loadCapacity.includes('50');
-          return true;
-        });
-        if (!matchesLoad) return false;
-      }
-      // Price
-      if (prod.price > maxPrice) {
-        return false;
-      }
+
       return true;
     }).sort((a, b) => {
-      if (sortBy === 'Price: Low to High (Wholesale)') return a.price - b.price;
-      if (sortBy === 'Price: High to Low (Luxury)') return b.price - a.price;
-      return 0; // Most popular default
+      if (sortBy === 'price_asc') return a.price - b.price;
+      if (sortBy === 'price_desc') return b.price - a.price;
+      if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
+      return 0;
     });
-  }, [selectedCategory, selectedFinishes, selectedProfile, selectedLoads, maxPrice, sortBy]);
+  }, [products, selectedCategory, selectedRequirements, selectedMaterials, priceRange, stockStatusFilter, sortBy]);
 
-  useEffect(() => {
-    if (selectedCategory !== 'All Categories' && !categories.some((category) => category.name === selectedCategory)) {
-      setSelectedCategory('All Categories');
-    }
-  }, [categories, selectedCategory]);
+  const displayedProducts = filteredProducts.slice(0, itemsPerPage);
 
-  useEffect(() => {
-    if (showAllProducts) {
-      setSelectedCategory('All Categories');
-      setSelectedFinishes([]);
-      setSelectedLoads([]);
-      setSelectedProfile('All Configurations');
-      setMaxPrice(Infinity);
-      setIsTableView(false);
-      return;
-    }
-    setSelectedCategory(initialCategoryName);
-    setSelectedFinishes(initialProductId ? [] : ['Matte Black Powder Coat']);
-    setSelectedLoads(initialProductId ? [] : ['>100kg Heavy Duty']);
-    setSelectedProfile('All Configurations');
-    setMaxPrice(initialProductId ? Infinity : 12000);
-    setIsTableView(false);
-  }, [initialCategoryName, initialProductId, showAllProducts]);
-
-  useEffect(() => {
-    const targetProduct = products.find((product) => product.id === initialProductId);
-    if (!initialProductId || !targetProduct) return;
-    setSelectedCategory(targetProduct.category);
-  }, [initialCategoryName, initialProductId, products, showAllProducts]);
-
-  useEffect(() => {
-    if (initialProductId && filteredProducts.some((product) => product.id === initialProductId)) {
-      document.getElementById(`catalog-product-${initialProductId}`)?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-    }
-  }, [filteredProducts, initialProductId]);
-
-  const toggleFinish = (f: string) => {
-    setSelectedFinishes((prev) =>
-      prev.includes(f) ? prev.filter((item) => item !== f) : [...prev, f]
-    );
-  };
-
-  const toggleLoad = (l: string) => {
-    setSelectedLoads((prev) =>
-      prev.includes(l) ? prev.filter((item) => item !== l) : [...prev, l]
-    );
-  };
-
-  const clearAllFilters = () => {
-    setSelectedFinishes([]);
-    setSelectedProfile('All Configurations');
-    setSelectedLoads([]);
-    setMaxPrice(showAllProducts ? Infinity : 12000);
-    setDispatchType(['Same-Day Hyderabad Dispatch']);
+  const resetAllFilters = () => {
+    setSelectedCategory('All Categories');
+    setSelectedRequirements([]);
+    setSelectedMaterials([]);
+    setPriceRange(10500);
+    setStockStatusFilter('all');
+    setSortBy('default');
   };
 
   return (
-    <div className="w-full bg-[#fdf9f3] text-[#1c1c18] pb-24">
-      {/* Category Header & Architectural Breadcrumb */}
-      <section className="w-full bg-[#f7f3ed] px-4 lg:px-8 py-8 border-b border-[#e6e2dc]">
-        <div className="max-w-7xl mx-auto flex flex-col gap-4">
-          {/* Breadcrumb Trail */}
-          <nav className="flex items-center gap-1.5 text-xs text-[#76777b]">
-            <button onClick={() => setActiveView('home')} className="hover:text-[#000102] transition-colors">
+    <div className="w-full bg-white text-slate-900 pb-20 pt-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-6">
+
+        {/* 1. BREADCRUMBS & HEADING */}
+        <div className="flex flex-col gap-2">
+          <nav className="flex items-center gap-2 text-xs text-slate-600">
+            <button
+              onClick={() => setActiveView('home')}
+              className="hover:text-orange-600 transition-colors cursor-pointer"
+            >
               Home
             </button>
-            <AppIcon name="chevron_right" className="text-[14px]" />
-            <span className="hover:text-[#000102]">Store Fixtures</span>
-            <AppIcon name="chevron_right" className="text-[14px]" />
-            <span className="text-[#000102] font-semibold">{showAllProducts ? 'Shop All Products' : 'Floor Stands &amp; Bumper Racks'}</span>
+            <span>/</span>
+            <span className="text-slate-900 font-semibold">Shop Catalog</span>
+            {selectedCategory !== 'All Categories' && (
+              <>
+                <span>/</span>
+                <span className="text-orange-600 font-medium">{selectedCategory}</span>
+              </>
+            )}
           </nav>
 
-          {/* Headline & Engineered Proposition */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
-            <div className="lg:col-span-8 flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <span className="bg-[#fece57]/40 text-[#775a00] px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                  Showroom Engineered
-                </span>
-                <span className="text-[11px] text-[#76777b] font-medium">
-                  Hyderabad Direct Manufacturer
-                </span>
-              </div>
-              <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#000102] tracking-tight">
-                {showAllProducts ? 'Shop All Products' : 'Commercial Floor Display Stands &amp; Island Racks'}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                Jewellery Displays &amp; Packaging Catalog
               </h1>
-              <p className="text-xs sm:text-sm text-[#45474b] max-w-3xl leading-relaxed">
-                {showAllProducts
-                  ? 'Explore our complete range of retail display fixtures. Filter by category, finish, configuration, load capacity, or price to find the right fit for your store.'
-                  : 'Heavy-duty commercial clothing racks engineered for garment showrooms, ethnic boutiques, and multi-brand apparel stores. Fabricated with 1.6mm industrial mild steel and 304-grade stainless steel with scratch-proof powder coat and electroplated PVD titanium gold finishes.'}
+              <p className="text-xs text-slate-500 mt-1">
+                Wholesale prices directly from Sowcarpet, George Town depot. GST invoices provided.
               </p>
             </div>
 
-            {/* Quick Spec Highlights Matrix */}
-            {!showAllProducts && <div className="lg:col-span-4 bg-[#ffffff] p-4 rounded-xl shadow-sm border border-[#e6e2dc] flex flex-col gap-2">
-              <div className="flex items-center justify-between pb-1.5 border-b border-[#f1ede7]">
-                <span className="text-[11px] uppercase font-bold text-[#76777b]">Standard Stock Gauge</span>
-                <span className="text-xs font-bold text-[#000102]">16 SWG (1.6mm)</span>
-              </div>
-              <div className="flex items-center justify-between pb-1.5 border-b border-[#f1ede7]">
-                <span className="text-[11px] uppercase font-bold text-[#76777b]">Ranigunj Ready Dispatch</span>
-                <span className="text-xs font-bold text-[#25D366]">26 Ready Fixtures</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] uppercase font-bold text-[#76777b]">Structural Warranty</span>
-                <span className="text-xs font-bold text-[#000102]">5 Years Weld Guarantee</span>
-              </div>
-            </div>}
-          </div>
-
-          {/* Active Filter Strip */}
-          <div className="flex flex-wrap items-center gap-2 pt-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#76777b]">Active Filters:</span>
-            {selectedFinishes.map((f) => (
+            {/* Active Filters tags preview */}
+            {(selectedRequirements.length > 0 || selectedMaterials.length > 0 || selectedCategory !== 'All Categories') && (
               <button
-                key={f}
-                onClick={() => toggleFinish(f)}
-                className="flex items-center gap-1.5 bg-[#e6e2dc] hover:bg-[#ddd9d4] text-[#1c1c18] px-3 py-1 rounded-full text-xs font-medium transition-colors"
+                type="button"
+                onClick={resetAllFilters}
+                className="w-fit text-xs font-semibold text-orange-600 bg-orange-50 hover:bg-orange-100 border border-orange-200 px-3 py-1.5 rounded-full transition-colors cursor-pointer flex items-center gap-1.5"
               >
-                <span>Finish: {f.split(' ')[0]}</span>
-                <AppIcon name="close" className="text-[14px]" />
-              </button>
-            ))}
-            {selectedLoads.map((l) => (
-              <button
-                key={l}
-                onClick={() => toggleLoad(l)}
-                className="flex items-center gap-1.5 bg-[#e6e2dc] hover:bg-[#ddd9d4] text-[#1c1c18] px-3 py-1 rounded-full text-xs font-medium transition-colors"
-              >
-                <span>Load: {l}</span>
-                <AppIcon name="close" className="text-[14px]" />
-              </button>
-            ))}
-            {(selectedFinishes.length > 0 || selectedLoads.length > 0) && (
-              <button
-                onClick={clearAllFilters}
-                className="text-xs text-[#775a00] hover:underline pl-2 font-semibold cursor-pointer"
-              >
-                Clear All Filters
+                <AppIcon name="clear_all" className="text-sm" />
+                <span>Clear All Active Filters</span>
               </button>
             )}
           </div>
         </div>
-      </section>
 
-      {showAllProducts && products.length > 0 && (
-        <section className="w-full px-4 lg:px-8 pt-8" aria-labelledby="most-selling-heading">
-          <div className="max-w-7xl mx-auto flex flex-col gap-4">
-            <div>
-              <span className="text-[10px] uppercase font-bold tracking-widest text-[#775a00]">Popular with retailers</span>
-              <h2 id="most-selling-heading" className="font-serif text-2xl font-bold text-[#000102]">Most Selling Products</h2>
-            </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              {products.slice(0, 4).map((product) => (
-                <button
-                  key={product.id}
-                  type="button"
-                  onClick={() => document.getElementById(`catalog-product-${product.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-                  className="text-left bg-white rounded-xl border border-[#e6e2dc] p-3 shadow-sm hover:shadow-md transition-shadow"
-                  aria-label={`View ${product.title} in all products`}
-                >
-                  <img src={product.image} alt="" className="w-full aspect-[4/3] object-cover rounded-lg bg-[#f7f3ed]" />
-                  <span className="mt-2 block text-xs font-semibold text-[#1c1c18] line-clamp-2">{product.title}</span>
-                  <span className="mt-1 block text-xs font-bold text-[#775a00]">₹{product.price.toLocaleString('en-IN')} / {product.unit}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Main Catalog Architecture: Sidebar + Product Grid */}
-      <section className="w-full px-4 lg:px-8 py-8">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          
-          {/* Architectural Filter Sidebar (3 cols) */}
-          <aside className="lg:col-span-3 flex flex-col gap-5 bg-[#f7f3ed] p-5 rounded-2xl border border-[#e6e2dc]">
-            <div className="flex items-center justify-between pb-2 border-b border-[#e6e2dc]">
-              <div className="flex items-center gap-1.5">
-                <AppIcon name="tune" className="text-[20px] text-[#000102]" />
-                <h2 className="font-serif text-base font-bold text-[#000102]">Fixtures Filter</h2>
-              </div>
-              <span className="text-[11px] bg-[#e6e2dc] px-2 py-0.5 rounded text-[#45474b] font-medium">
-                {filteredProducts.length} Items
-              </span>
-            </div>
-
-            {/* 1. Category Hierarchy */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-[#76777b]">
-                Catalog Category
-              </label>
-              <div className="flex flex-col gap-1 text-xs">
-                {[
-                  { name: 'All Categories', count: products.length },
-                  ...categories.map((category) => ({
-                    name: category.name,
-                    count: products.filter((product) => product.category === category.name).length
-                  }))
-                ].map((cat) => (
-                  <button
-                    key={cat.name}
-                    onClick={() => setSelectedCategory(cat.name)}
-                    className={`flex items-center justify-between p-2 rounded-lg text-left transition-colors cursor-pointer ${
-                      selectedCategory === cat.name
-                        ? 'bg-[#1a1c20] text-white font-semibold'
-                        : 'text-[#1c1c18] hover:bg-[#ebe8e2]'
-                    }`}
-                  >
-                    <span className="flex items-center gap-2 truncate">
-                      {selectedCategory === cat.name && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#ffdf98]"></span>
-                      )}
-                      <span>{cat.name}</span>
-                    </span>
-                    <span className={`text-[11px] ${selectedCategory === cat.name ? 'text-[#ffdf98]' : 'text-[#76777b]'}`}>
-                      {cat.count}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 2. Finish & Surface Treatment */}
-            <div className="flex flex-col gap-2 pt-2 border-t border-[#e6e2dc]">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-[#76777b]">
-                Finish / Surface Treatment
-              </label>
-              <div className="flex flex-col gap-2 text-xs">
-                {[
-                  { name: 'Matte Black Powder Coat', color: '#1A1C20', count: 18 },
-                  { name: 'Brushed Champagne Gold PVD', color: '#D4AF37', count: 12 },
-                  { name: 'Mirror Chrome Finish', color: '#E0E2E5', count: 15 },
-                  { name: 'Natural Teak & Mild Steel', color: '#8C5E3C', count: 8 },
-                  { name: 'Gloss Commercial White', color: '#FFFFFF', count: 6 }
-                ].map((fin) => (
-                  <label key={fin.name} className="flex items-center justify-between cursor-pointer group">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedFinishes.includes(fin.name)}
-                        onChange={() => toggleFinish(fin.name)}
-                        className="w-4 h-4 rounded text-[#000102] accent-[#000102]"
-                      />
-                      <span
-                        className="w-3.5 h-3.5 rounded-full shadow-sm border border-black/10"
-                        style={{ backgroundColor: fin.color }}
-                      ></span>
-                      <span className="text-[#1c1c18] group-hover:text-[#000102]">{fin.name}</span>
-                    </div>
-                    <span className="text-[11px] text-[#76777b]">{fin.count}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* 3. Structural Profile */}
-            <div className="flex flex-col gap-2 pt-2 border-t border-[#e6e2dc]">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-[#76777b]">
-                Structural Profile
-              </label>
-              <div className="flex flex-col gap-1.5 text-xs">
-                {[
-                  'All Configurations',
-                  'Triple Pipe Island Hanging Rack',
-                  '4-Way Stepped Waterfall Stand',
-                  'Heavy Duty Bumper Perimeter Stand',
-                  'Minimalist Single Bar Studio Stand',
-                  'Circular 360° Revolving Stand'
-                ].map((prof) => (
-                  <label key={prof} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="structural_profile"
-                      checked={selectedProfile === prof}
-                      onChange={() => setSelectedProfile(prof)}
-                      className="accent-[#000102]"
-                    />
-                    <span className={selectedProfile === prof ? 'font-semibold text-[#000102]' : 'text-[#45474b]'}>
-                      {prof}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* 4. Certified Load Capacity */}
-            <div className="flex flex-col gap-2 pt-2 border-t border-[#e6e2dc]">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-[#76777b]">
-                Certified Load Capacity
-              </label>
-              <div className="flex flex-col gap-2 text-xs">
-                {[
-                  { label: 'Up to 50 kg (Boutique Dresses / Tops)', val: 'Up to 50 kg' },
-                  { label: '50 kg – 100 kg (Standard Retail Merchandising)', val: '50 kg – 100 kg' },
-                  { label: '100 kg+ (Heavy Sarees, Lehengas & Denim)', val: '>100kg Heavy Duty' }
-                ].map((load) => (
-                  <label key={load.val} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedLoads.includes(load.val)}
-                      onChange={() => toggleLoad(load.val)}
-                      className="w-4 h-4 rounded text-[#000102] accent-[#000102]"
-                    />
-                    <span className={selectedLoads.includes(load.val) ? 'font-semibold text-[#000102]' : 'text-[#45474b]'}>
-                      {load.label}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* 5. Wholesale Price Range (INR) */}
-            <div className="flex flex-col gap-2 pt-2 border-t border-[#e6e2dc]">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-[#76777b]">
-                  B2B Trade Rate (INR)
-                </label>
-                <span className="text-xs font-bold text-[#775a00]">
-                  ₹1,000 – {Number.isFinite(maxPrice) ? `₹${maxPrice.toLocaleString('en-IN')}` : 'Any price'}
-                </span>
-              </div>
-              <input
-                type="range"
-                min="1000"
-                max={maxPriceLimit}
-                step="500"
-                value={Number.isFinite(maxPrice) ? Math.min(maxPrice, maxPriceLimit) : maxPriceLimit}
-                onChange={(e) => setMaxPrice(parseInt(e.target.value, 10))}
-                className="w-full accent-[#000102] cursor-pointer"
-              />
-              <div className="flex items-center justify-between text-[11px] text-[#76777b]">
-                <span>₹1,000</span>
-                <span>{Number.isFinite(maxPrice) ? `Max: ₹${maxPrice.toLocaleString('en-IN')}` : 'Any price'}</span>
-                <span>₹{maxPriceLimit.toLocaleString('en-IN')}</span>
-              </div>
-            </div>
-
-            {/* 6. Logistics Dispatch Readiness */}
-            <div className="flex flex-col gap-2 pt-2 border-t border-[#e6e2dc]">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-[#76777b]">
-                Logistics Dispatch Readiness
-              </label>
-              <div className="flex flex-col gap-2 text-xs">
-                <label className="flex items-center justify-between p-2 rounded-lg bg-white cursor-pointer shadow-sm border border-[#e6e2dc]">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={dispatchType.includes('Same-Day Hyderabad Dispatch')}
-                      onChange={() => {
-                        setDispatchType((prev) =>
-                          prev.includes('Same-Day Hyderabad Dispatch')
-                            ? prev.filter((x) => x !== 'Same-Day Hyderabad Dispatch')
-                            : [...prev, 'Same-Day Hyderabad Dispatch']
-                        );
-                      }}
-                      className="w-4 h-4 rounded text-[#000102] accent-[#000102]"
-                    />
-                    <span className="font-medium text-[#1c1c18]">Same-Day Hyderabad Dispatch</span>
-                  </div>
-                  <span className="text-[#25D366] font-bold">26</span>
-                </label>
-                <label className="flex items-center justify-between p-2 rounded-lg bg-white cursor-pointer shadow-sm border border-[#e6e2dc]">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={dispatchType.includes('Custom Made-to-Order (4 Days)')}
-                      onChange={() => {
-                        setDispatchType((prev) =>
-                          prev.includes('Custom Made-to-Order (4 Days)')
-                            ? prev.filter((x) => x !== 'Custom Made-to-Order (4 Days)')
-                            : [...prev, 'Custom Made-to-Order (4 Days)']
-                        );
-                      }}
-                      className="w-4 h-4 rounded text-[#000102] accent-[#000102]"
-                    />
-                    <span className="text-[#45474b]">Custom Made-to-Order (4 Days)</span>
-                  </div>
-                  <span className="text-[#76777b]">8</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Store Layout Support Banner */}
-            <div className="bg-[#1a1c20] text-white p-4 rounded-xl flex flex-col gap-3 shadow-md mt-2">
-              <div className="flex items-center gap-2 text-[#ffdf98]">
-                <AppIcon name="architecture" className="text-[20px]" />
-                <span className="text-[10px] font-bold uppercase tracking-wider">Store Layout Support</span>
-              </div>
-              <p className="text-xs text-[#c6c6cb] leading-relaxed">
-                Opening a new showroom in Hyderabad, Bangalore, or Chennai? Send your 2D CAD floor plan for optimal fixture count &amp; wholesale pack pricing.
-              </p>
+        {/* 2. PROMOTIONAL BANNER */}
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-orange-50 via-rose-50 to-amber-50 border border-orange-100 p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xs">
+          <div className="flex flex-col gap-2 max-w-xl text-center md:text-left">
+            <span className="w-fit self-center md:self-start bg-white/90 border border-orange-200 text-orange-600 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-2xs">
+              Direct Manufacturer Dispatch
+            </span>
+            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+              Pan-India &amp; Global Wholesale Dispatch
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Order boutique displays, velvet busts, multi-slot trays, and branded packaging cards in bulk. Dispatch within 24-48 hours from Chennai.
+            </p>
+            <div className="pt-1 flex flex-wrap items-center justify-center md:justify-start gap-3">
               <a
-                href={getWhatsAppLink('Hi All Display, I have a store floor plan to quote.')}
+                href={getWhatsAppLink('Hi Vinayak Packaging, I would like to inquire about wholesale rates and dispatch.')}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-white py-2.5 rounded-lg text-xs font-semibold transition-all shadow-sm"
+                className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs px-5 py-2.5 rounded-full shadow-xs transition-colors"
               >
-                <AppIcon name="upload_file" className="text-[18px]" />
-                <span>Send Floor Plan on WhatsApp</span>
+                <span>WhatsApp Wholesale Inquiries</span>
+                <AppIcon name="arrow_forward" className="text-sm" />
               </a>
             </div>
-          </aside>
+          </div>
 
-          {/* Products Grid & Controls (9 cols) */}
-          <main className="lg:col-span-9 flex flex-col gap-6">
-            {/* Interactive Listing Toolbar */}
-            <div className="bg-[#f7f3ed] p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm border border-[#e6e2dc]">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-[#1c1c18]">
-                  Showing <strong className="text-[#000102] font-bold">{filteredProducts.length} Commercial Fixtures</strong>
-                </span>
-                <span className="text-[#76777b] text-xs hidden sm:inline">• Heavy Gauge Steel Stock</span>
+          <div className="w-full md:w-80 h-36 sm:h-44 rounded-2xl overflow-hidden bg-white shadow-xs border border-white/60 shrink-0">
+            <img
+              src="/assets/vinayak/shop_banner.png"
+              alt="Global shipping promotion"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback if banner image is missing
+                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=600&q=80';
+              }}
+            />
+          </div>
+        </div>
+
+        {/* 3. MAIN SHOP LAYOUT: SIDEBAR (Left) & PRODUCTS GRID (Right) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* LEFT FILTER SIDEBAR */}
+          <aside className="lg:col-span-3 bg-white rounded-3xl p-6 border border-slate-100 shadow-xs flex flex-col gap-6">
+            
+            {/* SHOP BY REQUIREMENT (Multi-select) */}
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                  <AppIcon name="hub" className="text-orange-500 text-sm" />
+                  Shop by Requirement
+                </h3>
+                {selectedRequirements.length > 0 && (
+                  <button
+                    onClick={() => setSelectedRequirements([])}
+                    className="text-[11px] text-orange-600 font-bold hover:underline cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
 
-              <div className="flex items-center gap-4 w-full md:w-auto justify-end">
-                {/* Sort Dropdown */}
-                <div className="flex items-center gap-2">
-                  <label className="text-[11px] font-bold uppercase text-[#76777b] hidden sm:inline" htmlFor="sort_by">
-                    Sort By:
-                  </label>
-                  <select
-                    id="sort_by"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="bg-white text-[#1c1c18] text-xs font-medium py-2 px-3 rounded-lg border border-[#c6c6cb] focus:outline-none focus:border-[#000102] shadow-sm cursor-pointer"
-                  >
-                    <option>Most Popular for New Stores</option>
-                    <option>Price: Low to High (Wholesale)</option>
-                    <option>Price: High to Low (Luxury)</option>
-                    <option>Heavy Duty Load Capacity (120kg+)</option>
-                    <option>Immediate Same-Day Dispatch</option>
-                  </select>
-                </div>
+              <div className="flex flex-col gap-2">
+                {REQUIREMENT_OPTIONS.map((req) => {
+                  const isChecked = selectedRequirements.includes(req.id);
+                  return (
+                    <label
+                      key={req.id}
+                      className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer text-xs font-medium ${
+                        isChecked
+                          ? 'bg-orange-50/80 border-orange-300 text-orange-950 font-semibold'
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggleRequirement(req.id)}
+                          className="accent-orange-600 rounded"
+                        />
+                        <span>{req.label}</span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
 
-                {/* View Layout Toggle */}
-                <div className="flex items-center bg-[#e6e2dc] p-0.5 rounded-lg">
+            {/* Filter by Categories with Search */}
+            <div className="flex flex-col gap-3 pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
+                  Filter by Category
+                </h3>
+                {selectedCategory !== 'All Categories' && (
                   <button
-                    onClick={() => setIsTableView(false)}
-                    className={`p-1.5 rounded transition-all cursor-pointer ${
-                      !isTableView ? 'bg-white text-[#000102] shadow-sm' : 'text-[#76777b] hover:text-[#000102]'
-                    }`}
-                    title="Catalog Grid View"
+                    onClick={() => setSelectedCategory('All Categories')}
+                    className="text-[11px] text-orange-600 font-bold hover:underline cursor-pointer"
                   >
-                    <AppIcon name="grid_view" className="text-[18px] block" />
+                    Reset
+                  </button>
+                )}
+              </div>
+
+              {/* Search Category Input */}
+              <div className="relative">
+                <input
+                  type="text"
+                  value={categorySearch}
+                  onChange={(e) => setCategorySearch(e.target.value)}
+                  placeholder="Find category..."
+                  className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-orange-500"
+                />
+                <AppIcon name="search" className="absolute left-2.5 top-2 text-slate-400 text-sm" />
+              </div>
+
+              {/* Category Radio Checklist */}
+              <div className="flex flex-col gap-1 max-h-56 overflow-y-auto pr-1">
+                <label className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-slate-50 cursor-pointer text-xs">
+                  <span className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="shop-category"
+                      checked={selectedCategory === 'All Categories'}
+                      onChange={() => setSelectedCategory('All Categories')}
+                      className="accent-orange-600"
+                    />
+                    <span className={selectedCategory === 'All Categories' ? 'font-bold text-orange-600' : 'text-slate-700'}>
+                      All Categories
+                    </span>
+                  </span>
+                  <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold">
+                    {products.length}
+                  </span>
+                </label>
+
+                {categoryFacets.map((facet, idx) => {
+                  const isChecked = selectedCategory === facet.name;
+                  return (
+                    <label
+                      key={idx}
+                      className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-slate-50 cursor-pointer text-xs"
+                    >
+                      <span className="flex items-center gap-2 truncate pr-2">
+                        <input
+                          type="radio"
+                          name="shop-category"
+                          checked={isChecked}
+                          onChange={() => setSelectedCategory(facet.name)}
+                          className="accent-orange-600"
+                        />
+                        <span className={`truncate ${isChecked ? 'font-bold text-orange-600' : 'text-slate-700'}`}>
+                          {facet.name}
+                        </span>
+                      </span>
+                      <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold shrink-0">
+                        {facet.count}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Filter by Material (Multi-select) */}
+            <div className="flex flex-col gap-3 pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
+                  Material / Finish
+                </h3>
+                {selectedMaterials.length > 0 && (
+                  <button
+                    onClick={() => setSelectedMaterials([])}
+                    className="text-[11px] text-orange-600 font-bold hover:underline cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-1.5">
+                {MATERIAL_OPTIONS.map((mat) => {
+                  const isChecked = selectedMaterials.includes(mat);
+                  return (
+                    <button
+                      key={mat}
+                      type="button"
+                      onClick={() => toggleMaterial(mat)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
+                        isChecked
+                          ? 'bg-orange-600 text-white border-orange-600'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      {mat}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Filter by Price Slider */}
+            <div className="flex flex-col gap-3 pt-2 border-t border-slate-100">
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
+                Filter by Max Price
+              </h3>
+              
+              <input
+                type="range"
+                min={100}
+                max={15000}
+                step={100}
+                value={priceRange}
+                onChange={(e) => setPriceRange(Number(e.target.value))}
+                className="w-full accent-orange-600 h-1.5 bg-slate-200 rounded-lg cursor-pointer"
+              />
+
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-600">
+                  Max: <strong className="text-slate-900">₹{priceRange.toLocaleString('en-IN')}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPriceRange(15000)}
+                  className="text-[10px] font-bold text-orange-600 hover:underline cursor-pointer"
+                >
+                  Reset Price
+                </button>
+              </div>
+            </div>
+
+            {/* Product Status */}
+            <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
+              <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
+                Stock &amp; Offer Status
+              </h3>
+              
+              <div className="flex flex-col gap-1.5 text-xs text-slate-700">
+                <label className="flex items-center gap-2 cursor-pointer hover:text-orange-600">
+                  <input
+                    type="radio"
+                    name="status-filter"
+                    checked={stockStatusFilter === 'all'}
+                    onChange={() => setStockStatusFilter('all')}
+                    className="accent-orange-600"
+                  />
+                  <span>All Products</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer hover:text-orange-600">
+                  <input
+                    type="radio"
+                    name="status-filter"
+                    checked={stockStatusFilter === 'in_stock'}
+                    onChange={() => setStockStatusFilter('in_stock')}
+                    className="accent-orange-600"
+                  />
+                  <span>In Stock Only</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer hover:text-orange-600">
+                  <input
+                    type="radio"
+                    name="status-filter"
+                    checked={stockStatusFilter === 'on_sale'}
+                    onChange={() => setStockStatusFilter('on_sale')}
+                    className="accent-orange-600"
+                  />
+                  <span>On Sale / Special Discount</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Wholesale Assistance Box */}
+            <div className="p-4 rounded-2xl bg-orange-50/70 border border-orange-100 flex flex-col gap-2 mt-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600">
+                Depot Assistance
+              </span>
+              <p className="text-xs text-slate-700 leading-relaxed">
+                Need customized branding, laser engraving, or bulk export cartons?
+              </p>
+              <a
+                href={getWhatsAppLink('Hi Vinayak Packaging, I need custom branding and wholesale export assistance.')}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1 mt-1"
+              >
+                <span>Chat with Sowcarpet Depot</span>
+                <AppIcon name="arrow_forward" className="text-xs" />
+              </a>
+            </div>
+
+          </aside>
+
+          {/* RIGHT PRODUCTS LISTING & CONTROLS */}
+          <main className="lg:col-span-9 flex flex-col gap-6">
+            
+            {/* Toolbar (View Mode, Sorting, Count) */}
+            <div className="bg-slate-50/80 p-3 sm:p-4 rounded-2xl border border-slate-100 flex flex-wrap items-center justify-between gap-4">
+              <div className="text-xs text-slate-600 font-medium">
+                Showing <strong className="text-slate-900">{displayedProducts.length}</strong> of{' '}
+                <strong className="text-slate-900">{filteredProducts.length}</strong> products
+              </div>
+
+              <div className="flex items-center gap-3 ml-auto">
+                {/* Sorting Dropdown */}
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="bg-white border border-slate-200 text-xs text-slate-800 font-medium px-3 py-1.5 rounded-full focus:outline-none focus:border-orange-500 cursor-pointer shadow-2xs"
+                >
+                  <option value="default">Default sorting</option>
+                  <option value="price_asc">Price: low to high</option>
+                  <option value="price_desc">Price: high to low</option>
+                  <option value="rating">Average rating</option>
+                </select>
+
+                {/* Show Items Count Dropdown */}
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                  className="hidden sm:block bg-white border border-slate-200 text-xs text-slate-800 font-medium px-3 py-1.5 rounded-full focus:outline-none focus:border-orange-500 cursor-pointer shadow-2xs"
+                >
+                  <option value={12}>Show 12</option>
+                  <option value={24}>Show 24</option>
+                  <option value={48}>Show 48</option>
+                </select>
+
+                {/* Grid View Toggles */}
+                <div className="flex items-center bg-white p-0.5 rounded-full border border-slate-200 shadow-2xs">
+                  <button
+                    type="button"
+                    onClick={() => setGridColumns(4)}
+                    className={`p-1.5 rounded-full transition-colors cursor-pointer ${
+                      gridColumns === 4 ? 'bg-orange-600 text-white' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                    title="4 Columns Grid"
+                  >
+                    <AppIcon name="grid_view" className="text-sm block" />
                   </button>
                   <button
-                    onClick={() => setIsTableView(true)}
-                    className={`p-1.5 rounded transition-all cursor-pointer ${
-                      isTableView ? 'bg-white text-[#000102] shadow-sm' : 'text-[#76777b] hover:text-[#000102]'
+                    type="button"
+                    onClick={() => setGridColumns(3)}
+                    className={`p-1.5 rounded-full transition-colors cursor-pointer ${
+                      gridColumns === 3 ? 'bg-orange-600 text-white' : 'text-slate-600 hover:text-slate-900'
                     }`}
-                    title="Dense Commercial Spec Table"
+                    title="3 Columns Grid"
                   >
-                    <AppIcon name="table_rows" className="text-[18px] block" />
+                    <AppIcon name="view_column" className="text-sm block" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGridColumns(1)}
+                    className={`p-1.5 rounded-full transition-colors cursor-pointer ${
+                      gridColumns === 1 ? 'bg-orange-600 text-white' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                    title="List View"
+                  >
+                    <AppIcon name="list_alt" className="text-sm block" />
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* PRODUCT LISTING (GRID OR TABLE) */}
-            {!isTableView ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredProducts.map((product) => (
-                  <article
-                    key={product.id}
-                    id={`catalog-product-${product.id}`}
-                    className="bg-[#ffffff] rounded-2xl p-4 shadow-sm border border-[#e6e2dc] flex flex-col justify-between hover:shadow-md transition-shadow group"
-                  >
-                    <div className="flex flex-col gap-3">
-                      {/* Image Frame */}
-                      <div className="relative w-full aspect-[4/5] bg-[#f7f3ed] rounded-xl overflow-hidden flex items-center justify-center">
+            {/* PRODUCT CARDS GRID */}
+            {displayedProducts.length === 0 ? (
+              <div className="bg-slate-50 rounded-3xl p-12 text-center flex flex-col items-center gap-3 border border-slate-100">
+                <AppIcon name="inventory_2" className="text-4xl text-slate-400" />
+                <h3 className="font-bold text-base text-slate-900">No products matched your criteria</h3>
+                <p className="text-xs text-slate-600 max-w-sm">
+                  Try widening your price range or clearing requirement / category filters.
+                </p>
+                <button
+                  onClick={resetAllFilters}
+                  className="bg-orange-600 text-white text-xs font-bold px-4 py-2 rounded-full mt-2 cursor-pointer"
+                >
+                  Reset All Filters
+                </button>
+              </div>
+            ) : (
+              <div
+                className={`grid gap-4 ${
+                  gridColumns === 4
+                    ? 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4'
+                    : gridColumns === 3
+                    ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3'
+                    : 'grid-cols-1'
+                }`}
+              >
+                {displayedProducts.map((product) => {
+                  const qty = quantities[product.id] || 1;
+                  const discountPercent = product.originalPrice
+                    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+                    : 0;
+                  const inWishlist = wishlistIds.includes(product.id);
+                  const hasVariations = Boolean(product.variations && product.variations.length > 0);
+
+                  return (
+                    <article
+                      key={product.id}
+                      className="group bg-white rounded-2xl p-3 border border-slate-100 hover:border-orange-200 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col cursor-pointer"
+                      onClick={() => onSelectProduct ? onSelectProduct(product) : null}
+                    >
+                      {/* Product Image Frame */}
+                      <div className="relative w-full aspect-square rounded-xl bg-slate-50 overflow-hidden flex items-center justify-center mb-3">
                         <img
                           src={product.image}
                           alt={product.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
                         />
-                        {product.badge && (
-                          <div
-                            className={`absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shadow-sm ${
-                              product.badgeType === 'secondary'
-                                ? 'bg-[#775a00] text-white'
-                                : 'bg-[#000102] text-white'
-                            }`}
-                          >
-                            {product.badge}
-                          </div>
-                        )}
-                        <div className="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-sm text-[#000102] px-2 py-0.5 rounded text-[10px] font-semibold border border-black/5">
-                          {product.moq}
-                        </div>
-                      </div>
 
-                      {product.videoUrl && (
-                        <video
-                          src={product.videoUrl}
-                          controls
-                          preload="none"
-                          playsInline
-                          aria-label={`${product.title} product video`}
-                          className="w-full rounded-xl bg-black"
-                        />
-                      )}
+                        {/* Badges */}
+                        <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
+                          {discountPercent > 0 && (
+                            <span className="bg-orange-600 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-xs">
+                              {discountPercent}% OFF
+                            </span>
+                          )}
+                          {hasVariations && (
+                            <span className="bg-slate-900/80 backdrop-blur-xs text-white text-[9px] font-semibold px-2 py-0.5 rounded-md">
+                              Options Available
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Floating Wishlist Heart */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newState = storeManager.toggleWishlist(product);
+                            onToast(newState ? `Added ${product.title} to wishlist` : `Removed from wishlist`);
+                          }}
+                          className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center shadow-xs transition-colors cursor-pointer ${
+                            inWishlist
+                              ? 'bg-rose-50 text-rose-600 border border-rose-200'
+                              : 'bg-white/90 hover:bg-white text-slate-400 hover:text-rose-500'
+                          }`}
+                          title={inWishlist ? 'Remove from Wishlist' : 'Save to Wishlist'}
+                        >
+                          <AppIcon name="favorite" className={`text-xs ${inWishlist ? 'text-rose-600 fill-current' : ''}`} />
+                        </button>
+                      </div>
 
                       {/* Product Metadata & Title */}
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center justify-between text-[11px] text-[#76777b] font-mono">
-                          <span>Code: {product.code}</span>
-                          <span className="text-[#775a00] font-bold">{product.loadCapacity}</span>
-                        </div>
-                        <h3
-                          onClick={() => setActiveView('pdp')}
-                          className="font-serif text-base font-bold text-[#000102] group-hover:text-[#775a00] transition-colors leading-snug cursor-pointer line-clamp-2"
-                        >
+                      <div className="flex flex-col gap-1 flex-1">
+                        <span className="text-[10px] text-orange-600 uppercase font-bold tracking-wider truncate">
+                          {product.category}
+                        </span>
+                        
+                        <h3 className="text-xs font-bold text-slate-900 group-hover:text-orange-600 transition-colors line-clamp-2 leading-snug">
                           {product.title}
                         </h3>
-                        <p className="text-xs text-[#45474b] line-clamp-2 leading-relaxed">
-                          {product.description}
-                        </p>
-                      </div>
 
-                      {/* Real Finish Material Swatches */}
-                      <div className="flex items-center gap-2 pt-1">
-                        <span className="text-[10px] uppercase font-bold text-[#76777b]">Finishes:</span>
-                        <div className="flex items-center gap-1.5">
-                          {product.finishes.map((f, i) => (
-                            <span
-                              key={i}
-                              className="w-4 h-4 rounded-full shadow-sm border border-black/15 cursor-pointer hover:scale-110 transition-transform"
-                              style={{ backgroundColor: f.color }}
-                              title={f.name}
-                            ></span>
-                          ))}
+                        {/* Material & MOQ tag */}
+                        <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-1">
+                          {product.material && <span className="truncate">{product.material}</span>}
+                          {product.material && <span>•</span>}
+                          <span className="shrink-0">MOQ: {product.moq}</span>
                         </div>
-                      </div>
-                    </div>
 
-                    {/* Price & Action Triggers Well */}
-                    <div className="flex flex-col gap-3 pt-3 mt-3 bg-[#f7f3ed]/60 -mx-4 -mb-4 p-4 rounded-b-2xl border-t border-[#e6e2dc]">
-                      <div className="flex items-baseline justify-between">
-                        <div>
-                          <span className="text-lg font-bold text-[#000102]">
+                        {/* Price Hierarchy */}
+                        <div className="mt-auto pt-2 flex items-baseline gap-2">
+                          <span className="text-sm font-extrabold text-slate-900">
                             ₹{product.price.toLocaleString('en-IN')}
                           </span>
-                          <span className="text-xs text-[#76777b]"> / {product.unit}</span>
+                          {product.originalPrice && (
+                            <span className="text-xs text-slate-400 line-through">
+                              ₹{product.originalPrice.toLocaleString('en-IN')}
+                            </span>
+                          )}
                         </div>
-                        <span className="text-[10px] text-[#25D366] bg-[#25D366]/10 px-2 py-0.5 rounded font-semibold">
-                          {product.stockStatus}
-                        </span>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => {
-                            onAddToCart(product);
-                            onToast(`Added ${product.code} to your wholesale order list.`);
-                          }}
-                          className="flex items-center justify-center gap-1 bg-[#000102] hover:bg-[#2A2D34] text-white py-2 px-3 rounded-lg text-xs font-semibold transition-all shadow-sm cursor-pointer"
-                        >
-                          <AppIcon name="add_shopping_cart" className="text-[16px]" />
-                          <span>Add to Order</span>
-                        </button>
-                        <a
-                          href={getWhatsAppLink(`Interested in ${product.code} ${product.title} at wholesale rate INR ${product.price}`)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="flex items-center justify-center gap-1 bg-[#25D366] hover:bg-[#128C7E] text-white py-2 px-3 rounded-lg text-xs font-semibold transition-all shadow-sm"
-                        >
-                          <AppIcon name="chat" className="text-[16px]" />
-                          <span>WhatsApp</span>
-                        </a>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-
-                {/* WHOLESALE BULK PROJECT CALLOUT CARD */}
-                <article className="bg-[#1a1c20] text-white rounded-2xl p-6 shadow-md border border-white/10 flex flex-col justify-between">
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#ffdf98]">
-                        Turnkey Setup Assistance
-                      </span>
-                      <AppIcon name="domain_verification" className="text-[24px] text-[#fece57]" />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                      <h3 className="font-serif text-lg font-bold text-white">
-                        Need 10+ Racks or Complete Showroom Fitting?
-                      </h3>
-                      <p className="text-xs text-[#c6c6cb] leading-relaxed">
-                        Get our wholesale slab rates with up to 25% trade margin for retail contractors, architects, and multi-outlet brand expansion.
-                      </p>
-                    </div>
-
-                    {/* Tier Mini Breakdown */}
-                    <div className="bg-black/40 p-3.5 rounded-xl flex flex-col gap-2 text-xs border border-white/10">
-                      <div className="flex justify-between text-[#c6c6cb]">
-                        <span>1 – 4 Units</span>
-                        <span className="font-semibold text-white">Standard Wholesale</span>
-                      </div>
-                      <div className="flex justify-between text-[#ffdf98] font-medium">
-                        <span>5 – 19 Units</span>
-                        <span className="font-bold">12% Flat Discount</span>
-                      </div>
-                      <div className="flex justify-between text-[#25D366] font-bold">
-                        <span>20+ Units (Full Store)</span>
-                        <span>25% Slab + Free Logistics</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-6">
-                    <button
-                      onClick={() => setActiveView('custom-quote')}
-                      className="w-full flex items-center justify-center gap-2 bg-[#775a00] hover:bg-[#5a4300] text-white py-2.5 rounded-lg text-xs font-semibold transition-colors shadow-sm cursor-pointer"
-                    >
-                      <AppIcon name="receipt_long" className="text-[18px]" />
-                      <span>Get B2B Project Quote</span>
-                    </button>
-                  </div>
-                </article>
-              </div>
-            ) : (
-              /* DENSE SPECIFICATION TABLE VIEW */
-              <div className="bg-white rounded-2xl p-4 shadow-sm border border-[#e6e2dc] overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-[#f7f3ed] text-[#45474b] font-bold uppercase text-[10px] tracking-wider border-b border-[#e6e2dc]">
-                    <tr>
-                      <th className="p-3">Product Name &amp; Code</th>
-                      <th className="p-3">Finish &amp; Spec</th>
-                      <th className="p-3">Load Capacity</th>
-                      <th className="p-3">MOQ</th>
-                      <th className="p-3">Wholesale Rate</th>
-                      <th className="p-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#f1ede7]">
-                    {filteredProducts.map((p) => (
-                      <tr key={p.id} id={`catalog-product-${p.id}`} className="hover:bg-[#fdf9f3] transition-colors">
-                        <td className="p-3 font-semibold text-[#000102]">
-                          <div className="flex items-center gap-3">
-                            <img src={p.image} alt={p.title} className="w-10 h-10 object-cover rounded-lg border border-[#e6e2dc]" />
-                            <div>
-                              <span className="block">{p.title}</span>
-                              <span className="text-[10px] text-[#76777b] font-mono">{p.code}</span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-3 text-[#45474b]">{p.finish}</td>
-                        <td className="p-3 font-bold text-[#775a00]">{p.loadCapacity}</td>
-                        <td className="p-3 text-[#76777b]">{p.moq}</td>
-                        <td className="p-3 font-bold text-sm text-[#000102]">
-                          ₹{p.price.toLocaleString('en-IN')}
-                        </td>
-                        <td className="p-3 text-right">
+                      {/* Interactive Controls */}
+                      <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-2">
+                        {hasVariations ? (
                           <button
-                            onClick={() => {
-                              onAddToCart(p);
-                              onToast(`Added ${p.code} to Order List`);
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (onSelectProduct) onSelectProduct(product);
                             }}
-                            className="bg-[#000102] text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-[#2A2D34]"
+                            className="w-full bg-slate-900 hover:bg-orange-600 text-white font-bold text-xs py-2 px-2.5 rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                           >
-                            Add to Order
+                            <span>Select Options &amp; Specs</span>
+                            <AppIcon name="arrow_forward" className="text-xs" />
                           </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        ) : (
+                          <>
+                            {/* Quantity Stepper */}
+                            <div
+                              className="flex items-center border border-slate-200 rounded-lg bg-slate-50 px-1 py-0.5"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => handleQtyChange(product.id, -1)}
+                                className="w-5 h-5 flex items-center justify-center text-slate-600 hover:text-slate-900 font-bold text-xs cursor-pointer"
+                              >
+                                –
+                              </button>
+                              <span className="w-5 text-center text-xs font-bold text-slate-900">
+                                {qty}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleQtyChange(product.id, 1)}
+                                className="w-5 h-5 flex items-center justify-center text-slate-600 hover:text-slate-900 font-bold text-xs cursor-pointer"
+                              >
+                                +
+                              </button>
+                            </div>
+
+                            {/* Add to Cart Button */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onAddToCart(product, qty);
+                                onToast(`Added ${qty}x ${product.title} to Order List`);
+                              }}
+                              className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs py-2 px-2 rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1 cursor-pointer truncate"
+                            >
+                              <AppIcon name="add_shopping_cart" className="text-xs shrink-0" />
+                              <span className="truncate">Add to Cart</span>
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
             )}
 
-            {/* Pagination Controls */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-[#e6e2dc]">
-              <span className="text-xs text-[#76777b]">
-                Showing {filteredProducts.length} of 34 floor fixture units in Hyderabad depot
-              </span>
-              <div className="flex items-center gap-1.5 text-xs">
-                <button disabled className="px-3 py-1.5 rounded-lg bg-[#f1ede7] text-[#76777b] opacity-50 cursor-not-allowed">
-                  Previous
+            {/* Pagination / Load More */}
+            {filteredProducts.length > itemsPerPage && (
+              <div className="flex justify-center pt-6">
+                <button
+                  type="button"
+                  onClick={() => setItemsPerPage((prev) => prev + 12)}
+                  className="bg-white border border-slate-200 hover:border-orange-500 text-slate-800 text-xs font-bold px-6 py-2.5 rounded-full shadow-xs transition-colors cursor-pointer"
+                >
+                  Load More Products ({filteredProducts.length - itemsPerPage} remaining)
                 </button>
-                <button className="px-3 py-1.5 rounded-lg bg-[#000102] text-white font-semibold">1</button>
-                <button className="px-3 py-1.5 rounded-lg bg-[#f1ede7] hover:bg-[#ebe8e2] text-[#1c1c18]">2</button>
-                <button className="px-3 py-1.5 rounded-lg bg-[#f1ede7] hover:bg-[#ebe8e2] text-[#1c1c18]">3</button>
-                <button className="px-3 py-1.5 rounded-lg bg-[#f1ede7] hover:bg-[#ebe8e2] text-[#1c1c18]">Next</button>
               </div>
-            </div>
+            )}
+
           </main>
         </div>
-      </section>
 
-      {/* Technical Store Fit Guidance & System Comparison Section */}
-      <section className="w-full bg-[#f7f3ed] px-4 lg:px-8 py-12 border-t border-[#e6e2dc] mt-6">
-        <div className="max-w-7xl mx-auto flex flex-col gap-8">
-          <div className="flex flex-col gap-1 max-w-3xl">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#775a00]">
-              Engineering Guide &amp; Store Planning
-            </span>
-            <h2 className="font-serif text-2xl sm:text-3xl font-bold text-[#000102]">
-              How to Choose the Right Rack System for Your Garment Store
-            </h2>
-            <p className="text-xs sm:text-sm text-[#45474b]">
-              Structural comparison between Single Pipe, Triple Pipe, and 4-Way Bumper stands to balance visual aesthetic appeal with merchandise floor density.
-            </p>
-          </div>
-
-          {/* Comparison Matrix Table */}
-          <div className="w-full overflow-x-auto bg-[#ffffff] rounded-2xl shadow-sm border border-[#e6e2dc]">
-            <table className="w-full text-left text-xs text-[#1c1c18]">
-              <thead className="bg-[#f7f3ed] text-[10px] font-bold uppercase tracking-wider text-[#45474b] border-b border-[#e6e2dc]">
-                <tr>
-                  <th className="p-4">Fixture Type</th>
-                  <th className="p-4">Best Garment Category</th>
-                  <th className="p-4">Recommended Aisle Placement</th>
-                  <th className="p-4">Max Load Rating</th>
-                  <th className="p-4">Merchandise Capacity</th>
-                  <th className="p-4">Factory Weld Material</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#f1ede7]">
-                <tr className="hover:bg-[#fdf9f3] transition-colors">
-                  <td className="p-4 font-bold text-[#000102] flex items-center gap-2">
-                    <AppIcon name="view_column" className="text-[#775a00] text-[18px]" />
-                    <span>Triple Pipe Island Rack</span>
-                  </td>
-                  <td className="p-4">Heavy Sarees, Designer Kurtis, Suiting &amp; Denim</td>
-                  <td className="p-4">Showroom Center Floors &amp; Island Breaks</td>
-                  <td className="p-4 font-bold text-[#000102]">120 kg – 150 kg</td>
-                  <td className="p-4">60 – 80 Garments</td>
-                  <td className="p-4 text-[#45474b]">1.6mm MS Steel / 304 SS</td>
-                </tr>
-                <tr className="bg-[#fdf9f3]/60 hover:bg-[#fdf9f3] transition-colors">
-                  <td className="p-4 font-bold text-[#000102] flex items-center gap-2">
-                    <AppIcon name="line_style" className="text-[#775a00] text-[18px]" />
-                    <span>Single Rail Minimalist Stand</span>
-                  </td>
-                  <td className="p-4">Bridal Gowns, Long Anarkalis, Premium Lehengas</td>
-                  <td className="p-4">Feature Focal Points &amp; Window Display</td>
-                  <td className="p-4 font-bold text-[#000102]">50 kg – 75 kg</td>
-                  <td className="p-4">20 – 25 Pieces</td>
-                  <td className="p-4 text-[#45474b]">PVD Coated Stainless Steel</td>
-                </tr>
-                <tr className="hover:bg-[#fdf9f3] transition-colors">
-                  <td className="p-4 font-bold text-[#000102] flex items-center gap-2">
-                    <AppIcon name="reorder" className="text-[#775a00] text-[18px]" />
-                    <span>4-Way Stepped Bumper Stand</span>
-                  </td>
-                  <td className="p-4">Shirts, Trousers, Kidswear, Promotional Sales</td>
-                  <td className="p-4">End Caps &amp; High Traffic Walkways</td>
-                  <td className="p-4 font-bold text-[#000102]">80 kg – 100 kg</td>
-                  <td className="p-4">48 – 60 Pieces</td>
-                  <td className="p-4 text-[#45474b]">Cold Rolled Commercial Pipe</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* 3 Key Store Fit Principles */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-[#ffffff] p-5 rounded-2xl shadow-sm border border-[#e6e2dc] flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-[#000102]">
-                <AppIcon name="straighten" className="text-[20px] text-[#775a00]" />
-                <h3 className="font-serif text-base font-bold">Aisle Clearance Rule</h3>
-              </div>
-              <p className="text-xs text-[#45474b] leading-relaxed">
-                Maintain a minimum 3.5ft (42 inches) walkway between perimeter wall channels and center floor island racks to accommodate smooth customer movement and full dress previews.
-              </p>
-            </div>
-
-            <div className="bg-[#ffffff] p-5 rounded-2xl shadow-sm border border-[#e6e2dc] flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-[#000102]">
-                <AppIcon name="layers" className="text-[20px] text-[#775a00]" />
-                <h3 className="font-serif text-base font-bold">Finish Uniformity</h3>
-              </div>
-              <p className="text-xs text-[#45474b] leading-relaxed">
-                Do not mix gloss chrome and champagne gold in the same sightline. Choose either full Matte Black for industrial aesthetics or Titanium Gold PVD for upscale bridal showrooms.
-              </p>
-            </div>
-
-            <div className="bg-[#ffffff] p-5 rounded-2xl shadow-sm border border-[#e6e2dc] flex flex-col gap-2">
-              <div className="flex items-center gap-2 text-[#000102]">
-                <AppIcon name="local_shipping" className="text-[20px] text-[#775a00]" />
-                <h3 className="font-serif text-base font-bold">Depot Pickups</h3>
-              </div>
-              <p className="text-xs text-[#45474b] leading-relaxed">
-                Save on freight charges by collecting directly from our Ranigunj or Begum Bazaar facilities with your own mini-truck (Tata Ace / Ashok Leyland Dost).
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Sticky Bottom Wholesale Order Preview Bar (Docked Above Bottom) */}
-      <div className="fixed bottom-4 left-0 right-0 z-40 px-4 max-w-4xl mx-auto pointer-events-none">
-        <div className="pointer-events-auto bg-[#1a1c20] text-white p-3.5 sm:p-4 rounded-2xl shadow-2xl flex flex-wrap items-center justify-between gap-4 border border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#ffdf98]/20 flex items-center justify-center text-[#ffdf98]">
-              <AppIcon name="assignment" className="text-[22px]" />
-            </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="font-serif text-sm font-bold text-white">
-                  Wholesale Order List: {cartCount} Items Selected
-                </span>
-                <span className="bg-[#25D366] text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                  Ready
-                </span>
-              </div>
-              <p className="text-xs text-[#c6c6cb]">
-                Subtotal: <strong className="text-[#ffdf98] font-bold">₹{cartSubtotal.toLocaleString('en-IN')}</strong> (Excl. 18% GST &amp; Local Freight)
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <button
-              onClick={() => setActiveView('quote-cart')}
-              className="bg-white/15 hover:bg-white/25 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
-            >
-              Review List
-            </button>
-            <a
-              href={getWhatsAppLink(`Hi All Display, I have ${cartCount} items in my order list totalling INR ${cartSubtotal.toLocaleString('en-IN')}. Please confirm stock and provide tax invoice.`)}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-1.5 bg-[#25D366] hover:bg-[#128C7E] text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition-all shadow-md"
-            >
-              <AppIcon name="send" className="text-[16px]" />
-              <span>Export Order to WhatsApp</span>
-            </a>
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import React, { FormEvent, useState } from 'react';
 import { useAuth } from './AuthContext';
 
 export const AuthDialog: React.FC = () => {
-  const { isAuthDialogOpen, closeAuthDialog, login, signup, loginWithGoogle } = useAuth();
+  const { isAuthDialogOpen, closeAuthDialog, login, signup } = useAuth();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -30,115 +30,113 @@ export const AuthDialog: React.FC = () => {
 
   return (
     <div
-      className="fixed inset-0 z-[120] flex items-center justify-center bg-[#1a1c20]/55 p-4"
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200"
       role="presentation"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) closeAuthDialog();
       }}
     >
       <section
-        className="w-full max-w-md rounded-2xl border border-[#e6e2dc] bg-white p-6 shadow-2xl sm:p-8"
+        className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl sm:p-8 animate-in zoom-in-95 duration-200"
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-dialog-title"
       >
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#775a00]">All Display account</p>
-            <h2 id="auth-dialog-title" className="mt-1 font-serif text-2xl font-bold text-[#1c1c18]">
-              {mode === 'login' ? 'Welcome back' : 'Create your account'}
+            <div className="w-10 h-10 rounded-2xl bg-orange-600 text-white flex items-center justify-center font-extrabold text-base mb-3 shadow-xs">
+              VP
+            </div>
+            <h2 id="auth-dialog-title" className="text-xl sm:text-2xl font-bold text-slate-900">
+              {mode === 'login' ? 'Customer Sign In' : 'Create Customer Account'}
             </h2>
-            <p className="mt-1 text-sm leading-6 text-[#76777b]">
-              Sign in to keep your details and orders together.
+            <p className="mt-1 text-xs text-slate-500">
+              Track past wholesale orders, save delivery addresses, and sync with WhatsApp.
             </p>
           </div>
           <button
             type="button"
             onClick={closeAuthDialog}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#76777b] transition-colors hover:bg-[#f1ede7] hover:text-[#1c1c18]"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
             aria-label="Close sign in dialog"
           >
             <AppIcon name="close" className="text-[20px]" />
           </button>
         </div>
 
-        <button
-          type="button"
-          onClick={loginWithGoogle}
-          className="flex min-h-11 w-full items-center justify-center gap-3 rounded-xl border border-[#d8d1c6] bg-white px-4 py-2.5 text-sm font-semibold text-[#1c1c18] transition-colors hover:bg-[#fdf9f3]"
-        >
-          <span className="flex h-5 w-5 items-center justify-center rounded-full border border-[#d8d1c6] text-xs font-bold text-[#4285f4]">G</span>
-          Continue with Google
-        </button>
-
-        <div className="my-5 flex items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-[#a29a8d]">
-          <span className="h-px flex-1 bg-[#e6e2dc]" />
-          or email
-          <span className="h-px flex-1 bg-[#e6e2dc]" />
-        </div>
+        {requestError && (
+          <div role="alert" className="mb-4 rounded-xl bg-red-50 p-3 text-xs text-red-700 border border-red-200">
+            {requestError}
+          </div>
+        )}
 
         <form onSubmit={submit} className="flex flex-col gap-3.5">
           {mode === 'signup' && (
-            <label className="flex flex-col gap-1.5 text-xs font-semibold text-[#45474b]">
-              Name
+            <label className="flex flex-col gap-1.5 text-xs font-semibold text-slate-700">
+              Contact / Proprietor Name
               <input
                 autoComplete="name"
                 required
                 maxLength={100}
+                placeholder="e.g. Suresh Kumar"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                className="min-h-11 rounded-xl border border-[#d8d1c6] px-3.5 text-sm font-normal outline-none focus:border-[#775a00] focus:ring-2 focus:ring-[#775a00]/10"
+                className="min-h-11 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs font-normal text-slate-900 outline-none focus:border-orange-500 focus:bg-white transition-all"
               />
             </label>
           )}
-          <label className="flex flex-col gap-1.5 text-xs font-semibold text-[#45474b]">
-            Email
+
+          <label className="flex flex-col gap-1.5 text-xs font-semibold text-slate-700">
+            Email Address
             <input
               type="email"
               autoComplete="email"
               required
               maxLength={254}
+              placeholder="name@store.com"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="min-h-11 rounded-xl border border-[#d8d1c6] px-3.5 text-sm font-normal outline-none focus:border-[#775a00] focus:ring-2 focus:ring-[#775a00]/10"
+              className="min-h-11 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs font-normal text-slate-900 outline-none focus:border-orange-500 focus:bg-white transition-all"
             />
           </label>
-          <label className="flex flex-col gap-1.5 text-xs font-semibold text-[#45474b]">
+
+          <label className="flex flex-col gap-1.5 text-xs font-semibold text-slate-700">
             Password
             <input
               type="password"
               autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-              minLength={mode === 'signup' ? 12 : undefined}
               required
+              minLength={6}
+              maxLength={128}
+              placeholder="••••••••"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="min-h-11 rounded-xl border border-[#d8d1c6] px-3.5 text-sm font-normal outline-none focus:border-[#775a00] focus:ring-2 focus:ring-[#775a00]/10"
+              className="min-h-11 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs font-normal text-slate-900 outline-none focus:border-orange-500 focus:bg-white transition-all"
             />
-            {mode === 'signup' && <span className="text-[11px] font-normal text-[#76777b]">Use at least 12 characters.</span>}
           </label>
-          {requestError && <p role="alert" className="text-xs leading-5 text-red-700">{requestError}</p>}
+
           <button
             type="submit"
             disabled={isSubmitting}
-            className="mt-1 inline-flex min-h-11 items-center justify-center rounded-xl bg-[#1a1c20] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#775a00] disabled:cursor-wait disabled:opacity-60"
+            className="mt-2 min-h-11 w-full rounded-xl bg-orange-600 hover:bg-orange-700 disabled:opacity-60 text-white text-xs font-bold uppercase tracking-wider transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-2"
           >
-            {isSubmitting ? 'Please wait...' : mode === 'login' ? 'Sign in' : 'Create account'}
+            {isSubmitting ? 'Please wait…' : mode === 'login' ? 'Sign In to Account' : 'Create Account'}
           </button>
         </form>
 
-        <p className="mt-5 text-center text-sm text-[#76777b]">
-          {mode === 'login' ? 'New to All Display?' : 'Already have an account?'}{' '}
+        <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <span>{mode === 'login' ? 'New customer?' : 'Already have an account?'}</span>
           <button
             type="button"
             onClick={() => {
               setRequestError(null);
               setMode(mode === 'login' ? 'signup' : 'login');
             }}
-            className="font-bold text-[#775a00] hover:underline"
+            className="font-bold text-orange-600 hover:text-orange-700 hover:underline cursor-pointer"
           >
-            {mode === 'login' ? 'Create account' : 'Sign in'}
+            {mode === 'login' ? 'Create an account' : 'Sign in instead'}
           </button>
-        </p>
+        </div>
       </section>
     </div>
   );

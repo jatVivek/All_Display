@@ -3,40 +3,57 @@
 @theme {
   --font-serif: "Playfair Display", Georgia, serif;
   --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
-  --color-surface: #fdf9f3;
-  --color-surface-dim: #ddd9d4;
-  --color-surface-bright: #fdf9f3;
+  --color-surface: #ffffff;
+  --color-surface-dim: #f1f5f9;
+  --color-surface-bright: #ffffff;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f7f3ed;
-  --color-surface-container: #f1ede7;
-  --color-surface-container-high: #ebe8e2;
-  --color-surface-container-highest: #e6e2dc;
-  --color-on-surface: #1c1c18;
-  --color-on-surface-variant: #45474b;
-  --color-primary: #000102;
-  --color-primary-container: #1a1c20;
+  --color-surface-container-low: #f8fafc;
+  --color-surface-container: #f1f5f9;
+  --color-surface-container-high: #e2e8f0;
+  --color-surface-container-highest: #cbd5e1;
+  --color-on-surface: #0f172a;
+  --color-on-surface-variant: #475569;
+  --color-primary: #ea580c;
+  --color-primary-hover: #c2410c;
+  --color-primary-container: #fff7ed;
   --color-on-primary: #ffffff;
-  --color-secondary: #775a00;
-  --color-secondary-container: #fece57;
-  --color-secondary-fixed: #ffdf98;
-  --color-secondary-fixed-dim: #eec14b;
-  --color-outline: #76777b;
-  --color-outline-variant: #c6c6cb;
+  --color-secondary: #0f172a;
+  --color-secondary-container: #f8fafc;
+  --color-secondary-fixed: #fdba74;
+  --color-secondary-fixed-dim: #fed7aa;
+  --color-outline: #cbd5e1;
+  --color-outline-variant: #e2e8f0;
 }
 
 @layer base {
   body {
     font-family: var(--font-sans);
-    background-color: #fdf9f3;
-    color: #1c1c18;
+    background-color: #ffffff;
+    color: #0f172a;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
-  h1, h2, .font-headline-lg, .font-headline-md, .font-display-lg, .font-serif {
-    font-family: var(--font-serif);
+  h1, h2, h3, .font-headline-lg, .font-headline-md, .font-display-lg {
+    letter-spacing: -0.015em;
   }
 }
 
-/* Custom scrollbars hidden as in reference */
+/* Smooth light scrollbar */
 ::-webkit-scrollbar {
-  display: none;
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }

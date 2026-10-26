@@ -17,7 +17,6 @@ export const AdminOrdersView: React.FC<AdminOrdersViewProps> = ({
   const [orders, setOrders] = useState<AdminOrder[]>(() => storeManager.getOrders());
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   useEffect(() => storeManager.subscribe((state) => setOrders(state.orders)), []);
 
@@ -64,7 +63,7 @@ export const AdminOrdersView: React.FC<AdminOrdersViewProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `AllDisplay_Wholesale_Orders_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `VinayakPackaging_Orders_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     showToast('Orders exported successfully as CSV!');
   };
@@ -72,21 +71,21 @@ export const AdminOrdersView: React.FC<AdminOrdersViewProps> = ({
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-200">
       {/* Header Bar */}
-      <div className="bg-white rounded-2xl p-6 border border-[#e6e2dc] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <AppIcon name="list_alt" className="text-[#775a00] text-[24px]" />
-            <h1 className="font-serif text-2xl font-bold text-[#1c1c18]">Wholesale Orders List</h1>
+            <AppIcon name="list_alt" className="text-orange-600 text-[24px]" />
+            <h1 className="text-2xl font-bold text-slate-900">Customer Orders List</h1>
           </div>
-          <p className="text-xs text-[#76777b]">
-            Manage incoming WhatsApp wholesale orders, track payment status, and dispatch transport.
+          <p className="text-xs text-slate-500">
+            Manage incoming WhatsApp orders, track payment status, and dispatch shipments.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <button
             onClick={handleExportCSV}
-            className="bg-[#1a1c20] hover:bg-black text-[#ffdf98] px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer shadow-sm"
+            className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer"
           >
             <AppIcon name="download" className="text-[18px]" />
             <span>Export CSV</span>
@@ -95,11 +94,11 @@ export const AdminOrdersView: React.FC<AdminOrdersViewProps> = ({
       </div>
 
       {/* Filters & Search */}
-      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-[#e6e2dc] shadow-sm flex flex-col gap-4">
+      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* Search Bar */}
           <div className="relative w-full sm:w-80">
-            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#76777b]">
+            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               <AppIcon name="search" className="text-[18px]" />
             </span>
             <input
@@ -107,7 +106,7 @@ export const AdminOrdersView: React.FC<AdminOrdersViewProps> = ({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search store name, order #, WhatsApp..."
-              className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#fdf9f3] border border-[#e6e2dc] text-xs text-[#1c1c18] focus:outline-none focus:border-[#775a00]"
+              className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
             />
           </div>
 
@@ -117,10 +116,10 @@ export const AdminOrdersView: React.FC<AdminOrdersViewProps> = ({
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer border ${
                   statusFilter === st
-                    ? 'bg-[#1a1c20] text-white'
-                    : 'bg-[#f1ede7] hover:bg-[#ebe8e2] text-[#1c1c18]'
+                    ? 'bg-orange-600 text-white border-orange-600'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
                 }`}
               >
                 {st}
@@ -131,11 +130,11 @@ export const AdminOrdersView: React.FC<AdminOrdersViewProps> = ({
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white rounded-2xl border border-[#e6e2dc] shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-[#fdf9f3] text-[11px] font-bold text-[#775a00] uppercase tracking-wider border-b border-[#e6e2dc]">
+              <tr className="bg-slate-50 text-[11px] font-bold text-slate-600 uppercase tracking-wider border-b border-slate-200">
                 <th className="p-4 pl-6">Order Ref &amp; Date</th>
                 <th className="p-4">Customer &amp; Store</th>
                 <th className="p-4">Destination</th>
@@ -144,35 +143,35 @@ export const AdminOrdersView: React.FC<AdminOrdersViewProps> = ({
                 <th className="p-4 pr-6 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e6e2dc] text-xs">
+            <tbody className="divide-y divide-slate-100 text-xs">
               {filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-12 text-center text-[#76777b]">
+                  <td colSpan={6} className="p-12 text-center text-slate-400">
                     No orders match your filter criteria.
                   </td>
                 </tr>
               ) : (
                 filteredOrders.map((ord) => (
-                  <tr key={ord.id} className="hover:bg-[#fdf9f3]/60 transition-colors">
+                  <tr key={ord.id} className="hover:bg-slate-50/70 transition-colors">
                     <td className="p-4 pl-6">
                       <div className="flex flex-col">
-                        <span className="font-bold text-[#1c1c18]">{ord.orderNo}</span>
-                        <span className="text-[11px] text-[#76777b]">{ord.date}</span>
+                        <span className="font-bold text-slate-900">{ord.orderNo}</span>
+                        <span className="text-[11px] text-slate-500">{ord.date}</span>
                       </div>
                     </td>
                     <td className="p-4">
                       <div className="flex flex-col">
-                        <span className="font-semibold text-[#1c1c18]">{ord.storeName}</span>
-                        <span className="text-[11px] text-[#76777b]">{ord.customerName} • +91 {ord.whatsapp}</span>
+                        <span className="font-semibold text-slate-900">{ord.storeName}</span>
+                        <span className="text-[11px] text-slate-500">{ord.customerName} • +91 {ord.whatsapp}</span>
                       </div>
                     </td>
                     <td className="p-4">
                       <div className="flex flex-col">
-                        <span className="font-medium text-[#1c1c18]">{ord.destination}</span>
-                        <span className="text-[10px] text-[#76777b] font-mono">{ord.pincode}</span>
+                        <span className="font-medium text-slate-900">{ord.destination}</span>
+                        <span className="text-[10px] text-slate-500 font-mono">{ord.pincode}</span>
                       </div>
                     </td>
-                    <td className="p-4 font-mono font-bold text-[#1c1c18]">
+                    <td className="p-4 font-mono font-bold text-slate-900">
                       ₹{ord.total.toLocaleString('en-IN')}
                     </td>
                     <td className="p-4">
@@ -204,9 +203,9 @@ export const AdminOrdersView: React.FC<AdminOrdersViewProps> = ({
                           setSelectedOrderId(ord.id);
                           setActiveTab('order-detail');
                         }}
-                        className="bg-[#1a1c20] hover:bg-black text-[#ffdf98] px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer shadow-sm"
+                        className="bg-orange-600 hover:bg-orange-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer shadow-xs"
                       >
-                        Inspect &amp; WhatsApp
+                        Inspect &amp; Reply
                       </button>
                     </td>
                   </tr>

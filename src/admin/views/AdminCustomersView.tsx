@@ -28,50 +28,58 @@ export const AdminCustomersView: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl p-6 border border-[#e6e2dc] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <AppIcon name="group" className="text-[#775a00] text-[24px]" />
-            <h1 className="font-serif text-2xl font-bold text-[#1c1c18]">Boutique Owner Directory</h1>
+            <AppIcon name="group" className="text-orange-600 text-[24px]" />
+            <h1 className="text-2xl font-bold text-slate-900">Boutique &amp; Client Directory</h1>
           </div>
-          <p className="text-xs text-[#76777b]">
-            Repeat wholesale buyers, boutique proprietors, and store owners across Telangana and Andhra Pradesh.
+          <p className="text-xs text-slate-500">
+            Repeat buyers, jewellery boutique owners, and retail clients across Chennai, Tamil Nadu, and PAN India.
           </p>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-[#e6e2dc] shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-[#fdf9f3] text-[11px] font-bold text-[#775a00] uppercase tracking-wider border-b border-[#e6e2dc]">
+              <tr className="bg-slate-50 text-[11px] font-bold text-slate-600 uppercase tracking-wider border-b border-slate-200">
                 <th className="p-4 pl-6">Store &amp; Proprietor</th>
                 <th className="p-4">WhatsApp Contact</th>
                 <th className="p-4">Destination</th>
                 <th className="p-4">Total Orders</th>
-                <th className="p-4 pr-6 text-right">Total Wholesale Spend</th>
+                <th className="p-4 pr-6 text-right">Total Spend</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e6e2dc] text-xs">
-              {customers.map((c, idx) => (
-                <tr key={idx} className="hover:bg-[#fdf9f3]/60 transition-colors">
-                  <td className="p-4 pl-6">
-                    <div className="flex flex-col">
-                      <span className="font-bold text-[#1c1c18]">{c.storeName}</span>
-                      <span className="text-[11px] text-[#76777b]">Prop: {c.name}</span>
-                    </div>
-                  </td>
-                  <td className="p-4 text-[#25D366] font-semibold flex items-center gap-1 pt-5">
-                    <AppIcon name="chat" className="text-[16px]" />
-                    <span>+91 {c.whatsapp}</span>
-                  </td>
-                  <td className="p-4 font-medium text-[#45474b]">{c.city}</td>
-                  <td className="p-4 font-bold">{c.count} Orders</td>
-                  <td className="p-4 pr-6 text-right font-mono font-bold text-[#1c1c18]">
-                    ₹{c.spend.toLocaleString('en-IN')}
+            <tbody className="divide-y divide-slate-100 text-xs">
+              {customers.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-12 text-center text-slate-400">
+                    No customer order records found yet. As orders are placed, clients will appear here.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                customers.map((c, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="p-4 pl-6">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-900">{c.storeName}</span>
+                        <span className="text-[11px] text-slate-500">Contact: {c.name}</span>
+                      </div>
+                    </td>
+                    <td className="p-4 text-emerald-700 font-semibold flex items-center gap-1 pt-5">
+                      <AppIcon name="chat" className="text-[16px]" />
+                      <span>+91 {c.whatsapp}</span>
+                    </td>
+                    <td className="p-4 font-medium text-slate-600">{c.city}</td>
+                    <td className="p-4 font-bold text-slate-900">{c.count} Orders</td>
+                    <td className="p-4 pr-6 text-right font-mono font-bold text-slate-900">
+                      ₹{c.spend.toLocaleString('en-IN')}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

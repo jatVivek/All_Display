@@ -34,10 +34,10 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
   if (!order) {
     return (
       <div className="p-8 text-center flex flex-col gap-4">
-        <p className="text-sm text-[#76777b]">No order selected.</p>
+        <p className="text-sm text-slate-500">No order selected.</p>
         <button
           onClick={() => setActiveTab('orders')}
-          className="bg-[#1a1c20] text-white px-4 py-2 rounded-xl text-xs font-semibold w-fit mx-auto"
+          className="bg-orange-600 text-white px-4 py-2 rounded-xl text-xs font-semibold w-fit mx-auto cursor-pointer"
         >
           Return to Orders List
         </button>
@@ -65,18 +65,18 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
 
   // WhatsApp Templates
   const handleWhatsAppReply = () => {
-    const text = `Hi ${order.customerName} (${order.storeName}), thanks for confirming wholesale order *${order.orderNo}* with All Display Hyderabad.\n\n` +
-      `Manifest Summary:\n` +
+    const text = `Hi ${order.customerName} (${order.storeName}), thanks for confirming your order *${order.orderNo}* with Vinayak Packaging Sowcarpet, Chennai.\n\n` +
+      `Order Summary:\n` +
       order.items.map(i => `• ${i.title} (${i.finish}): ${i.quantity} ${i.unitLabel} @ ₹${i.unitPrice.toLocaleString('en-IN')}`).join('\n') +
-      `\n\nGrand Total (incl. GST): ₹${order.total.toLocaleString('en-IN')}\n\n` +
-      `Your order is being prepared at our Ranigunj warehouse. We will share transport dispatch LR soon!`;
+      `\n\nGrand Total: ₹${order.total.toLocaleString('en-IN')}\n\n` +
+      `Your order is being prepared at our Sowcarpet warehouse. We will share dispatch tracking details soon!`;
     
     window.open(getContactWhatsAppLink(order.whatsapp, text), '_blank');
     showToast('WhatsApp reply window opened with order confirmation template.');
   };
 
   const handleSendPaymentDetails = () => {
-    const text = `Hi ${order.customerName} (${order.storeName}), here are the banking details for Wholesale Proforma *${order.orderNo}* (Total: ₹${order.total.toLocaleString('en-IN')}):\n\n` +
+    const text = `Hi ${order.customerName} (${order.storeName}), here are the banking details for Proforma *${order.orderNo}* (Total: ₹${order.total.toLocaleString('en-IN')}):\n\n` +
       `🏦 Bank: ${settings.bankName}\n` +
       `📋 Account No: ${settings.accountNo}\n` +
       `🔑 IFSC: ${settings.ifscCode}\n` +
@@ -88,13 +88,13 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
   };
 
   const handleSendDispatchNotice = () => {
-    const text = `Hi ${order.customerName} (${order.storeName}), great news! Your wholesale order *${order.orderNo}* has been packed and dispatched via transport.\n\n` +
-      `📦 Lorry Receipt / Tracking No: *${trackingNo || 'To be confirmed'}*\n` +
-      `Destination Depot: ${order.destination} (${order.pincode})\n\n` +
-      `Please collect consignment from transport office upon arrival. Thank you for shopping with All Display!`;
+    const text = `Hi ${order.customerName} (${order.storeName}), great news! Your order *${order.orderNo}* has been packed and dispatched.\n\n` +
+      `📦 Courier / Tracking No: *${trackingNo || 'To be confirmed'}*\n` +
+      `Destination: ${order.destination} (${order.pincode})\n\n` +
+      `Thank you for shopping with Vinayak Packaging!`;
 
     window.open(getContactWhatsAppLink(order.whatsapp, text), '_blank');
-    showToast('Transport dispatch notice sent via WhatsApp.');
+    showToast('Dispatch notice sent via WhatsApp.');
   };
 
   const handlePrintInvoice = () => {
@@ -104,22 +104,22 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-200">
       {/* Top Header */}
-      <div className="bg-white rounded-2xl p-6 border border-[#e6e2dc] shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setActiveTab('orders')}
-            className="w-10 h-10 rounded-xl bg-[#f1ede7] hover:bg-[#ebe8e2] text-[#1c1c18] flex items-center justify-center transition-colors cursor-pointer"
+            className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 flex items-center justify-center transition-colors cursor-pointer"
           >
             <AppIcon name="arrow_back" className="text-[20px]" />
           </button>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <h1 className="font-serif text-2xl font-bold text-[#1c1c18]">{order.orderNo}</h1>
-              <span className="bg-[#ffdf98]/40 text-[#775a00] px-2.5 py-0.5 rounded-full text-xs font-semibold">
+              <h1 className="text-2xl font-bold text-slate-900">{order.orderNo}</h1>
+              <span className="bg-orange-50 text-orange-700 border border-orange-200 px-2.5 py-0.5 rounded-full text-xs font-semibold">
                 {order.status}
               </span>
             </div>
-            <span className="text-xs text-[#76777b]">
+            <span className="text-xs text-slate-500">
               Placed on {order.date} • {order.storeName} ({order.customerName})
             </span>
           </div>
@@ -128,7 +128,7 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrintInvoice}
-            className="bg-[#f1ede7] hover:bg-[#ebe8e2] text-[#1c1c18] px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="bg-slate-100 hover:bg-slate-200 text-slate-800 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer border border-slate-200"
           >
             <AppIcon name="print" className="text-[18px]" />
             <span>Print Invoice</span>
@@ -141,56 +141,56 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
         {/* Left 2 Cols: Order Manifest & Customer Info */}
         <div className="lg:col-span-2 flex flex-col gap-6">
           {/* Customer & Destination Card */}
-          <div className="bg-white rounded-2xl p-6 border border-[#e6e2dc] shadow-sm flex flex-col gap-4">
-            <h2 className="font-serif font-bold text-base text-[#1c1c18]">Consignee &amp; Delivery Details</h2>
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col gap-4">
+            <h2 className="font-bold text-base text-slate-900">Customer &amp; Delivery Details</h2>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="bg-[#fdf9f3] p-3.5 rounded-xl border border-[#e6e2dc] flex flex-col gap-1">
-                <span className="text-[#76777b] uppercase font-bold text-[10px]">Store &amp; Proprietor</span>
-                <span className="font-bold text-sm text-[#1c1c18]">{order.storeName}</span>
-                <span className="text-[#45474b]">Prop: {order.customerName}</span>
-                <span className="text-[#25D366] font-semibold flex items-center gap-1 mt-1">
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col gap-1">
+                <span className="text-slate-500 uppercase font-bold text-[10px]">Store &amp; Proprietor</span>
+                <span className="font-bold text-sm text-slate-900">{order.storeName}</span>
+                <span className="text-slate-600">Contact: {order.customerName}</span>
+                <span className="text-emerald-700 font-semibold flex items-center gap-1 mt-1">
                   <AppIcon name="chat" className="text-[16px]" />
                   <span>WhatsApp: +91 {order.whatsapp}</span>
                 </span>
               </div>
 
-              <div className="bg-[#fdf9f3] p-3.5 rounded-xl border border-[#e6e2dc] flex flex-col gap-1">
-                <span className="text-[#76777b] uppercase font-bold text-[10px]">Destination Lorry Transport</span>
-                <span className="font-bold text-sm text-[#1c1c18]">{order.destination}</span>
-                <span className="text-[#45474b] font-mono">Pincode: {order.pincode}</span>
-                <span className="text-[11px] text-[#76777b] mt-1">
-                  Ranigunj Dispatch Godown Bay #4
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col gap-1">
+                <span className="text-slate-500 uppercase font-bold text-[10px]">Destination Address</span>
+                <span className="font-bold text-sm text-slate-900">{order.destination}</span>
+                <span className="text-slate-600 font-mono">Pincode: {order.pincode}</span>
+                <span className="text-[11px] text-slate-500 mt-1">
+                  Dispatch Depot: Sowcarpet Centre, Chennai
                 </span>
               </div>
             </div>
           </div>
 
           {/* Itemized Manifest Table */}
-          <div className="bg-white rounded-2xl p-6 border border-[#e6e2dc] shadow-sm flex flex-col gap-4">
-            <h2 className="font-serif font-bold text-base text-[#1c1c18]">Order Manifest &amp; Fixture Specs</h2>
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col gap-4">
+            <h2 className="font-bold text-base text-slate-900">Order Items &amp; Product Specs</h2>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-[#fdf9f3] text-[10px] font-bold text-[#775a00] uppercase tracking-wider border-b border-[#e6e2dc]">
-                    <th className="p-3">SKU &amp; Fixture Item</th>
-                    <th className="p-3">Finish Spec</th>
+                  <tr className="bg-slate-50 text-[10px] font-bold text-slate-600 uppercase tracking-wider border-b border-slate-200">
+                    <th className="p-3">Product Item</th>
+                    <th className="p-3">Spec</th>
                     <th className="p-3 text-center">Qty</th>
                     <th className="p-3 text-right">Unit Rate</th>
                     <th className="p-3 text-right">Amount</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e6e2dc]">
+                <tbody className="divide-y divide-slate-100">
                   {order.items.map((item, idx) => (
                     <tr key={idx}>
                       <td className="p-3">
                         <div className="flex flex-col">
-                          <span className="font-bold text-[#1c1c18]">{item.title}</span>
-                          <span className="font-mono text-[10px] text-[#76777b]">{item.sku}</span>
+                          <span className="font-bold text-slate-900">{item.title}</span>
+                          <span className="font-mono text-[10px] text-slate-500">{item.sku}</span>
                         </div>
                       </td>
-                      <td className="p-3 font-medium text-[#45474b]">{item.finish}</td>
+                      <td className="p-3 font-medium text-slate-600">{item.finish}</td>
                       <td className="p-3 text-center font-bold">{item.quantity} {item.unitLabel}</td>
                       <td className="p-3 text-right font-mono">₹{item.unitPrice.toLocaleString('en-IN')}</td>
                       <td className="p-3 text-right font-mono font-bold">₹{(item.quantity * item.unitPrice).toLocaleString('en-IN')}</td>
@@ -201,24 +201,24 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
             </div>
 
             {/* Financial Summary */}
-            <div className="bg-[#fdf9f3] p-4 rounded-xl border border-[#e6e2dc] flex flex-col gap-2 text-xs">
-              <div className="flex justify-between py-1 border-b border-[#e6e2dc]">
-                <span className="text-[#76777b]">Ex-Factory Subtotal:</span>
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col gap-2 text-xs">
+              <div className="flex justify-between py-1 border-b border-slate-200">
+                <span className="text-slate-500">Subtotal:</span>
                 <span className="font-mono font-semibold">₹{order.subtotal.toLocaleString('en-IN')}</span>
               </div>
               {order.discount > 0 && (
-                <div className="flex justify-between py-1 border-b border-[#e6e2dc] text-emerald-700">
-                  <span>Volume Slab Discount ({order.subtotal >= 50000 ? '15%' : '10%'}):</span>
+                <div className="flex justify-between py-1 border-b border-slate-200 text-emerald-700">
+                  <span>Volume Discount ({order.subtotal >= 50000 ? '15%' : '10%'}):</span>
                   <span className="font-mono font-semibold">-₹{order.discount.toLocaleString('en-IN')}</span>
                 </div>
               )}
-              <div className="flex justify-between py-1 border-b border-[#e6e2dc]">
-                <span className="text-[#76777b]">18% GST (CGST + SGST):</span>
+              <div className="flex justify-between py-1 border-b border-slate-200">
+                <span className="text-slate-500">18% GST (CGST + SGST):</span>
                 <span className="font-mono font-semibold">₹{order.gst.toLocaleString('en-IN')}</span>
               </div>
-              <div className="flex justify-between py-2 text-sm font-bold text-[#1c1c18]">
-                <span>Total Commercial Payable:</span>
-                <span className="font-mono text-base text-[#775a00]">₹{order.total.toLocaleString('en-IN')}</span>
+              <div className="flex justify-between py-2 text-sm font-bold text-slate-900">
+                <span>Grand Total Payable:</span>
+                <span className="font-mono text-base text-orange-600">₹{order.total.toLocaleString('en-IN')}</span>
               </div>
             </div>
           </div>
@@ -227,16 +227,16 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
         {/* Right Col: 1-Click WhatsApp Actions & Status Pipeline */}
         <div className="flex flex-col gap-6">
           {/* 1-Click WhatsApp Action Triggers */}
-          <div className="bg-white rounded-2xl p-6 border border-[#e6e2dc] shadow-sm flex flex-col gap-4">
-            <h2 className="font-serif font-bold text-base text-[#1c1c18]">WhatsApp Action Center</h2>
-            <p className="text-xs text-[#76777b]">
-              Clicking any button below instantly launches WhatsApp with the customer's number and prefilled professional wholesale copy.
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col gap-4">
+            <h2 className="font-bold text-base text-slate-900">WhatsApp Action Center</h2>
+            <p className="text-xs text-slate-500">
+              Clicking any button below instantly launches WhatsApp with the customer's number and prefilled order copy.
             </p>
 
             <div className="flex flex-col gap-3 pt-2">
               <button
                 onClick={handleWhatsAppReply}
-                className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white p-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
+                className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white p-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-xs cursor-pointer"
               >
                 <AppIcon name="chat" className="text-[18px]" />
                 <span>1. Reply &amp; Confirm on WhatsApp</span>
@@ -244,32 +244,32 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
 
               <button
                 onClick={handleSendPaymentDetails}
-                className="w-full bg-[#ffdf98] hover:bg-[#f6ce78] text-[#1c1c18] p-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
+                className="w-full bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 p-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
               >
-                <AppIcon name="payments" className="text-[18px]" />
-                <span>2. Send UPI/Bank Proforma Details</span>
+                <AppIcon name="payments" className="text-[18px] text-amber-700" />
+                <span>2. Send UPI &amp; Bank Details</span>
               </button>
 
               <button
                 onClick={handleSendDispatchNotice}
-                className="w-full bg-[#1a1c20] hover:bg-black text-white p-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white p-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-xs cursor-pointer"
               >
-                <AppIcon name="local_shipping" className="text-[18px]" />
-                <span>3. Send Transport LR &amp; Dispatch Notice</span>
+                <AppIcon name="local_shipping" className="text-[18px] text-orange-400" />
+                <span>3. Send Dispatch &amp; Tracking Notice</span>
               </button>
             </div>
           </div>
 
           {/* Status Progression & Tracking */}
-          <div className="bg-white rounded-2xl p-6 border border-[#e6e2dc] shadow-sm flex flex-col gap-4">
-            <h2 className="font-serif font-bold text-base text-[#1c1c18]">Workflow Status</h2>
+          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col gap-4">
+            <h2 className="font-bold text-base text-slate-900">Workflow Status</h2>
 
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-[#1c1c18]">Current Stage</label>
+              <label className="text-xs font-semibold text-slate-800">Current Stage</label>
               <select
                 value={order.status}
                 onChange={(e) => handleStatusUpdate(e.target.value as AdminOrder['status'])}
-                className="w-full p-3 rounded-xl bg-[#fdf9f3] border border-[#e6e2dc] text-xs font-semibold focus:outline-none focus:border-[#775a00] cursor-pointer"
+                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:border-orange-500 cursor-pointer"
               >
                 <option value="New (Awaiting WhatsApp)">New (Awaiting WhatsApp)</option>
                 <option value="Confirmed">Confirmed</option>
@@ -283,32 +283,32 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
             </div>
 
             <div className="flex flex-col gap-2 pt-2">
-              <label className="text-xs font-semibold text-[#1c1c18]">Transport Lorry Receipt / LR Number</label>
+              <label className="text-xs font-semibold text-slate-800">Tracking / Docket Number</label>
               <input
                 type="text"
                 value={trackingNo}
                 onChange={(e) => setTrackingNo(e.target.value)}
-                placeholder="e.g. LR-77392-HYD"
-                className="w-full p-3 rounded-xl bg-[#fdf9f3] border border-[#e6e2dc] text-xs font-mono focus:outline-none focus:border-[#775a00]"
+                placeholder="e.g. TRK-94622-CHN"
+                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500"
               />
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-[#1c1c18]">Internal Godown Fit Notes</label>
+              <label className="text-xs font-semibold text-slate-800">Internal Depot Notes</label>
               <textarea
                 rows={3}
                 value={internalNotes}
                 onChange={(e) => setInternalNotes(e.target.value)}
-                placeholder="Add packing or cutting notes..."
-                className="w-full p-3 rounded-xl bg-[#fdf9f3] border border-[#e6e2dc] text-xs focus:outline-none focus:border-[#775a00]"
+                placeholder="Add packing or fulfillment notes..."
+                className="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 resize-none"
               ></textarea>
             </div>
 
             <button
               onClick={handleSaveNotes}
-              className="w-full bg-[#1a1c20] hover:bg-black text-[#ffdf98] py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer shadow-xs"
             >
-              Save Internal Notes &amp; LR
+              Save Internal Notes &amp; Tracking
             </button>
           </div>
         </div>

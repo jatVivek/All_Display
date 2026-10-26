@@ -21,6 +21,7 @@ import {
   Columns3,
   Copy,
   CreditCard,
+  Crop,
   Download,
   DraftingCompass,
   Dumbbell,
@@ -30,11 +31,14 @@ import {
   FileText,
   Folder,
   GalleryHorizontal,
+  Globe,
   Headset,
+  Heart,
   Home,
   ImagePlus,
   Images,
   Info,
+  Instagram,
   LayoutGrid,
   Layers,
   LayoutDashboard,
@@ -44,6 +48,7 @@ import {
   ListPlus,
   LoaderCircle,
   Lock,
+  Mail,
   Map,
   MapPin,
   Menu,
@@ -113,6 +118,7 @@ const iconMap = {
   close: X,
   cloud_upload: CloudUpload,
   content_copy: Copy,
+  crop: Crop,
   delete: Trash2,
   delete_sweep: Trash,
   dashboard: LayoutDashboard,
@@ -123,17 +129,21 @@ const iconMap = {
   expand_less: ChevronUp,
   expand_more: ChevronDown,
   factory: Factory,
+  favorite: Heart,
   fitness_center: Dumbbell,
   folder: Folder,
   format_paint: Paintbrush,
+  globe: Globe,
   grid_view: LayoutGrid,
   group: Users,
+  heart: Heart,
   help: CircleHelp,
   high_res: ScanSearch,
   home: Home,
   hub: Network,
   imagesmode: Images,
   info: Info,
+  instagram: Instagram,
   inventory_2: Package,
   layers: Layers,
   line_style: ScanLine,
@@ -142,6 +152,7 @@ const iconMap = {
   location_on: MapPin,
   lock: Lock,
   lock_open: UnlockKeyhole,
+  mail: Mail,
   map: Map,
   menu: Menu,
   open_in_new: ExternalLink,
@@ -182,11 +193,16 @@ const iconMap = {
   view_carousel: GalleryHorizontal,
   view_column: Columns3,
   view_in_ar: Box,
+  sell: Tags,
+  shopping_cart: ShoppingCart,
+  diamond: Star,
+  clear_all: X,
+  phone_android: Phone,
   volume_off: VolumeX,
   volume_up: Volume2
 } satisfies Record<string, LucideIcon>;
 
-export type AppIconName = keyof typeof iconMap;
+export type AppIconName = keyof typeof iconMap | string;
 
 interface AppIconProps {
   name: AppIconName;
@@ -194,6 +210,6 @@ interface AppIconProps {
 }
 
 export const AppIcon: React.FC<AppIconProps> = ({ name, className }) => {
-  const Icon = iconMap[name];
+  const Icon = (iconMap as Record<string, LucideIcon>)[name] || Package;
   return <Icon aria-hidden="true" className={className} focusable="false" size="1em" strokeWidth={2} />;
 };

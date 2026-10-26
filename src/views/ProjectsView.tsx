@@ -41,7 +41,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             <div className="inline-flex items-center gap-2 bg-surface-container-lowest px-3 py-1.5 rounded-full shadow-sm text-on-surface border border-surface-container">
               <span className="inline-block w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
               <span className="text-xs uppercase font-bold tracking-wider text-secondary">
-                Proven On-Site Turnkey Fit-Outs • Hyderabad &amp; South India
+                Proven On-Site Turnkey Fit-Outs • Chennai &amp; South India
               </span>
             </div>
 
@@ -66,10 +66,10 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
             <div className="lg:col-span-8 flex flex-col gap-2">
               <h1 className="font-serif text-3xl lg:text-4xl font-bold text-primary tracking-tight leading-tight">
-                Over 500+ Clothing Stores &amp; Boutiques Built With All Display Fixtures
+                Over 500+ Clothing Stores &amp; Boutiques Built With Vinayak Packaging Fixtures
               </h1>
               <p className="text-sm md:text-base text-on-surface-variant max-w-3xl leading-relaxed">
-                Watch verified turnkey shop installation reels, triple-pipe rack load walkthroughs, and heavy-gauge electroplated channel systems filmed directly on site across Jubilee Hills, Banjara Hills, Begum Bazaar, Vijayawada, and Bangalore.
+                Watch verified turnkey shop installation reels, triple-pipe rack load walkthroughs, and heavy-gauge electroplated channel systems filmed directly on site across Jubilee Hills, Banjara Hills, George Town, Vijayawada, and Bangalore.
               </p>
             </div>
             
@@ -82,7 +82,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
               <div className="bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-surface-container flex flex-col">
                 <span className="font-serif text-2xl lg:text-3xl font-bold text-primary">48 Hrs</span>
                 <span className="text-[10px] uppercase font-bold tracking-wider text-on-surface-variant">Dispatch Window</span>
-                <span className="text-xs text-[#25D366] font-semibold mt-0.5">Ranigunj Depot</span>
+                <span className="text-xs text-[#25D366] font-semibold mt-0.5">Sowcarpet Depot</span>
               </div>
             </div>
           </div>
@@ -96,7 +96,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
               </span>
             </div>
             <a 
-              href={getWhatsAppLink('Hi All Display, I want to verify fixture stock via video call.')}
+              href={getWhatsAppLink('Hi Vinayak Packaging, I want to verify fixture stock via video call.')}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 bg-primary hover:bg-[#2A2D34] text-on-primary px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm"
@@ -220,7 +220,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                     <span className="text-[10px] uppercase font-bold text-outline ml-1">{project.finishLabel}</span>
                   </div>
                   <a 
-                    href={getWhatsAppLink(`Hi All Display, I saw the ${project.title} setup. Please quote for a similar setup.`)}
+                    href={getWhatsAppLink(`Hi Vinayak Packaging, I saw the ${project.title} setup. Please quote for a similar setup.`)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-primary hover:text-secondary font-bold text-xs transition-colors"
@@ -250,7 +250,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
               Have a 2D Floor Plan or Rough Shop Sketch?
             </h2>
             <p className="text-xs sm:text-sm text-primary-fixed max-w-2xl leading-relaxed">
-              Send your shop dimensions, architectural AutoCAD drawings, or hand-drawn measurements directly to our Ranigunj technical desk on WhatsApp. Our engineers calculate your exact rack count, wall channel lengths, and tiered wholesale cost within 2 hours.
+              Send your shop dimensions, architectural AutoCAD drawings, or hand-drawn measurements directly to our Sowcarpet desk on WhatsApp. Our engineers calculate your exact rack count, wall channel lengths, and tiered wholesale cost within 2 hours.
             </p>
 
             {/* Process Steps */}
@@ -273,7 +273,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                 <span className="font-serif text-2xl font-bold text-secondary leading-none">3</span>
                 <div className="flex flex-col">
                   <span className="text-xs font-bold text-surface">Direct Dispatch</span>
-                  <span className="text-[11px] text-primary-fixed-dim">From Ranigunj or Begum Bazaar</span>
+                  <span className="text-[11px] text-primary-fixed-dim">From Sowcarpet Depot</span>
                 </div>
               </div>
             </div>
@@ -307,7 +307,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             </div>
 
             <a 
-              href={getWhatsAppLink('Hi All Display, I have a store floor plan for estimation. Can you help me calculate racks and budget?')}
+              href={getWhatsAppLink('Hi Vinayak Packaging, I have a store floor plan for estimation. Can you help me calculate racks and budget?')}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-md transition-all"
@@ -317,7 +317,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             </a>
 
             <div className="text-center text-[11px] text-on-surface-variant">
-              Or Call Ranigunj Head: <a href={`tel:+${getWhatsAppNumber(true)}`} className="text-secondary font-bold underline">+{getWhatsAppNumber(true)}</a>
+              Or Call Sowcarpet Head: <a href={`tel:+${getWhatsAppNumber(true)}`} className="text-secondary font-bold underline">+{getWhatsAppNumber(true)}</a>
             </div>
           </div>
         </div>
@@ -334,7 +334,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             Trusted Across Telangana, Andhra Pradesh &amp; Karnataka
           </h2>
           <p className="text-xs text-on-surface-variant">
-            Real feedback from boutique owners, showroom managers, and apparel retail chains who rely on our Ranigunj &amp; Begum Bazaar wholesale supply.
+            Real feedback from boutique owners, showroom managers, and apparel retail chains who rely on our Sowcarpet &amp; George Town wholesale supply.
           </p>
         </div>
 

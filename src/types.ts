@@ -1,6 +1,8 @@
 export type ActiveView = 
   | 'home' 
   | 'shop'
+  | 'contact'
+  | 'about'
   | 'racks-floor-stands' 
   | 'pdp' 
   | 'shop-setup-projects' 
@@ -10,7 +12,24 @@ export type ActiveView =
   | 'mannequins-forms'
   | 'luxury-gold-fixtures'
   | 'hangers-accessories'
+  | 'account'
   | 'admin';
+
+export interface ProductVariationOption {
+  id: string;
+  name: string; // e.g. "Teal Blue", "Beige Velvet", "10 Inch", "Pack of 100"
+  price?: number; // optional price override for this option
+  originalPrice?: number;
+  sku?: string;
+  image?: string;
+  inStock?: boolean;
+}
+
+export interface ProductVariation {
+  id: string;
+  name: string; // e.g. "Color / Finish", "Size", "Pack Size"
+  options: ProductVariationOption[];
+}
 
 export interface Product {
   id: string;
@@ -35,12 +54,18 @@ export interface Product {
   images?: string[];
   videoUrl?: string;
   finishes: { name: string; color: string }[];
+  variations?: ProductVariation[];
+  requirements?: string[]; // e.g. ['online-sellers', 'instagram-shop', 'retail-shops', 'new-jewellery']
+  material?: string;
   specs?: {
     height?: string;
     width?: string;
     depth?: string;
     steelAlloy?: string;
     gauge?: string;
+    dimensions?: string;
+    weight?: string;
+    color?: string;
   };
 }
 
@@ -70,6 +95,7 @@ export interface CartItem {
   sizeOrSpec: string;
   gauge: string;
   packingType: string;
+  selectedVariations?: Record<string, string>;
   isLinear?: boolean;
 }
 
@@ -96,23 +122,24 @@ export interface ProjectReel {
   description: string;
   turnkeyTime: string;
   image: string;
-  videoPreviewUrl?: string;
-  specs: {
-    floorUnits: string;
-    wallSlotChannels: string;
-    special: string;
+  metrics: {
+    racksInstalled: string;
+    capacity: string;
+    finishType: string;
   };
-  finishes: { name: string; color: string }[];
-  finishLabel: string;
-  badgeText?: string;
+  clientQuote: string;
 }
 
 export interface Review {
   id: string;
   author: string;
-  initials: string;
   role: string;
-  location: string;
+  storeName: string;
+  city: string;
   rating: number;
-  text: string;
+  date: string;
+  comment: string;
+  verifiedWholesaleBuyer: boolean;
+  avatar: string;
+  helpfulCount: number;
 }

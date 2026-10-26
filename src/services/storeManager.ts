@@ -69,7 +69,14 @@ export interface AdminSettings {
   minOrderValue: number;
   shippingNotes: string;
   storeName: string;
+  brandName?: string;
   businessAddress: string;
+  brandTagline?: string;
+  logoUrl?: string;
+  headerNotice?: string;
+  supportEmail?: string;
+  supportPhone?: string;
+  showroomAddress?: string;
 }
 
 export interface AdminCategory {
@@ -79,73 +86,87 @@ export interface AdminCategory {
 }
 
 const INITIAL_CATEGORIES: AdminCategory[] = [
-  { id: 'cat-1', name: 'Floor Stands & Bumper Racks', description: 'Heavy-duty center island stands and multi-tier rolling racks.' },
-  { id: 'cat-2', name: 'Wall Systems & Channels', description: 'Slotted wall upright channels, brackets, and glass support fittings.' },
-  { id: 'cat-3', name: 'Mannequins & Dress Forms', description: 'Fiberglass tailor dummies, headless models, and magnetic torso forms.' },
-  { id: 'cat-4', name: 'Gold Luxury Boutique Fixtures', description: 'Electroplated Titanium PVD gold arched racks and luxury display units.' },
-  { id: 'cat-5', name: 'Hangers, Clips & Hooks', description: 'Lotus wood suit hangers, velvet hangers, and waterfall faceout hooks.' },
+  { id: 'cat-1', name: 'Display Bust', description: 'Velvet and leatherette portrait busts for necklaces and bridal sets.' },
+  { id: 'cat-2', name: 'Display Cards', description: 'Earring cards, necklace tags, barcode cards and jewelry packaging.' },
+  { id: 'cat-3', name: 'Display Stand', description: 'Tiered wooden & metal stands for earrings, chains and pendants.' },
+  { id: 'cat-4', name: 'Display Tray', description: 'Stackable velvet trays, ring pads, and flat counter showcase inserts.' },
+  { id: 'cat-5', name: 'Bangle & Bracelet Display Stand', description: 'Single and multi-tier cylinders for bangles, watches, and bracelets.' },
+  { id: 'cat-6', name: 'Storage Box', description: 'Velvet gift boxes, organizer chests, and acrylic storage boxes.' },
+  { id: 'cat-7', name: 'Mannequin Stand', description: 'Full form mannequin busts, sculpted heads, and torso models.' },
+  { id: 'cat-8', name: 'Packaging Tools', description: 'Tape dispensers, clear wonder tapes, barcode sticker rolls, and sealers.' },
+  { id: 'cat-9', name: 'Jewellery Display Cloth', description: 'Seamless suede and velvet counter fabrics for showcase flatlays.' },
 ];
 
 const INITIAL_HOMEPAGE_BANNERS: HomepageBanner[] = [
   {
     id: 'banner-main',
-    eyebrow: 'Hyderabad Factory Direct • B2B Wholesale',
-    title: 'Heavy-duty racks that make every piece easy to see',
-    subtitle: 'Strong, stable display for busy retail floors.',
-    description: 'Discover dependable garment racks built for everyday merchandising and fast store setup.',
-    image: INITIAL_PRODUCTS.find((product) => product.id === 'ad-tpr-650')?.image ?? '',
+    eyebrow: 'Direct Manufacturer • Sowcarpet Depot, Chennai',
+    title: 'Jewellery Displays & Packaging That Make Every Piece Stand Out',
+    subtitle: 'Lightweight, elegant velvet busts, counter trays, and custom printed packaging.',
+    description: 'Serving over 5,000+ retail jewellers, boutique owners, and online creators across India with factory-direct rates.',
+    image: '/assets/vinayak/shop_banner.png',
+    mobileImage: '/assets/vinayak/req_retail_shops.png',
     linkType: 'category',
-    linkId: INITIAL_CATEGORIES[0].id,
+    linkId: 'cat-1',
   },
   {
-    id: 'banner-gold',
-    eyebrow: 'Boutique Collection • PVD Gold',
-    title: 'Give premium collections a standout first impression',
-    subtitle: 'Refined gold fixtures for your most considered displays.',
-    description: 'Bring a polished finish to occasionwear, bridal and designer collections.',
-    image: INITIAL_PRODUCTS.find((product) => product.id === 'ad-arc-700')?.image ?? '',
-    linkType: 'product',
-    linkId: 'ad-arc-700',
+    id: 'banner-cards-tools',
+    eyebrow: 'Fast Dispatch • High-Speed Packaging Desk',
+    title: 'High-Grade Display Cards, Wonder Tapes & Packaging Tools',
+    subtitle: 'From barcode dumbbell tags to heavy duty cast iron tape dispensers.',
+    description: 'Same-day dispatches across Tamil Nadu and express courier shipping PAN India.',
+    image: '/assets/vinayak/deal_left_banner.png',
+    mobileImage: '/assets/vinayak/req_online_sellers.png',
+    linkType: 'category',
+    linkId: 'cat-2',
   },
   {
-    id: 'banner-wall',
-    eyebrow: 'Wall Systems • Made for Merchandising',
-    title: 'Turn empty walls into high-impact displays',
-    subtitle: 'A flexible wall system that makes every inch useful.',
-    description: 'Pair slotted channels, shelves and hanging rails to shape your shop floor.',
-    image: INITIAL_PRODUCTS.find((product) => product.id === 'ad-wch-dutti')?.image ?? '',
-    linkType: 'product',
-    linkId: 'ad-wch-dutti',
+    id: 'banner-boutique',
+    eyebrow: 'Curated Boutique Suites • Velvet & Wood',
+    title: 'Transform Your Showroom & Instagram Flatlays',
+    subtitle: 'Premium round velvet stacking trays, monstera dishes, and multi-tier earring stands.',
+    description: 'Designed specifically for high-conversion counter presentation and catalog social photography.',
+    image: '/assets/vinayak/req_instagram_shop.png',
+    mobileImage: '/assets/vinayak/req_new_jewellery.png',
+    linkType: 'category',
+    linkId: 'cat-3',
   },
 ];
 
 const isLegacyStarterBanner = (banners: HomepageBanner[]) =>
   banners.length === 1 &&
   banners[0].id === 'banner-main' &&
-  banners[0].title === 'Heavy-Duty Display Racks for Modern Retail Stores' &&
-  banners[0].image === 'https://lh3.googleusercontent.com/aida-public/AB6AXuCXybVXMlvZGeKYb_0JXEtHxZmiY36LraReoSDO2Auwjuyr6Nr9AmLN02CqnVSfW5qty_u1k1zBD3_8xhryMVP33uzyGFfJT-Irp_zV2RwgYU3JRLGf_A_X5jCoLJ4YtNB_MLXGfONPve3BhVwvtJJNkGZE4FJ2H53n7H1J-0lWZWLhZREwRq9q-GBEXPajJREpKLmpuAXp1s4ZoBzc79alpLRtJ6Es_FBOpz6L-smTtuCpCvs9H85f';
+  (banners[0].title.includes('Heavy-Duty Display Racks') || banners[0].title.includes('Heavy-duty racks'));
 
 const STORAGE_KEYS = {
-  PRODUCTS: 'alldisplay_admin_products',
-  ORDERS: 'alldisplay_admin_orders',
-  QUOTES: 'alldisplay_admin_quotes',
-  SETTINGS: 'alldisplay_admin_settings',
-  HOMEPAGE: 'alldisplay_admin_homepage',
-  HOMEPAGE_DEALS: 'alldisplay_admin_homepage_deals',
-  CATEGORIES: 'alldisplay_admin_categories',
+  PRODUCTS: 'vinayak_store_products_v2',
+  ORDERS: 'vinayak_store_orders_v2',
+  QUOTES: 'vinayak_store_quotes_v2',
+  SETTINGS: 'vinayak_store_settings_v2',
+  HOMEPAGE: 'vinayak_store_homepage_v2',
+  HOMEPAGE_DEALS: 'vinayak_store_homepage_deals_v2',
+  CATEGORIES: 'vinayak_store_categories_v2',
+  WISHLIST: 'vinayak_store_wishlist_v2',
 };
 
 const DEFAULT_SETTINGS: AdminSettings = {
-  whatsappNumber: '917396127273',
-  alternateWhatsapp: '919849023456',
-  upiId: 'alldisplay@icici',
-  bankName: 'ICICI Bank - Ranigunj Branch, Hyderabad',
-  accountNo: '023105004921',
-  ifscCode: 'ICIC0000231',
-  minOrderValue: 5000,
-  shippingNotes: 'All transport freight charges payable by consignee at destination transport depot.',
-  storeName: 'All Display Wholesale Corporation',
-  businessAddress: '1-2-345, Ranigunj Wholesale Fixture Market, Secunderabad, Hyderabad - 500003',
+  whatsappNumber: '919462247004',
+  alternateWhatsapp: '919462247004',
+  upiId: 'vinayakpackaging@icici',
+  bankName: 'HDFC Bank - Sowcarpet Branch, Chennai',
+  accountNo: '50200049210081',
+  ifscCode: 'HDFC0000231',
+  minOrderValue: 500,
+  shippingNotes: 'Global shipping available. Safe doorstep delivery across India from Chennai warehouse.',
+  storeName: 'Vinayak Packaging',
+  brandName: 'Vinayak Packaging',
+  businessAddress: '29, Perumal Mudali St, Sowcarpet, George Town, Chennai, Tamil Nadu 600001',
+  showroomAddress: '29, Perumal Mudali St, Sowcarpet, George Town, Chennai, Tamil Nadu 600001',
+  brandTagline: 'Jewellery Display, Trays & Packaging Solutions',
+  logoUrl: '/assets/vinayak/logo.png',
+  headerNotice: 'Direct Factory Wholesale • Sowcarpet Depot, Chennai • Same-Day Dispatch Across India',
+  supportEmail: 'contact@www.vinayakpack.com',
+  supportPhone: '+91 94622 47004',
 };
 
 export interface CentralStoreState {
@@ -254,7 +275,7 @@ class CentralStoreService {
         if (Array.isArray(parsed) && parsed.every((id) => typeof id === 'string')) return parsed;
       }
     } catch {}
-    return [];
+    return ['vp-eds-401', 'vp-vtr-102', 'vp-nbd-205', 'vp-pdc-301'];
   }
 
   private loadOrders(): AdminOrder[] {
@@ -323,9 +344,15 @@ class CentralStoreService {
     try {
       const { settings } = await this.apiRequest<{ settings: AdminSettings | null }>('/api/settings');
       if (settings) {
-        this.state = { ...this.state, settings };
+        const brand = settings.brandName || settings.storeName || 'Vinayak Packaging';
+        const normalized: AdminSettings = {
+          ...settings,
+          storeName: brand,
+          brandName: brand,
+        };
+        this.state = { ...this.state, settings: normalized };
         try {
-          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(normalized));
         } catch {}
         this.notify();
       }
@@ -600,6 +627,67 @@ class CentralStoreService {
     return this.saveCategories(updated);
   }
 
+  // Wishlist Management
+  public getWishlist(): string[] {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.WISHLIST);
+      if (!data) return [];
+      const parsed = JSON.parse(data);
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .map((item: any) => {
+          if (typeof item === 'string') {
+            return item.startsWith('[object') ? null : item;
+          }
+          if (item && typeof item === 'object' && typeof item.id === 'string') {
+            return item.id;
+          }
+          return null;
+        })
+        .filter((id): id is string => Boolean(id));
+    } catch {
+      return [];
+    }
+  }
+
+  public isInWishlist(productOrId: string | { id: string }): boolean {
+    if (!productOrId) return false;
+    const id = typeof productOrId === 'string' ? productOrId : productOrId.id;
+    if (!id || typeof id !== 'string') return false;
+    return this.getWishlist().includes(id);
+  }
+
+  public toggleWishlist(productOrId: string | { id: string }): boolean {
+    if (!productOrId) return false;
+    const id = typeof productOrId === 'string' ? productOrId : productOrId.id;
+    if (!id || typeof id !== 'string') return false;
+
+    const list = this.getWishlist();
+    const index = list.indexOf(id);
+    let isNowInWishlist = false;
+    if (index > -1) {
+      list.splice(index, 1);
+      isNowInWishlist = false;
+    } else {
+      list.push(id);
+      isNowInWishlist = true;
+    }
+    try {
+      localStorage.setItem(STORAGE_KEYS.WISHLIST, JSON.stringify(list));
+    } catch {}
+    window.dispatchEvent(new CustomEvent('vinayak_wishlist_updated', { detail: { productId: id, isNowInWishlist, list } }));
+    this.notify();
+    return isNowInWishlist;
+  }
+
+  public clearWishlist(): void {
+    try {
+      localStorage.removeItem(STORAGE_KEYS.WISHLIST);
+    } catch {}
+    window.dispatchEvent(new CustomEvent('vinayak_wishlist_updated', { detail: { list: [] } }));
+    this.notify();
+  }
+
   // Orders
   public getOrders(): AdminOrder[] {
     return this.state.orders;
@@ -678,22 +766,31 @@ class CentralStoreService {
   }
 
   public async saveSettings(settings: AdminSettings): Promise<boolean> {
+    const brand = settings.brandName || settings.storeName || 'Vinayak Packaging';
+    const normalizedSettings: AdminSettings = {
+      ...settings,
+      storeName: brand,
+      brandName: brand,
+    };
+
     if (this.apiConfigured) {
       try {
         await this.apiRequest('/api/settings', {
           method: 'PUT',
           headers: { 'X-Admin-Request': '1' },
-          body: JSON.stringify({ settings }),
+          body: JSON.stringify({ settings: normalizedSettings }),
         });
       } catch (error) {
         this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to save shared business settings.');
         return false;
       }
     }
-    this.state = { ...this.state, settings };
+    this.state = { ...this.state, settings: normalizedSettings };
     try {
-      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(normalizedSettings));
     } catch {}
+    window.dispatchEvent(new CustomEvent('vinayak_settings_updated', { detail: { settings: normalizedSettings } }));
+    window.dispatchEvent(new CustomEvent('alldisplay_data_updated', { detail: { settings: normalizedSettings } }));
     this.notify();
     return true;
   }

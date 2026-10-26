@@ -1,9 +1,10 @@
+import React, { useState, useEffect, useRef } from 'react';
 import { AppIcon } from './AppIcon';
-import React, { useState } from 'react';
 import { getWhatsAppLink } from '../utils/whatsapp';
-import { ActiveView, CartItem } from '../types';
+import { ActiveView, CartItem, Product } from '../types';
 import { useScrollLock } from '../hooks/useScrollLock';
 import { useAuth } from '../auth/AuthContext';
+import { storeManager } from '../services/storeManager';
 
 interface HeaderProps {
   activeView: ActiveView;
@@ -12,6 +13,9 @@ interface HeaderProps {
   onNavigateToSection: (sectionId: string) => void;
   cart: CartItem[];
   onSearch?: (query: string) => void;
+  onOpenWishlist: () => void;
+  onOpenAccount: () => void;
+  onSelectProduct: (product: Product) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -20,24 +24,81 @@ export const Header: React.FC<HeaderProps> = ({
   onNavigateToShop,
   onNavigateToSection,
   cart,
-  onSearch
+  onSearch,
+  onOpenWishlist,
+  onOpenAccount,
+  onSelectProduct
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('All categories');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
-  const [authActionError, setAuthActionError] = useState<string | null>(null);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [wishlistCount, setWishlistCount] = useState(() => storeManager.getWishlist().length);
+  const [settings, setSettings] = useState(() => storeManager.getSettings());
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const { user, openAuthDialog, logout } = useAuth();
+
+  const categories = storeManager.getCategories();
+  const products = storeManager.getProducts();
+
+  // Listen to store updates for wishlist & settings
+  useEffect(() => {
+    const handleUpdate = () => {
+      setWishlistCount(storeManager.getWishlist().length);
+      setSettings(storeManager.getSettings());
+    };
+    window.addEventListener('vinayak_wishlist_updated', handleUpdate);
+    window.addEventListener('vinayak_settings_updated', handleUpdate);
+    window.addEventListener('alldisplay_data_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    const unsubscribe = storeManager.subscribe(() => {
+      setWishlistCount(storeManager.getWishlist().length);
+      setSettings(storeManager.getSettings());
+    });
+    return () => {
+      window.removeEventListener('vinayak_wishlist_updated', handleUpdate);
+      window.removeEventListener('vinayak_settings_updated', handleUpdate);
+      window.removeEventListener('alldisplay_data_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+      unsubscribe();
+    };
+  }, []);
+
+  // Click outside search suggestions
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setSearchFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Lock body scroll when mobile menu drawer is open
   useScrollLock(mobileMenuOpen);
 
   const rawSubtotal = cart.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0);
-  const discount = rawSubtotal >= 25000 ? Math.round(rawSubtotal * 0.1) : 0;
-  const taxable = rawSubtotal - discount;
-  const gst = Math.round(taxable * 0.18);
-  const grandTotal = taxable + gst;
+
+  // Live matching products for autocomplete
+  const matchingSuggestions = React.useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+    return products
+      .filter((p) => {
+        const matchesCat = selectedCategory === 'All categories' || p.category === selectedCategory;
+        const matchesText =
+          p.title.toLowerCase().includes(q) ||
+          p.code.toLowerCase().includes(q) ||
+          p.category.toLowerCase().includes(q) ||
+          p.finish.toLowerCase().includes(q) ||
+          (p.material && p.material.toLowerCase().includes(q));
+        return matchesCat && matchesText;
+      })
+      .slice(0, 5);
+  }, [products, searchQuery, selectedCategory]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,24 +106,9 @@ export const Header: React.FC<HeaderProps> = ({
     if (activeView !== 'shop') {
       onNavigateToShop();
     }
-    setShowSuggestions(false);
+    setSearchFocused(false);
     setMobileSearchOpen(false);
     setMobileMenuOpen(false);
-  };
-
-  const selectSuggestion = (term: string) => {
-    setSearchQuery(term);
-    if (onSearch) onSearch(term);
-    onNavigateToShop();
-    setShowSuggestions(false);
-    setMobileSearchOpen(false);
-    setMobileMenuOpen(false);
-  };
-
-  const navigateToSection = (sectionId: string) => {
-    onNavigateToSection(sectionId);
-    setMobileMenuOpen(false);
-    setMobileSearchOpen(false);
   };
 
   const navigateTo = (view: ActiveView) => {
@@ -72,340 +118,401 @@ export const Header: React.FC<HeaderProps> = ({
     setMobileSearchOpen(false);
   };
 
+  const navigateToSection = (sectionId: string) => {
+    onNavigateToSection(sectionId);
+    setMobileMenuOpen(false);
+    setMobileSearchOpen(false);
+  };
+
   const handleAccountClick = () => {
-    setAuthActionError(null);
-    if (user) setShowAccountMenu((open) => !open);
+    if (user) onOpenAccount();
     else openAuthDialog();
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      setShowAccountMenu(false);
-    } catch (error) {
-      setAuthActionError(error instanceof Error ? error.message : 'Could not sign out.');
-    }
-  };
+  const brandName = settings.brandName || settings.storeName || 'Vinayak Packaging';
+  const brandTagline = settings.brandTagline || 'Jewellery Display, Trays & Packaging Solutions';
+  const headerNotice = settings.headerNotice || 'Direct Factory Wholesale • Sowcarpet Depot, Chennai • Same-Day Dispatch Across India';
+  const phone = settings.supportPhone || '+91 94622 47004';
 
   return (
     <>
-      {/* FULLY RESPONSIVE STICKY HEADER */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#fdf9f3]/95 backdrop-blur-md shadow-[0_1px_4px_rgba(0,0,0,0.04)] border-b border-[#e6e2dc]">
-        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 h-14 sm:h-15 flex items-center justify-between gap-1 sm:gap-3">
-          
-          {/* 1. Brand Logo */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-xs border-b border-slate-100">
+        {/* Top Minimal Strip (Visible on Desktop) */}
+        <div className="hidden lg:block border-b border-slate-100 bg-slate-50/70 text-slate-600 text-xs py-1.5 px-4 sm:px-8">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1.5 font-medium text-slate-700">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                {headerNotice}
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <a
+                href={`tel:${phone.replace(/\s+/g, '')}`}
+                className="font-medium text-slate-700 hover:text-orange-600 transition-colors flex items-center gap-1"
+              >
+                <AppIcon name="phone" className="text-orange-500 text-[13px]" />
+                <span>Call For Order: {phone}</span>
+              </a>
+              <span className="text-slate-300">|</span>
+              <div className="flex items-center gap-2">
+                <a
+                  href={getWhatsAppLink('Hi Vinayak Packaging, I would like to inquire about wholesale rates.')}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-5 h-5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center transition-colors"
+                  title="WhatsApp"
+                >
+                  <AppIcon name="chat" className="text-[12px]" />
+                </a>
+                <a
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-5 h-5 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center transition-transform hover:scale-105"
+                  title="Instagram"
+                >
+                  <AppIcon name="instagram" className="text-[11px]" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => navigateToSection('contact-us')}
+                  className="w-5 h-5 rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+                  title="Store Location"
+                >
+                  <AppIcon name="location_on" className="text-[12px]" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Header Row */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-3 sm:gap-6">
+          {/* 1. Brand Logo (Dynamic through Admin) */}
+          <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => navigateTo('home')}
-              className="flex items-center gap-2 text-left group cursor-pointer min-w-0"
+              className="flex items-center gap-2.5 text-left group cursor-pointer"
             >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#1a1c20] flex items-center justify-center text-[#ffdf98] font-serif font-bold text-sm sm:text-base shadow-2xs border border-[#ffdf98]/30 shrink-0">
-                AD
-              </div>
-              <div className="flex flex-col min-w-0">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="font-serif text-xs sm:text-base font-bold uppercase tracking-wider text-[#000102] group-hover:text-[#775a00] transition-colors leading-tight truncate">
-                    All Display
-                  </span>
-                  <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-[#25D366] animate-pulse shrink-0"></span>
+              {settings.logoUrl ? (
+                <img
+                  src={settings.logoUrl}
+                  alt={brandName}
+                  className="h-10 sm:h-11 w-auto object-contain rounded-lg"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-xs p-1.5 shrink-0">
+                  <span className="font-extrabold text-sm sm:text-base tracking-wider">VP</span>
                 </div>
-                <span className="text-[7px] sm:text-[9px] uppercase tracking-widest text-[#76777b] font-semibold truncate">
-                  Factory Hyd
+              )}
+              <div className="flex flex-col">
+                <span className="font-extrabold text-base sm:text-lg tracking-tight text-slate-900 group-hover:text-orange-600 transition-colors uppercase leading-tight">
+                  {brandName}
+                </span>
+                <span className="text-[9px] uppercase tracking-wider text-slate-500 font-semibold truncate max-w-[190px] sm:max-w-xs">
+                  {brandTagline}
                 </span>
               </div>
             </button>
           </div>
 
-          {/* 2. Desktop Quick Nav Links */}
-          <nav className="hidden xl:flex items-center gap-1 text-xs" aria-label="Main navigation">
-            <button
-              onClick={() => navigateTo('home')}
-              className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
-                activeView === 'home'
-                  ? 'bg-[#1a1c20] text-white font-semibold'
-                  : 'text-[#45474b] hover:text-[#000102] hover:bg-[#f1ede7]'
-              }`}
-            >
-              Home
-            </button>
-            <button
-              onClick={() => navigateTo('shop')}
-              className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
-                activeView === 'shop'
-                  ? 'bg-[#1a1c20] text-white font-semibold'
-                  : 'text-[#45474b] hover:text-[#000102] hover:bg-[#f1ede7]'
-              }`}
-            >
-              Shop
-            </button>
-            <button
-              onClick={() => navigateToSection('about-us')}
-              className="px-2.5 py-1 rounded-md font-medium text-[#45474b] hover:text-[#000102] hover:bg-[#f1ede7] transition-colors cursor-pointer"
-            >
-              About Us
-            </button>
-            <button
-              onClick={() => navigateToSection('contact-us')}
-              className="px-2.5 py-1 rounded-md font-medium text-[#45474b] hover:text-[#000102] hover:bg-[#f1ede7] transition-colors cursor-pointer"
-            >
-              Contact Us
-            </button>
-          </nav>
-
-          {/* 3. Integrated Search Bar (Desktop / Tablet) */}
-          <div className="hidden md:flex min-w-0 flex-1 max-w-[220px] lg:max-w-[320px] xl:max-w-[380px] 2xl:max-w-[280px] relative">
+          {/* 2. Integrated Search Bar with Live Suggestions Dropdown */}
+          <div ref={searchContainerRef} className="hidden md:flex flex-1 max-w-2xl relative">
             <form onSubmit={handleSearchSubmit} className="w-full">
-              <div className="w-full flex items-center bg-[#ffffff] px-2.5 py-1.5 rounded-lg shadow-2xs border border-[#c6c6cb]/60 focus-within:border-[#000102]">
-                <AppIcon name="search" className="text-[#76777b] text-[16px] mr-2" />
+              <div className="flex items-center w-full bg-slate-50 hover:bg-slate-100/80 focus-within:bg-white rounded-full border border-slate-200 focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-100 transition-all p-1">
+                {/* Category Dropdown */}
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="bg-transparent text-xs text-slate-700 font-medium pl-3 pr-2 py-1.5 border-r border-slate-200 focus:outline-none cursor-pointer shrink-0"
+                >
+                  <option value="All categories">All categories</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
+                  ))}
+                </select>
+
+                {/* Search Text Input */}
                 <input
-                  className="w-full bg-transparent border-0 focus:outline-none text-[11px] text-[#1c1c18] placeholder:text-[#76777b]"
-                  placeholder="Search pipe racks, channels, mannequins..."
+                  className="w-full bg-transparent border-0 focus:outline-none text-xs text-slate-900 placeholder:text-slate-400 px-3 py-1.5"
+                  placeholder="Search for velvet display, earring cards, tape dispenser, trays..."
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => setShowSuggestions(true)}
+                  onFocus={() => setSearchFocused(true)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setSearchFocused(true);
+                  }}
                 />
-                <span className="text-[8px] font-bold bg-[#f1ede7] px-1 py-0.5 rounded text-[#45474b] uppercase tracking-wider">
-                  B2B
-                </span>
+
+                {/* Clear / Submit Buttons */}
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="p-1 text-slate-400 hover:text-slate-600 mr-1"
+                  >
+                    <AppIcon name="close" className="text-xs" />
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  className="w-8 h-8 rounded-full bg-orange-600 hover:bg-orange-700 text-white flex items-center justify-center transition-colors shrink-0 cursor-pointer shadow-xs"
+                  aria-label="Submit search"
+                >
+                  <AppIcon name="search" className="text-sm" />
+                </button>
               </div>
             </form>
 
-            {showSuggestions && (
-              <div className="absolute left-0 right-0 top-full mt-1 bg-[#ffffff] rounded-xl shadow-[0_8px_24px_-4px_rgba(26,28,32,0.12)] p-2.5 z-50 border border-[#e6e2dc]">
-                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[#76777b] px-1 pb-1">
-                  <span>Suggested Searches</span>
+            {/* Live Autocomplete Dropdown Suggestions */}
+            {searchFocused && searchQuery.trim().length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                <div className="p-3 border-b border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                  <span className="font-semibold text-slate-700">Products Matching "{searchQuery}"</span>
+                  <span>{matchingSuggestions.length} found</span>
+                </div>
+
+                {matchingSuggestions.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-slate-500">
+                    No products matched "{searchQuery}". Try searching for "velvet", "stand", "cards", or "tray".
+                  </div>
+                ) : (
+                  <div className="divide-y divide-slate-100 max-h-80 overflow-y-auto">
+                    {matchingSuggestions.map((prod) => (
+                      <div
+                        key={prod.id}
+                        onClick={() => {
+                          onSelectProduct(prod);
+                          setSearchFocused(false);
+                          setSearchQuery('');
+                        }}
+                        className="p-3 flex items-center justify-between gap-3 hover:bg-slate-50 transition-colors cursor-pointer group"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <img
+                            src={prod.image}
+                            alt={prod.title}
+                            className="w-10 h-10 rounded-lg object-cover border border-slate-200 bg-slate-50 shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <span className="text-[10px] uppercase font-bold text-orange-600">{prod.category}</span>
+                            <h4 className="text-xs font-bold text-slate-900 truncate group-hover:text-orange-600 transition-colors">
+                              {prod.title}
+                            </h4>
+                            <span className="text-[10px] text-slate-500 font-mono">{prod.code}</span>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="font-bold text-xs text-slate-900">₹{prod.price.toLocaleString('en-IN')}</span>
+                          <span className="block text-[10px] text-emerald-600 font-medium">In Stock</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="p-2.5 bg-slate-50 border-t border-slate-100 text-center">
                   <button
                     type="button"
-                    onClick={() => setShowSuggestions(false)}
-                    className="text-[#76777b] hover:text-[#000102]"
+                    onClick={handleSearchSubmit}
+                    className="text-xs font-bold text-orange-600 hover:text-orange-700 hover:underline cursor-pointer"
                   >
-                    ✕
+                    View all results for "{searchQuery}" in Shop →
                   </button>
-                </div>
-                <div className="flex flex-wrap gap-1 pt-1">
-                  {['Heavy Duty Triple Pipe Racks', 'Brushed Gold Slotted Channels', 'Matte White Tailor Dummies', 'Lotus Wood Hangers Bulk'].map((tag) => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => selectSuggestion(tag)}
-                      className="text-[10px] bg-[#f1ede7] hover:bg-[#fece57]/40 px-2 py-1 rounded text-[#1c1c18] transition-colors"
-                    >
-                      {tag}
-                    </button>
-                  ))}
                 </div>
               </div>
             )}
           </div>
 
-          {/* 4. Right Utility Actions (Fully responsive for mobile screens) */}
-          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          {/* 3. Right Utility Actions */}
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            {/* Currency Pill */}
+            <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">
+              <span>₹ INR</span>
+            </div>
+
+            {/* Account Profile / Sign In */}
             <div className="relative">
               <button
                 type="button"
                 onClick={handleAccountClick}
-                className="flex h-8 items-center gap-1.5 rounded-lg px-1.5 text-[#1c1c18] transition-colors hover:bg-[#f1ede7] sm:h-9 sm:px-2"
-                aria-haspopup={user ? 'menu' : undefined}
-                aria-expanded={user ? showAccountMenu : undefined}
-                aria-label={user ? `Account: ${user.name}` : 'Sign in or create an account'}
+                className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-slate-700 transition-colors hover:bg-slate-100 text-xs font-semibold cursor-pointer"
+                aria-label={user ? `Account: ${user.name}` : 'Sign In'}
               >
-                {user?.avatarUrl ? (
-                  <img src={user.avatarUrl} alt="" className="h-6 w-6 rounded-full object-cover" />
+                {user ? (
+                  <div className="w-6 h-6 rounded-full bg-orange-600 text-white flex items-center justify-center text-xs font-bold">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
                 ) : (
-                  <AppIcon name={user ? 'account_circle' : 'person'} className="text-[19px]" />
+                  <AppIcon name="person" className="text-base text-slate-600" />
                 )}
-                <span className="hidden lg:inline max-w-24 truncate text-[11px] font-semibold">
-                  {user ? user.name.split(' ')[0] : 'Sign in'}
+                <span className="hidden lg:inline uppercase tracking-wide text-[11px]">
+                  {user ? user.name.split(' ')[0] : 'Sign In'}
                 </span>
               </button>
-              {user && showAccountMenu && (
-                <div className="absolute right-0 top-full z-[60] mt-2 w-64 rounded-xl border border-[#e6e2dc] bg-white p-4 shadow-xl" role="menu">
-                  <div className="flex items-center gap-3">
-                    {user.avatarUrl ? (
-                      <img src={user.avatarUrl} alt="" className="h-10 w-10 rounded-full object-cover" />
-                    ) : (
-                      <AppIcon name="person" className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f1ede7] text-[#775a00]" />
-                    )}
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-[#1c1c18]">{user.name}</p>
-                      <p className="truncate text-xs text-[#76777b]">{user.email}</p>
-                    </div>
-                  </div>
-                  {authActionError && <p role="alert" className="mt-3 text-xs text-red-700">{authActionError}</p>}
-                  <button
-                    type="button"
-                    onClick={() => void handleLogout()}
-                    className="mt-4 w-full rounded-lg border border-[#e6e2dc] px-3 py-2 text-left text-xs font-semibold text-[#45474b] hover:bg-[#f7f3ed]"
-                    role="menuitem"
-                  >
-                    Sign out
-                  </button>
-                </div>
-              )}
             </div>
 
-            {/* Mobile Search Toggle */}
+            {/* Wishlist Link with Live Counter Heart */}
             <button
-              onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-              className="md:hidden w-7 h-7 rounded-lg bg-[#f1ede7] flex items-center justify-center text-[#1c1c18] hover:bg-[#ebe8e2] transition-colors cursor-pointer shrink-0"
-              aria-label="Toggle Search"
+              onClick={onOpenWishlist}
+              className="relative p-2 rounded-full text-slate-600 hover:text-orange-600 hover:bg-orange-50 transition-colors cursor-pointer"
+              title="View Wishlist & Saved Items"
+              aria-label="Wishlist"
             >
-              <AppIcon name={mobileSearchOpen ? 'close' : 'search'} className="text-[16px]" />
+              <AppIcon name="heart" className="text-lg" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold rounded-full h-4 min-w-[16px] px-1 flex items-center justify-center shadow-xs animate-pulse">
+                  {wishlistCount}
+                </span>
+              )}
             </button>
 
-            {/* Direct WhatsApp Callout - Responsive */}
-            <a
-              href={getWhatsAppLink('Hi All Display Hyderabad, I want to inquire about store fixtures wholesale rates.')}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center justify-center gap-1 bg-[#25D366] hover:bg-[#128C7E] text-white px-2 sm:px-3 py-1 rounded-lg text-[11px] font-bold transition-all shadow-2xs shrink-0"
-              title="WhatsApp Commercial Desk"
-              aria-label="Contact us on WhatsApp"
-            >
-              <AppIcon name="chat" className="text-[15px]" />
-              <span className="hidden sm:inline">WhatsApp</span>
-              <span className="sm:hidden">WA</span>
-            </a>
-
-            {/* Wholesale Order List Cart Button - Responsive */}
+            {/* Modern Lightweight Cart Button */}
             <button
               onClick={() => navigateTo('quote-cart')}
-              className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer border shrink-0 ${
-                activeView === 'quote-cart'
-                  ? 'bg-[#1a1c20] text-white border-[#1a1c20]'
-                  : 'bg-[#f1ede7] hover:bg-[#ebe8e2] text-[#1c1c18] border-transparent'
-              }`}
-              title="View Wholesale Order List"
+              className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white pl-3 pr-4 py-2 rounded-full text-xs font-semibold shadow-xs hover:shadow-sm transition-all cursor-pointer"
+              title="View Cart"
             >
-              <AppIcon name="assignment" className="text-[15px] text-[#775a00]" />
-              <span className="hidden sm:inline">Orders</span>
-              <span className="bg-[#775a00] text-white px-1.5 py-0.2 rounded-full text-[9px] font-bold">
-                {cart.length}
+              <div className="relative">
+                <AppIcon name="add_shopping_cart" className="text-base" />
+                {cart.length > 0 && (
+                  <span className="absolute -top-1.5 -right-2 bg-slate-900 text-white text-[9px] font-bold rounded-full h-4 min-w-[16px] px-1 flex items-center justify-center border-2 border-orange-600">
+                    {cart.length}
+                  </span>
+                )}
+              </div>
+              <span className="hidden sm:inline font-bold">
+                CART ₹ {rawSubtotal.toLocaleString('en-IN')}.00
               </span>
             </button>
 
             {/* Mobile Hamburger Menu Toggle */}
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="2xl:hidden w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#1a1c20] text-[#ffdf98] flex items-center justify-center transition-colors cursor-pointer shadow-2xs shrink-0"
-              aria-label="Toggle Navigation Menu"
+              className="md:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              aria-label="Toggle navigation menu"
             >
-              <AppIcon name={mobileMenuOpen ? 'close' : 'menu'} className="text-[17px]" />
+              <AppIcon name={mobileMenuOpen ? 'close' : 'menu'} className="text-xl" />
             </button>
           </div>
-
         </div>
 
-        {/* Mobile Search Overlay Bar */}
-        {mobileSearchOpen && (
-          <div className="md:hidden px-3 pb-2 pt-1 border-t border-[#e6e2dc] bg-[#ffffff] animate-in fade-in duration-150">
-            <form onSubmit={handleSearchSubmit} className="w-full">
-              <div className="w-full flex items-center bg-[#fdf9f3] px-2.5 py-1.5 rounded-lg border border-[#c6c6cb] focus-within:border-primary">
-                <AppIcon name="search" className="text-[#76777b] text-[16px] mr-2" />
-                <input
-                  className="w-full bg-transparent border-0 focus:outline-none text-[11px] text-[#1c1c18] placeholder:text-[#76777b]"
-                  placeholder="Search pipe racks, channels, mannequins..."
-                  type="text"
-                  autoFocus
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <button
-                  type="submit"
-                  className="bg-[#1a1c20] text-white px-2 py-0.5 rounded text-[9px] font-bold uppercase shrink-0"
-                >
-                  Search
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-      </header>
-
-      {/* Offcanvas Drawer Menu (Mobile & Tablet) */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 2xl:hidden flex justify-end">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity touch-none"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-
-          {/* Drawer Panel */}
-          <div className="relative w-4/5 max-w-sm h-full bg-[#fdf9f3] shadow-2xl flex flex-col z-10 overflow-y-auto overscroll-contain" data-scrollable="true">
-            {/* Drawer Header */}
-            <div className="bg-[#1a1c20] text-white p-4 flex items-center justify-between border-b border-white/10">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#ffdf98] text-[#1a1c20] flex items-center justify-center font-serif font-bold text-base">
-                  AD
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-serif font-bold text-sm text-white">All Display</span>
-                  <span className="text-[10px] text-[#fece57] uppercase tracking-wider">Hyderabad Wholesale</span>
-                </div>
-              </div>
+        {/* Secondary Category Navigation Strip (Desktop) */}
+        <nav className="hidden lg:block border-t border-slate-100 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between text-xs font-semibold text-slate-700">
+            <div className="flex items-center gap-6 py-2.5">
               <button
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-colors cursor-pointer"
+                type="button"
+                onClick={() => navigateTo('home')}
+                className={`transition-colors hover:text-orange-600 cursor-pointer ${
+                  activeView === 'home' ? 'text-orange-600 font-bold' : ''
+                }`}
               >
-                <AppIcon name="close" className="text-[18px]" />
+                Home
+              </button>
+              <button
+                type="button"
+                onClick={() => navigateTo('shop')}
+                className={`transition-colors hover:text-orange-600 cursor-pointer ${
+                  activeView === 'shop' ? 'text-orange-600 font-bold' : ''
+                }`}
+              >
+                All Shop Categories
+              </button>
+              {categories.slice(0, 5).map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => {
+                    if (onSearch) onSearch('');
+                    navigateTo('shop');
+                  }}
+                  className="transition-colors hover:text-orange-600 cursor-pointer"
+                >
+                  {cat.name}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => navigateTo('custom-quote')}
+                className="transition-colors hover:text-orange-600 cursor-pointer"
+              >
+                Custom Branding &amp; Bulk
+              </button>
+              <button
+                type="button"
+                onClick={() => navigateToSection('contact-us')}
+                className="transition-colors hover:text-orange-600 cursor-pointer"
+              >
+                Contact &amp; Showroom
               </button>
             </div>
 
-            {/* Navigation Links */}
-            <div className="flex flex-col p-4 gap-1.5">
-              <button
-                onClick={() => navigateTo('home')}
-                className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left text-xs font-semibold transition-colors ${
-                  activeView === 'home'
-                    ? 'bg-[#1a1c20] text-white'
-                    : 'text-[#1c1c18] hover:bg-surface-container'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <AppIcon name="home" className="text-[18px]" />
-                  <span>Home</span>
-                </div>
-                <AppIcon name="chevron_right" className="text-[16px] opacity-60" />
-              </button>
+            <div className="flex items-center gap-2 text-slate-500 font-medium text-[11px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span>Sowcarpet Depot Online</span>
+            </div>
+          </div>
+        </nav>
+      </header>
 
-              <button
-                onClick={() => navigateTo('shop')}
-                className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left text-xs font-semibold transition-colors ${
-                  activeView === 'shop'
-                    ? 'bg-[#1a1c20] text-white'
-                    : 'text-[#1c1c18] hover:bg-surface-container'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <AppIcon name="shelves" className="text-[18px]" />
-                  <span>Shop</span>
+      {/* Mobile Drawer Navigation */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden bg-slate-900/60 backdrop-blur-xs flex justify-end">
+          <div className="w-4/5 max-w-sm bg-white h-full shadow-2xl p-6 flex flex-col justify-between overflow-y-auto">
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-orange-600 text-white flex items-center justify-center font-bold text-xs">
+                    VP
+                  </div>
+                  <span className="font-bold text-sm text-slate-900">{brandName}</span>
                 </div>
-                <AppIcon name="chevron_right" className="text-[16px] opacity-60" />
-              </button>
+                <button onClick={() => setMobileMenuOpen(false)} className="text-slate-400">
+                  <AppIcon name="close" className="text-lg" />
+                </button>
+              </div>
 
-              <button
-                onClick={() => navigateToSection('about-us')}
-                className="w-full flex items-center justify-between p-2.5 rounded-xl text-left text-xs font-semibold text-[#1c1c18] hover:bg-surface-container transition-colors"
-              >
-                <div className="flex items-center gap-2.5">
-                  <AppIcon name="info" className="text-[18px]" />
-                  <span>About Us</span>
+              {/* Mobile Search */}
+              <form onSubmit={handleSearchSubmit}>
+                <div className="flex items-center bg-slate-50 rounded-xl border border-slate-200 p-2">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search products..."
+                    className="w-full text-xs bg-transparent outline-none px-2"
+                  />
+                  <button type="submit" className="text-orange-600">
+                    <AppIcon name="search" className="text-sm" />
+                  </button>
                 </div>
-                <AppIcon name="chevron_right" className="text-[16px] opacity-60" />
-              </button>
+              </form>
 
-              <button
-                onClick={() => navigateToSection('contact-us')}
-                className="w-full flex items-center justify-between p-2.5 rounded-xl text-left text-xs font-semibold text-[#1c1c18] hover:bg-surface-container transition-colors"
-              >
-                <div className="flex items-center gap-2.5">
-                  <AppIcon name="phone" className="text-[18px]" />
-                  <span>Contact Us</span>
-                </div>
-                <AppIcon name="chevron_right" className="text-[16px] opacity-60" />
-              </button>
+              <div className="flex flex-col gap-3 text-sm font-semibold text-slate-800">
+                <button onClick={() => navigateTo('home')} className="text-left py-2 hover:text-orange-600">Home</button>
+                <button onClick={() => navigateTo('shop')} className="text-left py-2 hover:text-orange-600">All Products</button>
+                <button onClick={() => { onOpenWishlist(); setMobileMenuOpen(false); }} className="text-left py-2 hover:text-orange-600 flex items-center justify-between">
+                  <span>My Wishlist</span>
+                  <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full text-xs">{wishlistCount}</span>
+                </button>
+                <button onClick={() => { handleAccountClick(); setMobileMenuOpen(false); }} className="text-left py-2 hover:text-orange-600">
+                  {user ? `My Account (${user.name})` : 'Sign In'}
+                </button>
+                <button onClick={() => navigateTo('custom-quote')} className="text-left py-2 hover:text-orange-600">Custom Bulk Quotes</button>
+                <button onClick={() => navigateToSection('contact-us')} className="text-left py-2 hover:text-orange-600">Contact &amp; Sowcarpet Depot</button>
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-slate-100 flex flex-col gap-2 text-xs text-slate-500">
+              <p className="font-bold text-slate-700">{phone}</p>
+              <p>{settings.businessAddress}</p>
             </div>
           </div>
         </div>

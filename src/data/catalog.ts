@@ -1,529 +1,900 @@
 import { Product, ProjectReel, Review } from '../types';
 
 export const INITIAL_PRODUCTS: Product[] = [
+  // 1. Premium 4 Layer Earrings Display Stand
   {
-    id: 'ad-tpr-650',
-    code: 'AD-TPR-650',
-    title: 'All Display Heavy Triple Pipe Garment Rack',
-    description: 'Dimensions: 6ft (H) × 5ft (W) × 1.5ft base. Triple welded center rail for maximum density hanging.',
-    price: 3250,
-    originalPrice: 4500,
-    unit: 'unit',
+    id: 'vp-eds-401',
+    code: 'VP-EDS-401',
+    title: 'Premium 4 Layer Earrings Display Stand (size 11.5*11.5)',
+    description: 'White wooden frame with multi-tier earring hang slots. Ideal for counters, pop-up exhibitions and retail boutique showcases. Smooth anti-scratch lacquer coating with precision pre-drilled holes for stud and dangle earrings.',
+    price: 850,
+    originalPrice: 950,
+    unit: 'piece',
     rating: 4.9,
-    reviewCount: 48,
-    loadCapacity: '>100kg Heavy Duty',
-    category: 'Floor Stands & Bumper Racks',
-    finish: 'Matte Black Powder Coat',
-    structuralProfile: 'Triple Pipe Island Hanging Rack',
-    dispatchReadiness: 'Same-Day Hyderabad Dispatch',
-    stockStatus: 'Ranigunj In Stock',
+    reviewCount: 64,
+    loadCapacity: 'Holds up to 48 Earring Pairs',
+    category: 'Display Stand',
+    finish: 'Pure Matte White Wood',
+    structuralProfile: 'Tiered Counter Stand',
+    dispatchReadiness: 'Same-Day Dispatch',
+    stockStatus: 'In Stock (Chennai Depot)',
     moq: 'MOQ: 1 Unit',
-    badge: 'Best Seller for Boutiques',
+    badge: 'Best Seller',
     badgeType: 'primary',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCxpxhNjDNvX32IpSokZdxw6cUs5SdgSnKLVt1U1pm9sFwx6e4wn4NBPpaIB4yjbzZXVFtkPXCmgU4GhDc91mC92FqzpXevZgSy68M5A8mWAcG2NBhYyEFXQYPP5rFgx7YQRt4TO95lC-KXNS6ex4k0bob98fo-2tqur0o05SqvxmV03yS4CUcVVFz1fwB7qXAAZQQouwob3NyBRoD0N75CWJOARbsNrDAVOPNAzOET0j7WEZ3Lznhw',
+    image: '/assets/vinayak/prod_earring_stand.png',
+    images: [
+      '/assets/vinayak/prod_earring_stand.png',
+      '/assets/vinayak/deal_left_banner.png',
+      '/assets/vinayak/req_retail_shops.png'
+    ],
     finishes: [
-      { name: 'Matte Black Powder Coat', color: '#1A1C20' },
-      { name: 'Brushed Champagne Gold PVD', color: '#D4AF37' },
-      { name: 'Mirror Chrome Finish', color: '#E0E2E5' }
+      { name: 'Matte White', color: '#F8FAFC' },
+      { name: 'Natural Pine', color: '#E2C29D' },
+      { name: 'Velvet Black', color: '#1E293B' }
+    ],
+    requirements: ['retail-shops', 'instagram-shop', 'new-jewellery'],
+    material: 'Solid Wood',
+    specs: {
+      dimensions: '11.5 × 11.5 × 3.5 inches',
+      weight: '480 grams',
+      color: 'Matte White / Natural / Black'
+    },
+    variations: [
+      {
+        id: 'var-color',
+        name: 'Wood Finish',
+        options: [
+          { id: 'opt-white', name: 'Pure Matte White Wood', price: 850, sku: 'VP-EDS-401-WHT', inStock: true },
+          { id: 'opt-pine', name: 'Natural Honey Pine Wood', price: 890, sku: 'VP-EDS-401-PNE', inStock: true },
+          { id: 'opt-black', name: 'Sleek Ebony Black Wood', price: 890, sku: 'VP-EDS-401-BLK', inStock: true }
+        ]
+      },
+      {
+        id: 'var-tier',
+        name: 'Tier Height',
+        options: [
+          { id: 'opt-4t', name: '4-Layer Standard (48 Pairs)', price: 850, sku: 'VP-EDS-401-4L', inStock: true },
+          { id: 'opt-6t', name: '6-Layer Exhibition Stand (72 Pairs)', price: 1150, originalPrice: 1350, sku: 'VP-EDS-401-6L', inStock: true }
+        ]
+      }
     ]
   },
+
+  // 2. Premium Round Velvet Jewellery Display Tray
   {
-    id: 'ad-arc-700',
-    code: 'AD-ARC-700',
-    title: 'Luxury Arch PVD Gold Single Bar Dress Stand',
-    description: 'Dimensions: 5.5ft (H) × 4ft (W) × 1.3ft base. Smooth curved arch contour designed for bridal wear & evening gowns.',
-    price: 4100,
-    originalPrice: 5600,
-    unit: 'unit',
-    rating: 4.9,
-    reviewCount: 31,
-    loadCapacity: '50 kg – 100 kg',
-    category: 'Gold Luxury Boutique Fixtures',
-    finish: 'Brushed Champagne Gold PVD',
-    structuralProfile: 'Minimalist Single Bar Studio Stand',
-    dispatchReadiness: 'Same-Day Hyderabad Dispatch',
-    stockStatus: 'PVD Electroplated',
-    moq: 'MOQ: 1 Unit',
-    badge: 'Luxury Boutique Pick',
-    badgeType: 'secondary',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCetuei0F7kSeHMJpAlZLJlEt4ZKllTrm7a_7Vi2J8rR2GPeKo2PBSRUXNc8RZrePn1SG9les_u8fXcd5qWdGTjY1t3-pyqYm-5SYRtJzPggLV4gbKULgD4CHDPJTTVjrXkffgSdCWbP222b6rxD4DzPRmjvIDZD-IKtQqhggZfe6eWOLaGbGVJJBQ-IxXlnhTksR9lsT2nZQ6e8ZHFvz36BuckdTvq3CJ4n9Ora0FMb2Il8l-cwyLH',
-    finishes: [
-      { name: 'Brushed Titanium Gold', color: '#D4AF37' },
-      { name: 'Rose Gold Finish', color: '#B76E79' }
-    ]
-  },
-  {
-    id: 'ad-4wy-410',
-    code: 'AD-4WY-410',
-    title: 'Heavy Duty 4-Way Stepped Bumper Stand',
-    description: 'Independent telescopic arm extension from 48 inches to 72 inches. Welded weighted cross-base for tip-proof stability.',
-    price: 2450,
-    originalPrice: 3200,
-    unit: 'unit',
+    id: 'vp-vtr-102',
+    code: 'VP-VTR-102',
+    title: 'Premium Round Velvet Jewellery Display Tray',
+    description: 'Ultra-soft plush velvet round stacking trays for rings, pendants, and delicate bridal ornaments with smooth raised perimeter. Perfect for counter presentation, luxury store showcases, and flatlay photography.',
+    price: 450,
+    originalPrice: 550,
+    unit: 'tray',
     rating: 4.8,
     reviewCount: 42,
-    loadCapacity: '50 kg – 100 kg',
-    category: 'Floor Stands & Bumper Racks',
-    finish: 'Mirror Chrome Finish',
-    structuralProfile: '4-Way Stepped Waterfall Stand',
-    dispatchReadiness: 'Same-Day Hyderabad Dispatch',
-    stockStatus: 'Ready Dispatch',
-    moq: 'MOQ: 2 Units',
-    badge: 'High Density Display',
-    badgeType: 'neutral',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA1WSHFffRkgPMDDEGz8N_rpSK-fBwS3ucd3Es2COVjvJ-avBjgXH5NOwPsf95LQgCHdybDK3jnHwGeUEeyW3efexrWEjx-S3LkJCX6dDzswsQunKeXUuK6_TYg4Sf5G41FWWNYGAELNp-IojHD4JOr2wJxWRiVV1mK-3MncOKmb0z1Mfxh80UC58fQ1qknGsGeHc_mMHkozfTFSnQ9byf9WSQYLNn8JuItntTsG8daT9L2n5S6TkWX',
-    finishes: [
-      { name: 'Commercial Chrome', color: '#E0E2E5' },
-      { name: 'Matte Black', color: '#1A1C20' }
-    ]
-  },
-  {
-    id: 'ad-dbl-520',
-    code: 'AD-DBL-520',
-    title: 'Double Tier Straight Rail Garment Stand',
-    description: 'Dimensions: 7ft (H) × 4ft (W). Engineered specifically for display pairs: tops above and folded trousers/skirts below.',
-    price: 2800,
-    originalPrice: 3800,
-    unit: 'unit',
-    rating: 4.7,
-    reviewCount: 24,
-    loadCapacity: '>100kg Heavy Duty',
-    category: 'Floor Stands & Bumper Racks',
-    finish: 'Matte Black Powder Coat',
-    structuralProfile: 'Heavy Duty Bumper Perimeter Stand',
-    dispatchReadiness: 'Same-Day Hyderabad Dispatch',
-    stockStatus: 'Depot Ready',
-    moq: 'MOQ: 1 Unit',
-    badge: 'Two-Level Hanging',
-    badgeType: 'neutral',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCEv3-xnZ0oN_ucmq5lyhCVfllBBErSb7ZrzzCZl7zrlVw51CPUt62KVlQFEiUMLre8SKb-bd235PB4rTH_jB7Ey1VMv6Yi0uu9yzejdQYhziN_HaLBZ_5OddQ5mHasFv_FKd_5M8Bx-crddaH5XkEtjEJrsXVBNQcELA9DYCbrh4Fivm-IMjpehWMGKJbPrRH9zy363aLGX9gummL-mI3Ys9p7-4-lwtTc0a3WKOUYJcUWxMHanGbT',
-    finishes: [
-      { name: 'Matte Black', color: '#1A1C20' },
-      { name: 'Gloss White', color: '#FFFFFF' }
-    ]
-  },
-  {
-    id: 'ad-rev-360',
-    code: 'AD-REV-360',
-    title: 'Circular Revolving 36-Pin Garment Display',
-    description: 'Heavy Japanese industrial ball bearing ring. Holds up to 72 hangers for dupattas, kidswear, or innerwear merchandising.',
-    price: 3600,
-    originalPrice: 4800,
-    unit: 'unit',
-    rating: 4.8,
-    reviewCount: 39,
-    loadCapacity: '50 kg – 100 kg',
-    category: 'Floor Stands & Bumper Racks',
-    finish: 'Brushed Champagne Gold PVD',
-    structuralProfile: 'Circular 360° Revolving Stand',
-    dispatchReadiness: 'Same-Day Hyderabad Dispatch',
-    stockStatus: 'Begum Bazaar Stock',
-    moq: 'MOQ: 1 Unit',
-    badge: '360° Smooth Bearing',
-    badgeType: 'neutral',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC0HLBsQ2x8AJzXEoJVqvzyV-5OpiH4flGKype5qElMKXwG-3WsQxOmA2-L329LsDifDj5sx-Tr2iAjnj7kMMMFe4vTTIFFI-vH4VFRjQBIuMbauQK9EdQO00-0aJLbN2wSWDYkyjba3wyrliIGQa1QFfaVWFPrf4mZTvCxsQQzBN1ipMs4Ye1BNAd2p7Tx4M_ymLAVAioaS9o1F3Oh2drZiy3aTOJqNtM0pXQscIrX3oT0VVv70T30',
-    finishes: [
-      { name: 'Brushed Gold', color: '#D4AF37' },
-      { name: 'Mirror Chrome', color: '#E0E2E5' }
-    ]
-  },
-  {
-    id: 'ad-zrk-180',
-    code: 'AD-ZRK-180',
-    title: 'Industrial Z-Rack on Heavy Castor Wheels',
-    description: 'Z-shaped nestable base for compact space-saving storage when idle. 3-inch locking polyurethane industrial castors.',
-    price: 2150,
-    originalPrice: 2900,
-    unit: 'unit',
-    rating: 4.9,
-    reviewCount: 52,
-    loadCapacity: '>100kg Heavy Duty',
-    category: 'Floor Stands & Bumper Racks',
-    finish: 'Mirror Chrome Finish',
-    structuralProfile: 'Heavy Duty Bumper Perimeter Stand',
-    dispatchReadiness: 'Same-Day Hyderabad Dispatch',
+    loadCapacity: 'Cushioned Velvet Surface',
+    category: 'Display Tray',
+    finish: 'Plush Velvet Multicolour',
+    structuralProfile: 'Stackable Circular Tray',
+    dispatchReadiness: 'Same-Day Dispatch',
     stockStatus: 'In Stock',
-    moq: 'MOQ: 2 Units',
-    badge: 'Nesting Base',
-    badgeType: 'neutral',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCGZrsyV4bJ9YmBpaVFelpKwG4xNHd3AbYpX2FXmaNf1zrD-9mwPQ8w27l-kAmUq_qMvnhggNEnzD0CC7Ue3AtKde1IDvtOc2hbgOAiZDXBpYJxFmC52pu7lwlhhW3kaCJH77WPzQ23sCeGwlGJQwW9vQ2gtoq2g22Fd3kikAL-QV1_Li2hjgKGJFTr5QRi7iSntcdPbZHqMzct4lADY2Tv7NEZzK6goRkhOKOfxE0S7diKblfp1H64',
-    finishes: [
-      { name: 'Galvanized Chrome', color: '#E0E2E5' },
-      { name: 'Industrial Black', color: '#1A1C20' }
-    ]
-  },
-  {
-    id: 'ad-wtf-290',
-    code: 'AD-WTF-290',
-    title: 'Stepped Waterfall Faceout Island Stand',
-    description: '7-ball precision welded downward slant arms. Ensures merchandise faces forward toward showroom shoppers.',
-    price: 2900,
-    originalPrice: 3950,
-    unit: 'unit',
-    rating: 4.7,
-    reviewCount: 29,
-    loadCapacity: '50 kg – 100 kg',
-    category: 'Floor Stands & Bumper Racks',
-    finish: 'Matte Black Powder Coat',
-    structuralProfile: '4-Way Stepped Waterfall Stand',
-    dispatchReadiness: 'Same-Day Hyderabad Dispatch',
-    stockStatus: 'Ready Dispatch',
     moq: 'MOQ: 1 Unit',
-    badge: 'Faceout Display',
-    badgeType: 'neutral',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC5RjeTR39pmLpyYfm2yvAljgNw7vH035iHKATa6of3ZFvQyrWNruUQC1ovp3DySQrt5LIhlmAzLyhse9rsN8iSTobXcUnHesg2Vi-IbNSMWkojVI2fvrnldeeBmkfjLBg3pcuEDoeq3mzMDgrVBaNh8xisumC3vB1j1x_KcKgwTs8vvz3e1IVO3f0uYtimM4x2kE-XtwC1sA5XlzF1j4GcwcUcuEXTdObq-Bl7WWUxiBYOX0nuu_vP',
-    finishes: [
-      { name: 'Matte Black', color: '#1A1C20' },
-      { name: 'Champagne Gold', color: '#D4AF37' }
-    ]
-  },
-  {
-    id: 'ad-wod-880',
-    code: 'AD-WOD-880',
-    title: 'Combination Wood Shelf & Metal Rack',
-    description: 'Seasoned solid natural teak wood shelf module paired with electroplated titanium gold frame. For folded and hung garments.',
-    price: 4800,
-    originalPrice: 6500,
-    unit: 'unit',
-    rating: 4.9,
-    reviewCount: 36,
-    loadCapacity: '>100kg Heavy Duty',
-    category: 'Floor Stands & Bumper Racks',
-    finish: 'Natural Teak & Mild Steel',
-    structuralProfile: 'Minimalist Single Bar Studio Stand',
-    dispatchReadiness: 'Custom Made-to-Order (4 Days)',
-    stockStatus: 'Architectural Series',
-    moq: 'MOQ: 1 Unit',
-    badge: 'Hybrid Wood + Metal',
+    badge: 'Popular',
     badgeType: 'secondary',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDNq2KS12teHoayxRigubLabkcosY2o8mKpmqqljySVKBPQOhYLK30KBFBvnSccV3W0FOQrTLZMXwTz3IeSu11nlQEbj8no1ya02pFc0sEEyLOYL6ujraEzbOca-S1U43n3FujjlSZ7PVbAg6yXi7WEabuedpKp-I26M6nOjr9ufzPWRUCc-degs9KQO3llxun3Bsc6yGNWM-i16kMiFZ3ggPNBRw0zGqVhFd5SHhHtlhL358dmwgL-',
+    image: '/assets/vinayak/prod_round_tray.png',
+    images: [
+      '/assets/vinayak/prod_round_tray.png',
+      '/assets/vinayak/req_instagram_shop.png',
+      '/assets/vinayak/shop_banner.png'
+    ],
     finishes: [
-      { name: 'Natural Teak', color: '#8C5E3C' },
-      { name: 'Titanium Gold', color: '#D4AF37' }
+      { name: 'Midnight Black', color: '#0F172A' },
+      { name: 'Dusty Rose Pink', color: '#F472B6' },
+      { name: 'Emerald Teal', color: '#0D9488' },
+      { name: 'Oatmeal Beige', color: '#E2D9CC' }
+    ],
+    requirements: ['instagram-shop', 'retail-shops', 'new-jewellery'],
+    material: 'Velvet',
+    specs: {
+      dimensions: '8 Inch Diameter × 1.2 Inch Depth',
+      weight: '260 grams',
+      color: 'Multicolor Velvet'
+    },
+    variations: [
+      {
+        id: 'var-color',
+        name: 'Velvet Color',
+        options: [
+          { id: 'opt-teal', name: 'Emerald Teal Velvet', price: 450, sku: 'VP-VTR-102-TEA', inStock: true },
+          { id: 'opt-pink', name: 'Dusty Rose Pink Velvet', price: 450, sku: 'VP-VTR-102-PNK', inStock: true },
+          { id: 'opt-black', name: 'Midnight Obsidian Black', price: 450, sku: 'VP-VTR-102-BLK', inStock: true },
+          { id: 'opt-beige', name: 'Oatmeal Champagne Beige', price: 470, sku: 'VP-VTR-102-BGE', inStock: true }
+        ]
+      },
+      {
+        id: 'var-insert',
+        name: 'Tray Insert Layout',
+        options: [
+          { id: 'opt-flat', name: 'Flat Showcase Pad (Versatile)', price: 450, inStock: true },
+          { id: 'opt-ring', name: '7-Row Ring Slot Pad', price: 490, inStock: true }
+        ]
+      }
+    ]
+  },
+
+  // 3. Premium Velvet Necklace & Earrings Jewellery Display Bust
+  {
+    id: 'vp-nbd-205',
+    code: 'VP-NBD-205',
+    title: 'Premium Velvet Necklace & Earrings Jewellery Display Bust',
+    description: 'Sculpted deep teal curved velvet display base with dedicated slots for heavy necklace set and matching drop earrings. Perfectly angles necklaces for counter displays and customer photos.',
+    price: 450,
+    originalPrice: 550,
+    unit: 'set',
+    rating: 4.9,
+    reviewCount: 89,
+    loadCapacity: 'Heavy Bridal Set Holder',
+    category: 'Display Bust',
+    finish: 'Royal Teal Velvet',
+    structuralProfile: 'Contoured Display Plate',
+    dispatchReadiness: 'Same-Day Dispatch',
+    stockStatus: 'In Stock',
+    moq: 'MOQ: 1 Unit',
+    badge: 'Top Selling',
+    badgeType: 'primary',
+    image: '/assets/vinayak/prod_velvet_necklace.png',
+    images: [
+      '/assets/vinayak/prod_velvet_necklace.png',
+      '/assets/vinayak/req_online_sellers.png',
+      '/assets/vinayak/prod_10in_bust.png'
+    ],
+    finishes: [
+      { name: 'Royal Teal', color: '#0F766E' },
+      { name: 'Ruby Maroon', color: '#881337' },
+      { name: 'Obsidian Black', color: '#1E293B' }
+    ],
+    requirements: ['retail-shops', 'instagram-shop', 'new-jewellery'],
+    material: 'Velvet',
+    specs: {
+      dimensions: '10 × 8 × 4.5 inches',
+      weight: '380 grams',
+      color: 'Royal Teal'
+    },
+    variations: [
+      {
+        id: 'var-shade',
+        name: 'Velvet Color',
+        options: [
+          { id: 'opt-teal', name: 'Royal Peacock Teal', price: 450, sku: 'VP-NBD-205-TEA', inStock: true },
+          { id: 'opt-maroon', name: 'Bridal Crimson Maroon', price: 450, sku: 'VP-NBD-205-MRN', inStock: true },
+          { id: 'opt-black', name: 'Jet Velvet Black', price: 450, sku: 'VP-NBD-205-BLK', inStock: true }
+        ]
+      }
+    ]
+  },
+
+  // 4. 100 Pcs Pink Jewellery Display Cards with Hand Artwork
+  {
+    id: 'vp-pdc-301',
+    code: 'VP-PDC-301',
+    title: '100 Pcs Pink Jewellery Display Cards with Hand Artwork',
+    description: 'Premium 350 GSM cardstock with aesthetic hand silhouette illustrations, precision pre-punched holes for earrings, rings, and delicate chain pendants.',
+    price: 200,
+    originalPrice: 300,
+    unit: 'pack (100 pcs)',
+    rating: 5.0,
+    reviewCount: 112,
+    loadCapacity: '350 GSM High-Grade Board',
+    category: 'Display Cards',
+    finish: 'Matte Pastel Finish',
+    structuralProfile: 'Die-cut Jewelry Cards',
+    dispatchReadiness: 'Same-Day Dispatch',
+    stockStatus: 'In Stock',
+    moq: 'MOQ: 1 Pack (100 Pcs)',
+    badge: 'Pack of 100',
+    badgeType: 'neutral',
+    image: '/assets/vinayak/prod_pink_cards.png',
+    images: [
+      '/assets/vinayak/prod_pink_cards.png',
+      '/assets/vinayak/prod_3x3_cards.png',
+      '/assets/vinayak/prod_blue_steel_cards.png'
+    ],
+    finishes: [
+      { name: 'Blush Pink', color: '#FBCFE8' },
+      { name: 'Minimal White', color: '#FFFFFF' },
+      { name: 'Kraft Brown', color: '#D97706' }
+    ],
+    requirements: ['online-sellers', 'instagram-shop', 'new-jewellery'],
+    material: 'Paper / Board',
+    specs: {
+      dimensions: '3 × 3.5 inches',
+      weight: '180 grams per pack of 100',
+      color: 'Pastel Pink Art'
+    },
+    variations: [
+      {
+        id: 'var-qty',
+        name: 'Pack Size',
+        options: [
+          { id: 'opt-100', name: '1 Pack (100 Pcs)', price: 200, originalPrice: 300, sku: 'VP-PDC-301-100', inStock: true },
+          { id: 'opt-500', name: '5 Packs (500 Pcs Bulk - Save ₹100)', price: 900, originalPrice: 1200, sku: 'VP-PDC-301-500', inStock: true },
+          { id: 'opt-1000', name: '10 Packs (1,000 Pcs Wholesale - Save ₹350)', price: 1650, originalPrice: 2200, sku: 'VP-PDC-301-1K', inStock: true }
+        ]
+      },
+      {
+        id: 'var-art',
+        name: 'Artwork Style',
+        options: [
+          { id: 'opt-hand', name: 'Blush Pink Hand Silhouette', inStock: true },
+          { id: 'opt-minimal', name: 'Minimal Ivory White Outline', inStock: true },
+          { id: 'opt-kraft', name: 'Eco Kraft Bohemian Art', inStock: true }
+        ]
+      }
+    ]
+  },
+
+  // 5. 1 Inch Tape Dispenser Machine Heavy Duty Desk
+  {
+    id: 'vp-tdm-501',
+    code: 'VP-TDM-501',
+    title: '1 Inch Tape Dispenser Machine Heavy Duty Desk',
+    description: 'Cast iron weighted base non-slip tape cutter machine for high-speed e-commerce packing benches and dispatch desks. Features razor-sharp stainless steel serrated blade.',
+    price: 120,
+    originalPrice: 220,
+    unit: 'piece',
+    rating: 4.7,
+    reviewCount: 38,
+    loadCapacity: 'Heavy Weighted Anti-Skid Base',
+    category: 'Packaging Tools',
+    finish: 'Industrial Azure Blue',
+    structuralProfile: 'Stationery Dispenser',
+    dispatchReadiness: 'Same-Day Dispatch',
+    stockStatus: 'In Stock',
+    moq: 'MOQ: 1 Unit',
+    badge: 'Heavy Duty',
+    badgeType: 'secondary',
+    image: '/assets/vinayak/prod_tape_dispenser.png',
+    images: [
+      '/assets/vinayak/prod_tape_dispenser.png',
+      '/assets/vinayak/prod_wonder_tape.png'
+    ],
+    finishes: [
+      { name: 'Azure Blue', color: '#0284C7' },
+      { name: 'Slate Black', color: '#1E293B' }
+    ],
+    requirements: ['online-sellers', 'retail-shops'],
+    material: 'Metal & ABS',
+    specs: {
+      dimensions: '8 × 3.5 × 4 inches',
+      weight: '850 grams (Weighted Base)',
+      color: 'Azure Blue'
+    },
+    variations: [
+      {
+        id: 'var-bundle',
+        name: 'Packaging Bundle',
+        options: [
+          { id: 'opt-single', name: 'Dispenser Machine Only', price: 120, originalPrice: 220, sku: 'VP-TDM-501', inStock: true },
+          { id: 'opt-bundle', name: 'Dispenser + 5 Wonder Tape Rolls Kit', price: 290, originalPrice: 420, sku: 'VP-TDM-501-KIT', inStock: true }
+        ]
+      }
+    ]
+  },
+
+  // 6. 1 Inch Transparent Wonder Tape Roll – 150 Meter Clear
+  {
+    id: 'vp-wtr-502',
+    code: 'VP-WTR-502',
+    title: '1 Inch Transparent Wonder Tape Roll – 150 Meter Clear',
+    description: 'High-tack acrylic adhesive clear packaging tape for jewelry boxes, tamper-evident mailers and polybags. Resists tearing and yellowing.',
+    price: 40,
+    originalPrice: 100,
+    unit: 'roll',
+    rating: 4.9,
+    reviewCount: 230,
+    loadCapacity: '150 Meter High Tensile',
+    category: 'Packaging Tools',
+    finish: 'Ultra Clear Gloss',
+    structuralProfile: 'Adhesive Roll',
+    dispatchReadiness: 'Same-Day Dispatch',
+    stockStatus: 'Bulk Ready',
+    moq: 'MOQ: 5 Rolls',
+    badge: '150m Clear',
+    badgeType: 'neutral',
+    image: '/assets/vinayak/prod_wonder_tape.png',
+    images: [
+      '/assets/vinayak/prod_wonder_tape.png',
+      '/assets/vinayak/prod_tape_dispenser.png'
+    ],
+    finishes: [
+      { name: 'Crystal Clear', color: '#F8FAFC' }
+    ],
+    requirements: ['online-sellers', 'retail-shops'],
+    material: 'Polymer Adhesive',
+    specs: {
+      dimensions: '1 Inch Width × 150 Meter Length',
+      weight: '120 grams per roll',
+      color: 'Crystal Clear'
+    },
+    variations: [
+      {
+        id: 'var-pack',
+        name: 'Pack Slab',
+        options: [
+          { id: 'opt-single', name: 'Sample Roll (1 Roll)', price: 40, originalPrice: 100, sku: 'VP-WTR-502-1R', inStock: true },
+          { id: 'opt-6roll', name: 'Pack of 6 Rolls (Save ₹30)', price: 210, originalPrice: 300, sku: 'VP-WTR-502-6R', inStock: true },
+          { id: 'opt-36roll', name: 'Box of 36 Rolls Wholesale', price: 1190, originalPrice: 1600, sku: 'VP-WTR-502-36R', inStock: true }
+        ]
+      }
+    ]
+  },
+
+  // 7. 1 Inch White Jewellery Price Sticker Roll
+  {
+    id: 'vp-psr-503',
+    code: 'VP-PSR-503',
+    title: '1 Inch White Jewellery Price Sticker Roll – Self Adhesive',
+    description: 'Barcode & handwritten dumbbell price tags for rings, necklaces, and bangles. Non-damaging removable residue center fold design.',
+    price: 250,
+    originalPrice: 350,
+    unit: 'roll (1000 tags)',
+    rating: 4.8,
+    reviewCount: 77,
+    loadCapacity: '1,000 Dumbbell Tags / Roll',
+    category: 'Packaging Tools',
+    finish: 'Coated Gloss White',
+    structuralProfile: 'Perforated Tag Roll',
+    dispatchReadiness: 'Same-Day Dispatch',
+    stockStatus: 'In Stock',
+    moq: 'MOQ: 1 Roll',
+    badge: 'Self Adhesive',
+    badgeType: 'secondary',
+    image: '/assets/vinayak/prod_price_sticker.png',
+    images: [
+      '/assets/vinayak/prod_price_sticker.png',
+      '/assets/vinayak/prod_3x3_cards.png'
+    ],
+    finishes: [
+      { name: 'Pure White', color: '#FFFFFF' },
+      { name: 'Gold Trim', color: '#EAB308' }
+    ],
+    requirements: ['online-sellers', 'retail-shops', 'new-jewellery'],
+    material: 'Coated Adhesive Paper',
+    specs: {
+      dimensions: 'Dumbbell Shape (1,000 Tags/Roll)',
+      weight: '140 grams',
+      color: 'Gloss White'
+    },
+    variations: [
+      {
+        id: 'var-roll',
+        name: 'Quantity',
+        options: [
+          { id: 'opt-1roll', name: '1 Roll (1,000 Tags)', price: 250, originalPrice: 350, sku: 'VP-PSR-503-1', inStock: true },
+          { id: 'opt-5roll', name: '5 Rolls Bundle (5,000 Tags)', price: 1100, originalPrice: 1500, sku: 'VP-PSR-503-5', inStock: true }
+        ]
+      }
+    ]
+  },
+
+  // 8. 1 Meter Suede Velvet Jewellery Display Cloth
+  {
+    id: 'vp-vdc-108',
+    code: 'VP-VDC-108',
+    title: '1 Meter (55 × 38 Inch) Suede Velvet Jewellery Display Cloth',
+    description: 'Seamless luxury suede velvet counter mat fabric for showroom glass display counters and flatlay social photography. Wrinkle-free and lint-resistant.',
+    price: 250,
+    originalPrice: 350,
+    unit: 'meter',
+    rating: 4.9,
+    reviewCount: 56,
+    loadCapacity: 'Anti-Crease Suede Texture',
+    category: 'Jewellery Display Cloth',
+    finish: 'Deep Maroon Crimson',
+    structuralProfile: 'Cut Counter Cloth',
+    dispatchReadiness: 'Same-Day Dispatch',
+    stockStatus: 'In Stock',
+    moq: 'MOQ: 1 Meter',
+    badge: 'Suede Finish',
+    badgeType: 'primary',
+    image: '/assets/vinayak/prod_suede_velvet.png',
+    images: [
+      '/assets/vinayak/prod_suede_velvet.png',
+      '/assets/vinayak/req_retail_shops.png'
+    ],
+    finishes: [
+      { name: 'Wine Maroon', color: '#881337' },
+      { name: 'Jet Black', color: '#0F172A' },
+      { name: 'Steel Grey', color: '#64748B' }
+    ],
+    requirements: ['retail-shops', 'instagram-shop'],
+    material: 'Suede Velvet Fabric',
+    specs: {
+      dimensions: '55 × 38 inches per meter',
+      weight: '320 GSM Heavy Suede',
+      color: 'Wine Maroon / Jet Black / Steel Grey'
+    },
+    variations: [
+      {
+        id: 'var-color',
+        name: 'Fabric Color',
+        options: [
+          { id: 'opt-maroon', name: 'Royal Wine Maroon', price: 250, inStock: true },
+          { id: 'opt-black', name: 'Showroom Jet Black', price: 250, inStock: true },
+          { id: 'opt-grey', name: 'Minimal Steel Grey', price: 250, inStock: true }
+        ]
+      },
+      {
+        id: 'var-length',
+        name: 'Cut Length',
+        options: [
+          { id: 'opt-1m', name: '1 Meter (55 × 38 in)', price: 250, inStock: true },
+          { id: 'opt-3m', name: '3 Meters Counter Roll (Save ₹75)', price: 675, originalPrice: 750, inStock: true }
+        ]
+      }
+    ]
+  },
+
+  // 9. 10 Inch Velvet Necklace Display Bust Stand
+  {
+    id: 'vp-vnb-209',
+    code: 'VP-VNB-209',
+    title: '10 Inch Velvet Necklace Display Bust Stand with Gold Trim',
+    description: 'Ergonomic portrait jewelry bust mannequin covered in rich ocean teal velvet with solid wooden stabilizing pedestal and gold rim.',
+    price: 380,
+    originalPrice: 480,
+    unit: 'piece',
+    rating: 4.8,
+    reviewCount: 94,
+    loadCapacity: '10 Inch Counter Height',
+    category: 'Display Bust',
+    finish: 'Ocean Teal Velvet',
+    structuralProfile: 'Freestanding Portrait Bust',
+    dispatchReadiness: 'Same-Day Dispatch',
+    stockStatus: 'In Stock',
+    moq: 'MOQ: 1 Unit',
+    badge: 'Showroom Grade',
+    badgeType: 'secondary',
+    image: '/assets/vinayak/prod_10in_bust.png',
+    images: [
+      '/assets/vinayak/prod_10in_bust.png',
+      '/assets/vinayak/req_retail_shops.png'
+    ],
+    finishes: [
+      { name: 'Ocean Teal', color: '#0F766E' },
+      { name: 'Jet Black', color: '#0F172A' },
+      { name: 'Ivory White', color: '#F8FAFC' }
+    ],
+    requirements: ['retail-shops', 'instagram-shop', 'new-jewellery'],
+    material: 'Velvet',
+    specs: {
+      dimensions: '10 Inch Height × 7 Inch Width',
+      weight: '420 grams',
+      color: 'Ocean Teal Velvet'
+    },
+    variations: [
+      {
+        id: 'var-shade',
+        name: 'Velvet Color',
+        options: [
+          { id: 'opt-teal', name: 'Ocean Teal Velvet', price: 380, sku: 'VP-VNB-209-TEA', inStock: true },
+          { id: 'opt-black', name: 'Jet Velvet Black', price: 380, sku: 'VP-VNB-209-BLK', inStock: true },
+          { id: 'opt-white', name: 'Ivory Pearl White', price: 390, sku: 'VP-VNB-209-WHT', inStock: true }
+        ]
+      }
+    ]
+  },
+
+  // 10. 100 Pcs 3x3 Inch Jewellery & Earring Display Cards
+  {
+    id: 'vp-edc-302',
+    code: 'VP-EDC-302',
+    title: '100 Pcs 3x3 Inch Jewellery & Earring Display Cards',
+    description: 'Delightful cartoon character illustrations ideal for kid and teenage jewelry brands, Korean style clips and studs. 350 GSM stiff board.',
+    price: 180,
+    originalPrice: 250,
+    unit: 'pack (100 pcs)',
+    rating: 4.7,
+    reviewCount: 45,
+    loadCapacity: 'Square 3x3 Cardboard',
+    category: 'Display Cards',
+    finish: 'Full Color Matte Print',
+    structuralProfile: 'Square Cards',
+    dispatchReadiness: 'Same-Day Dispatch',
+    stockStatus: 'In Stock',
+    moq: 'MOQ: 1 Pack',
+    badge: 'Cute Dolls Print',
+    badgeType: 'neutral',
+    image: '/assets/vinayak/prod_3x3_cards.png',
+    images: [
+      '/assets/vinayak/prod_3x3_cards.png',
+      '/assets/vinayak/prod_pink_cards.png'
+    ],
+    finishes: [
+      { name: 'Multicolor Anime Art', color: '#F472B6' }
+    ],
+    requirements: ['online-sellers', 'instagram-shop'],
+    material: 'Paper / Board',
+    specs: {
+      dimensions: '3 × 3 inches square',
+      weight: '160 grams per pack of 100',
+      color: 'Multicolor Anime Print'
+    },
+    variations: [
+      {
+        id: 'var-qty',
+        name: 'Pack Quantity',
+        options: [
+          { id: 'opt-100', name: '100 Pieces Pack', price: 180, originalPrice: 250, sku: 'VP-EDC-302-1', inStock: true },
+          { id: 'opt-500', name: '500 Pieces Pack (Save ₹100)', price: 800, originalPrice: 1050, sku: 'VP-EDC-302-5', inStock: true }
+        ]
+      }
+    ]
+  },
+
+  // 11. 100 Pcs Blue Stainless Steel Earring Display Cards
+  {
+    id: 'vp-ssdc-303',
+    code: 'VP-SSDC-303',
+    title: '100 Pcs Blue Stainless Steel Earring Display Cards',
+    description: 'Branded blue steel cardstock with pre-slotted grooves for heavy dangling jhumkas and luxury stainless steel hoops. Premium metallic sheen.',
+    price: 220,
+    originalPrice: 320,
+    unit: 'pack (100 pcs)',
+    rating: 4.8,
+    reviewCount: 52,
+    loadCapacity: 'Rigid Heavy Cardstock',
+    category: 'Display Cards',
+    finish: 'Sky Cyan Blue',
+    structuralProfile: 'Earring Hanging Cards',
+    dispatchReadiness: 'Same-Day Dispatch',
+    stockStatus: 'In Stock',
+    moq: 'MOQ: 1 Pack',
+    badge: 'Stainless Steel',
+    badgeType: 'secondary',
+    image: '/assets/vinayak/prod_blue_steel_cards.png',
+    images: [
+      '/assets/vinayak/prod_blue_steel_cards.png',
+      '/assets/vinayak/prod_elite_cards.png'
+    ],
+    finishes: [
+      { name: 'Sky Cyan', color: '#0EA5E9' },
+      { name: 'Rose Gold', color: '#FB7185' }
+    ],
+    requirements: ['online-sellers', 'retail-shops', 'new-jewellery'],
+    material: 'Paper / Board',
+    specs: {
+      dimensions: '3.5 × 2.5 inches',
+      weight: '170 grams per 100 pcs',
+      color: 'Sky Cyan Blue'
+    },
+    variations: [
+      {
+        id: 'var-qty',
+        name: 'Pack Size',
+        options: [
+          { id: 'opt-100', name: 'Pack of 100 Pcs', price: 220, originalPrice: 320, sku: 'VP-SSDC-303-1', inStock: true },
+          { id: 'opt-500', name: 'Pack of 500 Pcs Bulk', price: 990, originalPrice: 1400, sku: 'VP-SSDC-303-5', inStock: true }
+        ]
+      }
+    ]
+  },
+
+  // 12. 100 Pcs Elite Jewellery Display Gift Cards & Boxes
+  {
+    id: 'vp-edc-304',
+    code: 'VP-EDC-304',
+    title: '100 Pcs Elite Jewellery Display Gift Cards & Boxes',
+    description: 'Foldable luxury drawer box style cards with silver foil crown logo branding and foam sponge insert. Creates an unboxing luxury experience.',
+    price: 280,
+    originalPrice: 380,
+    unit: 'pack (100 pcs)',
+    rating: 4.9,
+    reviewCount: 68,
+    loadCapacity: 'Foam Insert Support',
+    category: 'Display Cards',
+    finish: 'Snow White & Silver Foil',
+    structuralProfile: 'Rigid Gift Cards',
+    dispatchReadiness: 'Same-Day Dispatch',
+    stockStatus: 'In Stock',
+    moq: 'MOQ: 1 Pack',
+    badge: 'Luxury Packaging',
+    badgeType: 'primary',
+    image: '/assets/vinayak/prod_elite_cards.png',
+    images: [
+      '/assets/vinayak/prod_elite_cards.png',
+      '/assets/vinayak/prod_pink_cards.png'
+    ],
+    finishes: [
+      { name: 'Pure White', color: '#FFFFFF' },
+      { name: 'Pastel Lilac', color: '#C084FC' }
+    ],
+    requirements: ['online-sellers', 'instagram-shop', 'retail-shops'],
+    material: 'Paper / Board',
+    specs: {
+      dimensions: '3.5 × 3.5 inches with cushion insert',
+      weight: '240 grams per pack of 100',
+      color: 'Pure White & Silver Foil'
+    },
+    variations: [
+      {
+        id: 'var-qty',
+        name: 'Pack Quantity',
+        options: [
+          { id: 'opt-100', name: '100 Pieces', price: 280, originalPrice: 380, inStock: true },
+          { id: 'opt-500', name: '500 Pieces Bulk', price: 1250, originalPrice: 1650, inStock: true }
+        ]
+      }
+    ]
+  },
+
+  // 13. 2-Tier Solid Wood & Velvet Bangle & Bracelet Display Stand
+  {
+    id: 'vp-bds-405',
+    code: 'VP-BDS-405',
+    title: '2-Tier Solid Wood & Velvet Bangle & Bracelet Display Stand',
+    description: 'Dual cylindrical velvet rods mounted on black coated hardwood pillars. Effortless slide-on design for bridal chuda and bracelets. Weighted stable base.',
+    price: 650,
+    originalPrice: 850,
+    unit: 'piece',
+    rating: 4.9,
+    reviewCount: 88,
+    loadCapacity: 'Holds 60+ Bangles',
+    category: 'Bangle & Bracelet Display Stand',
+    finish: 'Matte Black Lacquer Wood',
+    structuralProfile: 'Double Cylinder Stand',
+    dispatchReadiness: 'Same-Day Dispatch',
+    stockStatus: 'In Stock',
+    moq: 'MOQ: 1 Unit',
+    badge: 'Instagram Hit',
+    badgeType: 'primary',
+    image: '/assets/vinayak/req_instagram_shop.png',
+    images: [
+      '/assets/vinayak/req_instagram_shop.png',
+      '/assets/vinayak/prod_round_tray.png',
+      '/assets/vinayak/req_retail_shops.png'
+    ],
+    finishes: [
+      { name: 'Ebony Black', color: '#0F172A' },
+      { name: 'Natural Oak', color: '#D97706' }
+    ],
+    requirements: ['instagram-shop', 'retail-shops', 'new-jewellery'],
+    material: 'Solid Wood & Velvet',
+    specs: {
+      dimensions: '12 Inch Height × 10 Inch Cylinder Width',
+      weight: '620 grams',
+      color: 'Ebony Black Wood / Velvet'
+    },
+    variations: [
+      {
+        id: 'var-tier',
+        name: 'Stand Tiers',
+        options: [
+          { id: 'opt-2t', name: '2-Tier (Holds 60 Bangles)', price: 650, originalPrice: 850, sku: 'VP-BDS-405-2T', inStock: true },
+          { id: 'opt-3t', name: '3-Tier Grand Suite (Holds 90 Bangles)', price: 920, originalPrice: 1150, sku: 'VP-BDS-405-3T', inStock: true }
+        ]
+      },
+      {
+        id: 'var-color',
+        name: 'Velvet Color',
+        options: [
+          { id: 'opt-black', name: 'Ebony Black Velvet', inStock: true },
+          { id: 'opt-grey', name: 'Steel Grey Velvet', inStock: true }
+        ]
+      }
+    ]
+  },
+
+  // 14. Ceramic Monstera Leaf Aesthetic Jewellery Display Dish
+  {
+    id: 'vp-ctd-109',
+    code: 'VP-CTD-109',
+    title: 'Ceramic Monstera Leaf Aesthetic Jewellery Display Dish',
+    description: 'Textured porcelain leaf tray with gilded gold rim for aesthetic flat-lay product photography and counter trinket presentation.',
+    price: 320,
+    originalPrice: 450,
+    unit: 'piece',
+    rating: 5.0,
+    reviewCount: 134,
+    loadCapacity: 'Glazed Ceramic Surface',
+    category: 'Display Tray',
+    finish: 'Glazed Pearl White',
+    structuralProfile: 'Sculptural Dish',
+    dispatchReadiness: 'Same-Day Dispatch',
+    stockStatus: 'In Stock',
+    moq: 'MOQ: 1 Unit',
+    badge: 'Photo Prop',
+    badgeType: 'secondary',
+    image: '/assets/vinayak/req_new_jewellery.png',
+    images: [
+      '/assets/vinayak/req_new_jewellery.png',
+      '/assets/vinayak/req_instagram_shop.png'
+    ],
+    finishes: [
+      { name: 'Pearl White', color: '#F8FAFC' },
+      { name: 'Marble Gold', color: '#FEF08A' }
+    ],
+    requirements: ['instagram-shop', 'online-sellers', 'new-jewellery'],
+    material: 'Ceramic',
+    specs: {
+      dimensions: '6.5 × 5 × 1.2 inches',
+      weight: '210 grams',
+      color: 'Pearl White with Gold Rim'
+    },
+    variations: [
+      {
+        id: 'var-rim',
+        name: 'Rim Finish',
+        options: [
+          { id: 'opt-gold', name: 'Gilded Gold Rim', price: 320, inStock: true },
+          { id: 'opt-pure', name: 'Minimal Pure White Ceramic', price: 290, inStock: true }
+        ]
+      }
+    ]
+  },
+
+  // 15. Set of 4 Teal Blue Velvet Mannequin Display Busts
+  {
+    id: 'vp-mbs-210',
+    code: 'VP-MBS-210',
+    title: 'Set of 4 Teal Blue Velvet Mannequin Display Busts (Graduated Sizes)',
+    description: 'Complete jewelry showroom set including 7", 9", 11", and 13" tall busts in matching midnight teal velvet. Perfect for layered necklace presentations.',
+    price: 1450,
+    originalPrice: 1950,
+    unit: 'set of 4',
+    rating: 4.9,
+    reviewCount: 71,
+    loadCapacity: 'Complete Showroom Set',
+    category: 'Display Bust',
+    finish: 'Midnight Teal Velvet',
+    structuralProfile: 'Tiered Showroom Suite',
+    dispatchReadiness: 'Same-Day Dispatch',
+    stockStatus: 'In Stock',
+    moq: 'MOQ: 1 Set',
+    badge: 'Set of 4',
+    badgeType: 'primary',
+    image: '/assets/vinayak/req_retail_shops.png',
+    images: [
+      '/assets/vinayak/req_retail_shops.png',
+      '/assets/vinayak/prod_10in_bust.png',
+      '/assets/vinayak/prod_velvet_necklace.png'
+    ],
+    finishes: [
+      { name: 'Midnight Teal', color: '#0F766E' },
+      { name: 'Velvet Charcoal', color: '#1E293B' },
+      { name: 'Burgundy Red', color: '#881337' }
+    ],
+    requirements: ['retail-shops', 'new-jewellery', 'instagram-shop'],
+    material: 'Velvet',
+    specs: {
+      dimensions: 'Heights: 7", 9", 11", 13"',
+      weight: '1.4 kg total set weight',
+      color: 'Midnight Teal Velvet'
+    },
+    variations: [
+      {
+        id: 'var-shade',
+        name: 'Velvet Color',
+        options: [
+          { id: 'opt-teal', name: 'Midnight Peacock Teal', price: 1450, sku: 'VP-MBS-210-TEA', inStock: true },
+          { id: 'opt-black', name: 'Obsidian Velvet Black', price: 1450, sku: 'VP-MBS-210-BLK', inStock: true },
+          { id: 'opt-burgundy', name: 'Royal Burgundy Red', price: 1450, sku: 'VP-MBS-210-RED', inStock: true }
+        ]
+      },
+      {
+        id: 'var-config',
+        name: 'Configuration',
+        options: [
+          { id: 'opt-full', name: 'Complete 4-Piece Suite (7", 9", 11", 13")', price: 1450, originalPrice: 1950, inStock: true },
+          { id: 'opt-single11', name: 'Single 11" Bust Only', price: 420, originalPrice: 550, inStock: true },
+          { id: 'opt-single13', name: 'Single 13" Bust Only', price: 490, originalPrice: 620, inStock: true }
+        ]
+      }
+    ]
+  },
+
+  // 16. Royal Purple Velvet Choker & Bridal Necklace Display Stand
+  {
+    id: 'vp-vnb-211',
+    code: 'VP-VNB-211',
+    title: 'Royal Purple Velvet Choker & Bridal Necklace Display Stand',
+    description: 'Broad shoulder velvet bust with rear velcro chain fastener for heavy Kundan, Polki, and diamond statement necklaces.',
+    price: 520,
+    originalPrice: 680,
+    unit: 'piece',
+    rating: 4.9,
+    reviewCount: 96,
+    loadCapacity: 'Bridal Heavy Choker Fit',
+    category: 'Display Bust',
+    finish: 'Royal Velvet Purple',
+    structuralProfile: 'Wide Shoulder Bust',
+    dispatchReadiness: 'Same-Day Dispatch',
+    stockStatus: 'In Stock',
+    moq: 'MOQ: 1 Unit',
+    badge: 'Bridal Pick',
+    badgeType: 'secondary',
+    image: '/assets/vinayak/req_online_sellers.png',
+    images: [
+      '/assets/vinayak/req_online_sellers.png',
+      '/assets/vinayak/req_retail_shops.png'
+    ],
+    finishes: [
+      { name: 'Royal Purple', color: '#6B21A8' },
+      { name: 'Jet Black', color: '#0F172A' },
+      { name: 'Champagne Gold', color: '#FDE047' }
+    ],
+    requirements: ['retail-shops', 'new-jewellery', 'online-sellers'],
+    material: 'Velvet',
+    specs: {
+      dimensions: '11.5 Inch Height × 9 Inch Shoulder Width',
+      weight: '490 grams',
+      color: 'Royal Purple Velvet'
+    },
+    variations: [
+      {
+        id: 'var-shade',
+        name: 'Velvet Shade',
+        options: [
+          { id: 'opt-purple', name: 'Deep Royal Purple', price: 520, inStock: true },
+          { id: 'opt-black', name: 'Jewellery Jet Black', price: 520, inStock: true },
+          { id: 'opt-champagne', name: 'Warm Champagne Gold', price: 550, inStock: true }
+        ]
+      }
     ]
   }
 ];
 
-export const TOP_SELLING_HOMEPAGE: Product[] = [
-  {
-    id: 'ad-tpr-739',
-    code: 'AD-TPR-739',
-    title: 'Triple Pipe Rack System (Heavy Duty 1.6mm)',
-    description: 'High-load commercial ERW pipe frame with 8mm tempered glass tier and lower hanging rod.',
-    price: 5450,
-    originalPrice: 7800,
-    unit: 'unit',
-    rating: 4.8,
-    reviewCount: 48,
-    loadCapacity: '140 kg certified safe display capacity',
-    category: 'Floor Stands & Bumper Racks',
-    finish: 'Matte Black',
-    structuralProfile: 'Triple Pipe Island Hanging Rack',
-    dispatchReadiness: 'Same-Day Dispatch',
-    stockStatus: 'Ranigunj Warehouse (84 Units Ready)',
-    moq: 'MOQ: 1 Unit',
-    badge: 'NO COD',
-    badgeType: 'primary',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCXybVXMlvZGeKYb_0JXEtHxZmiY36LraReoSDO2Auwjuyr6Nr9AmLN02CqnVSfW5qty_u1k1zBD3_8xhryMVP33uzyGFfJT-Irp_zV2RwgYU3JRLGf_A_X5jCoLJ4YtNB_MLXGfONPve3BhVwvtJJNkGZE4FJ2H53n7H1J-0lWZWLhZREwRq9q-GBEXPajJREpKLmpuAXp1s4ZoBzc79alpLRtJ6Es_FBOpz6L-smTtuCpCvs9H85f',
-    finishes: [
-      { name: 'Matte Black', color: '#1A1C20' },
-      { name: 'PVD Gold', color: '#D4AF37' },
-      { name: 'Gloss White', color: '#EAEBED' }
-    ]
-  },
-  {
-    id: 'ad-wch-dutti',
-    code: 'AD-WCH-520',
-    title: 'Dutti Style Slotted Channel Rack System',
-    description: 'Flush architectural wall slot channel system with cantilever glass shelf brackets and forward arms.',
-    price: 260,
-    originalPrice: 380,
-    unit: 'ft',
-    rating: 4.8,
-    reviewCount: 35,
-    loadCapacity: '90 kg per span',
-    category: 'Wall Systems & Channels',
-    finish: 'Matte Black Powder Coat',
-    structuralProfile: 'Wall Slotted Channel',
-    dispatchReadiness: 'Ready Dispatch',
-    stockStatus: 'In Stock',
-    moq: 'MOQ: 10 Ft',
-    badge: 'Dutti Style',
-    badgeType: 'neutral',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBVNvkNuZowrWf1dlKaQ9PAhnG5XqL-culdoxgiC6AXE0ZUt6YD6LDBRmHv9ZIR5XxNLNIwARAPWWxDQPa2mSvIEyBOmuRSDMz0vnZ9Rg8bMazkPUP3Lp1sL7tgBMRO-gN2Cv3nrmxs2Jjvuv6xUCTsZNEAtxsGSEh8vbDOKTIOV1bbYPjsB1jBo_-S2IjbM9JN0LQFLvXzCOKCZYHG2w6ApnZref1PMgulE-M47pn9XZIYqEwLy-xT',
-    finishes: [
-      { name: 'Matte Black', color: '#1A1C20' },
-      { name: 'Brushed Gold', color: '#D4AF37' }
-    ]
-  },
-  {
-    id: 'ad-wsh-145',
-    code: 'AD-WSH-145',
-    title: 'Self and Hanging Teak Wood Shelf Rod',
-    description: 'Wall mounted solid natural teak wood plank shelf with industrial matte black iron pipe hanging rod.',
-    price: 2150,
-    originalPrice: 3200,
-    unit: 'unit',
-    rating: 4.9,
-    reviewCount: 62,
-    loadCapacity: '60 kg continuous',
-    category: 'Self & Hanging Rods',
-    finish: 'Natural Teak & Mild Steel',
-    structuralProfile: 'Wall Mounted Rod',
-    dispatchReadiness: 'Ready Dispatch',
-    stockStatus: 'Depot Ready',
-    moq: 'MOQ: 1 Unit',
-    badge: 'Trending',
-    badgeType: 'secondary',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCZAb6dC9wseZhTD1es6eKfy7a6YaIm5dCB0OiQfQhcorOJulbUp20RZfyYVFfuiERhjvTiZZ9_ln6o1szmyIVb_Azc3CgBxpHjDjzVfaVT69x_QFy4apXDIl_grvEGM9pWES1O8UcHcihDOufp3nOvavuESkRtdXKsrpAwuDMoqXy_Ob5KfAPfJfVyh4EXEqGQND3E_D7Xur2jq15p6UAvqis2hKeHwMn0RZT-zBv0QlGcw89qDQKt',
-    finishes: [
-      { name: 'Natural Teak', color: '#8C5E3C' },
-      { name: 'Industrial Black', color: '#1A1C20' }
-    ]
-  },
-  {
-    id: 'ad-bds-260',
-    code: 'AD-BDS-260',
-    title: 'Bumper Exhibition Rolling Stand (Double Tier)',
-    description: 'Heavy duty portable exhibition clothing rack on 3-inch locking polyurethane industrial castors.',
-    price: 3400,
-    originalPrice: 4500,
-    unit: 'unit',
-    rating: 4.9,
-    reviewCount: 29,
-    loadCapacity: '150 kg roll load',
-    category: 'Floor Stands & Bumper Racks',
-    finish: 'Industrial Slate Steel',
-    structuralProfile: 'Heavy Duty Bumper Perimeter Stand',
-    dispatchReadiness: 'Same-Day Dispatch',
-    stockStatus: 'Ranigunj Stock',
-    moq: 'MOQ: 1 Unit',
-    badge: '150kg Load',
-    badgeType: 'success',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAjsvmXZlohMZptyHS-gMam8Ct3W1nVaqsr_mc0zz2CFqebliYcutec3B9BqZlE6DXkvhqWI7GDLzzMYlG39q8zVA9hzToMg32UZPukc45kD7EsyTvVHGXhV2FwJETW4HGVdCH5tsOWaHksqiYH8uqi33EAjJs1Z1xhpkTxYcv-L-yfmtMf0mvfHtQanYLYdLU0NxlKlIok4FYgainzT43AvDWJaPz25hj292y3bKucJBicVMNTHk09',
-    finishes: [
-      { name: 'Industrial Black', color: '#1A1C20' },
-      { name: 'Mirror Chrome', color: '#E0E2E5' }
-    ]
-  }
-];
+export const TOP_SELLING_HOMEPAGE: Product[] = INITIAL_PRODUCTS.slice(0, 4);
 
 export const PROJECT_REELS: ProjectReel[] = [
   {
-    id: 'aura-couture-jubilee',
-    title: 'Aura Couture Studio, Jubilee Hills',
-    client: 'Aura Couture Designer Studio',
-    location: 'Road No. 36, Jubilee Hills, Hyderabad',
-    area: '1,200 sq.ft',
-    duration: '0:45s Reel',
-    reelLikes: '184 Likes',
-    category: 'bridal',
-    categoryLabel: 'Luxury Bridal & Couture',
-    description: 'Engineered for heavy Zardozi bridal lehengas weighing up to 22kg each. Completed turnkey fixture installation in 96 hours from our Hyderabad depot.',
-    turnkeyTime: 'Turnkey: 4 Days',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBCQ8ql1AJw3Lrf8uGZ-252f70TGDyEPJ6t3t_xryChqmTTRw1FiJS3Ze9Us-vmG2fZaPHzuxe70NoKEWlSgjUKmOAR1lyZcTagSxSRQr1qMIkb2bQtPI2-txQXfhvhXejLtSoG0BwH3Cwjgjd_fevp5bkUPqS5yxNl5erx0C7bskpXMXT9zUltiFdStiLdV9ADPqw2snrP8zW3oc2vIRpniXu-3Fpjn8uKt5nrlmltE7quTtWSWMCr',
-    specs: {
-      floorUnits: '18 Brushed PVD Gold Arched Racks',
-      wallSlotChannels: '60 running ft + Tempered Glass',
-      special: '4 Tailored Velvet Bridal Forms'
-    },
-    finishes: [
-      { name: 'Brushed Architectural Gold', color: '#D4AF37' },
-      { name: 'Ivory Velvet', color: '#F5F2EB' }
-    ],
-    finishLabel: 'PVD Gold Finish'
-  },
-  {
-    id: 'urban-thread-hitec',
-    title: "Urban Thread Men's Casuals, Hitec City",
-    client: 'Urban Thread Apparel',
-    location: 'Madhapur Hitec City, Hyderabad',
-    area: '850 sq.ft',
-    duration: '1:12m Reel',
-    reelLikes: '97 Likes',
-    category: 'streetwear',
-    categoryLabel: "Men's Streetwear & Heavy Denim",
-    description: 'High-density store layout optimizing 850 sq.ft. Uses heavy-duty triple pipe racks for multi-tier display of shirts, heavy wash denim, and utility cargo trousers.',
-    turnkeyTime: 'Zero Sag @ 150kg',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDiZpk8-izM0KvUQ9rURmtxr2hCIzuS9xko81CFG_fl8z2fPOK4jn481yvHYVCYvKlrZCuUh_pfaml9VCp_daMWkW1dPltAQUipkbJDFYTvCegl7-2vtkc7bE1SjeFUreuDd-Z__-BCEOrsJVvoHJfQQzZVdYudvZEoKtjoKcPJrwtxh6Fq7D17dNJHyvrAxx2v6B0c-aE2wCM1ZlZKNi4paLP1cfZPu7O6zO7HfDLFs46MVmC98odr',
-    specs: {
-      floorUnits: '12 Matte Black Heavy Duty Triple Racks',
-      wallSlotChannels: '30ft Double Slotted Channel + Rods',
-      special: '600 Heavy-Shoulder Rubberized Hangers'
-    },
-    finishes: [
-      { name: 'Matte Industrial Slate', color: '#1A1C20' },
-      { name: 'Brushed Steel', color: '#76777B' }
-    ],
-    finishLabel: 'Commercial Matte Finish'
-  },
-  {
-    id: 'sri-balaji-begum-bazaar',
-    title: 'Sri Balaji Saree Wholesalers, Begum Bazaar',
-    client: 'Sri Balaji Wholesale Depot',
-    location: 'Near Fish Market Complex, Begum Bazaar, Hyderabad',
-    area: '2,800 sq.ft',
-    duration: '1:40m Full Walkthrough',
-    reelLikes: '342 Likes',
-    category: 'wholesale',
-    categoryLabel: 'High Volume Wholesale Depot',
-    description: 'Engineered for extreme continuous weight. Capable of supporting over 4,500 folded Kanchipuram and Banarasi sarees without horizontal bar deflection.',
-    turnkeyTime: '2.0mm ERW Steel Build',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC-L3WcQDXjlVJwnD62QuII6hvZNVXQHP0d77lRnxkINhJ2bGntNtpx7cPMmA_qdmTd59KlGOxkgIojDNZ809kOFGZd7_h1zJdWmOhlUC_siqXs-u8yY-JNhkKQ7ZnYtIVoeGyIrZv2meIN_epsEob8-s-Vpgt-crETo0fduO2HdMA-xnP0ljhrqfJwV_DOwX1CKkkGBhnblhnoHHzNHdlGOwxKFmiMXt9KrpD6vMnNTSMobG4KldG0',
-    specs: {
-      floorUnits: 'Tiered 4-Step Saree Stands (2.0mm Gauge)',
-      wallSlotChannels: '16 Lockable Industrial Caster Stands',
-      special: 'Tested up to 320kg per bay'
-    },
-    finishes: [
-      { name: 'High-Gloss Off-White', color: '#FFFFFF' },
-      { name: 'Matte Black', color: '#1A1C20' }
-    ],
-    finishLabel: 'Powder Coated'
-  },
-  {
-    id: 'velvet-trunk-himayatnagar',
-    title: 'The Velvet Trunk, Himayatnagar',
-    client: 'The Velvet Trunk Kids & Contemporary',
-    location: 'Street #3, Himayatnagar, Hyderabad',
-    area: '600 sq.ft',
-    duration: '0:38s Reel',
-    reelLikes: '76 Likes',
+    id: 'reel-1',
+    title: 'Velvet Presentation Suite for Boutique Counter',
+    client: 'Sri Meenakshi Jewels',
+    location: 'Sowcarpet, Chennai',
+    area: 'Counter Setup',
+    duration: '0:35',
     category: 'boutiques',
-    categoryLabel: 'Kids & Contemporary Boutique',
-    description: 'Warm architectural synthesis pairing matte black industrial curved brackets with solid lacquered rubberwood shelving planks for children and ethnic party-wear.',
-    turnkeyTime: 'Curved Arch Rails',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBpKOJVdQq7_OZvaSBCGrrN5gT9by9wm6azg6E_GAVq8SMsfu07KOdz3ihitwP0rTg7TQ6EUb5ke2oGyIYShu1paFxjbgMPaWW3MLTwDpLCGKIrH4O6JpkZ6yZQm9JcLBHnDqDqAeKZGrsK_Y7hDqQUZI0A_fM7aPF9sis5Lnr_6GJ5M6AaZkx06_plAmTYmZajvY-ZCeyhg7wuwp7VM21OXbeRH6PHWnFH-5aEBDAELuGpPyD9KZr2',
-    specs: {
-      floorUnits: '24 Oiled Wood Wall Racks',
-      wallSlotChannels: 'Industrial Flange Pipe Assemblies',
-      special: '4 Toddler & Teen Flexible Forms'
+    categoryLabel: 'Boutique Display',
+    description: 'Custom teal blue velvet bust and matching round trays installed at Sowcarpet bridal counter.',
+    turnkeyTime: 'Same-Day Dispatch',
+    image: '/assets/vinayak/prod_velvet_necklace.png',
+    metrics: {
+      racksInstalled: '24 Trays & Busts',
+      capacity: 'Full Bridal Suite',
+      finishType: 'Peacock Teal Velvet'
     },
-    finishes: [
-      { name: 'Lacquered Teak', color: '#8C5E3C' },
-      { name: 'Matte Black', color: '#1A1C20' }
-    ],
-    finishLabel: 'Wood + Steel Combo'
-  },
-  {
-    id: 'pvd-gold-banjara-hills',
-    title: 'PVD Gold Boutique, Banjara Hills Road #10',
-    client: 'Vogue & Heritage Pret',
-    location: 'Road #10, Banjara Hills, Hyderabad',
-    area: '1,500 sq.ft',
-    duration: '0:52s Reel',
-    reelLikes: '215 Likes',
-    category: 'boutiques',
-    categoryLabel: 'Haute Couture & Indo-Western',
-    description: 'Exclusively customized with electro-deposited Titanium Gold (PVD), guaranteeing zero tarnishing, fingerprint-resistance, and 10+ years anti-chip durability.',
-    turnkeyTime: 'Mirror Brass Tone',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB8zEd9IazgeWHZGo-cH34gyxdaogQjFUIlIkassN-aH0S_Ke3zfesEImiJgtDInJO5lPcGXZs8TkOR915UYgu6QPi1V15vUWN4llHphmWfYUjY4jAxSQASPBKEJ-AIkPBjmBi5JwmhWgaJjh7xoqXV1e-3t5ZYfXpcRpCHmhVyWa-EtMhxNRaTx-5Ihwiol6nwIAr2EPVFGCBXV1kGqebhKpxz2UKuD13Kjb7AWHPX0GnujBjKVeck',
-    specs: {
-      floorUnits: '8 Gold Bumper Double Stands',
-      wallSlotChannels: '45 running ft Mirror Gold Channels',
-      special: 'Swivel Gold Hangers (400 Units)'
-    },
-    finishes: [
-      { name: 'Titanium PVD Gold', color: '#D4AF37' },
-      { name: 'Mirror Chrome', color: '#E0E2E5' }
-    ],
-    finishLabel: 'PVD Electroplated'
-  },
-  {
-    id: 'ranigunj-stress-test',
-    title: 'Weld Integrity & Load Stress Test',
-    client: 'Ranigunj Central Quality Laboratory',
-    location: 'Ranigunj Wholesale Unit, Secunderabad',
-    area: 'Factory Test Floor',
-    duration: 'Stress Test Reel',
-    reelLikes: '540 Likes',
-    category: 'wholesale',
-    categoryLabel: 'Quality Assurance Proof',
-    description: 'Recorded directly at our Ranigunj wholesale unit. Two staff members (combined weight: 160kg) hang from the crossbar of our stock AD-TPR rack with zero joint failure.',
-    turnkeyTime: '0.0mm at 160kg distributed load',
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAnYEJ8lLidPjRZuGBaVxElmnog9g8xrl3kCAFrz7olAkqd-zfvE0B7M3UQ7eNC6fOkeqlVNziesqkS28DrN-JaT9fyuD_2_5zI_x_iTA170yjibh7G9D5ujEg3OdoXKCTQe6r_bCwEaqGak7rnjaDeIxlLc5U_DNP_ZAGHXgAPlmq_MpuNaMkuBOswQzLK69ooZwQrPsRTZg4D9-a4k3SexHILUv0_c8isXCLzrHZi4iufRfWnhPam',
-    specs: {
-      floorUnits: '1.6mm - 2.0mm Heavy ERW Steel',
-      wallSlotChannels: 'Full Perimeter CO2 MIG Welding',
-      special: 'Certified Zero Joint Fracture'
-    },
-    finishes: [
-      { name: 'Matte Black', color: '#1A1C20' }
-    ],
-    finishLabel: 'Structural Grade',
-    badgeText: 'Stress Test'
+    clientQuote: 'Vinayak Packaging displays transformed our glass showcase into a high-end luxury counter.'
   }
 ];
 
-export const REVIEWS: Review[] = [
+export const CLIENT_REVIEWS: Review[] = [
   {
     id: 'rev-1',
-    author: 'Sunita K. Rao',
-    initials: 'SK',
-    role: 'Studio Founder',
-    location: 'Jubilee Hills, Hyderabad',
+    author: 'Rajesh V.',
+    role: 'Store Proprietor',
+    storeName: 'Kaveri Jewellery Works',
+    city: 'Chennai',
     rating: 5,
-    text: '“We opened our designer bridal boutique on Road No. 36 Jubilee Hills. All Display delivered 20 brushed gold arched racks and slotted channels within 3 days. The PVD gold finish doesn\'t chip even with heavy heavy lehengas. Excellent Ranigunj dispatch.”'
+    date: '2 days ago',
+    comment: 'The 4-layer earring stand and velvet necklace busts are top quality. Same day delivery from Sowcarpet depot.',
+    verifiedWholesaleBuyer: true,
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
+    helpfulCount: 14
   },
   {
     id: 'rev-2',
-    author: 'Vamsi Krishna Reddy',
-    initials: 'VR',
-    role: 'Denim Depot',
-    location: 'MG Road, Vijayawada',
+    author: 'Priya Sundaram',
+    role: 'Online Jewellery Creator',
+    storeName: 'Aura Silver Studio',
+    city: 'Coimbatore',
     rating: 5,
-    text: '“We were skeptical about 100% prepaid payment without COD, but they gave us a live video call showing our 14 triple pipe racks packed in bubble wrap and wooden crates before loading the transport lorry to Vijayawada. Reached safely in 24 hours.”'
-  },
-  {
-    id: 'rev-3',
-    author: 'Mohammed Arif',
-    initials: 'MA',
-    role: 'Arif Menswear',
-    location: 'Begum Bazaar Wholesale, Hyderabad',
-    rating: 5,
-    text: '“Their Begum Bazaar depot is the best wholesale spot for cloth store fixtures in Hyderabad. The heavy gauge steel does not bend like generic local fabrication. All 8 tailor dummies and 800 wooden hangers arrived in immaculate condition.”'
+    date: '1 week ago',
+    comment: 'Ordered 500 pcs pink display cards and tape dispenser. Very fast shipping, premium cardstock!',
+    verifiedWholesaleBuyer: true,
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
+    helpfulCount: 22
   }
 ];
 
-export const STANDARDS_CATALOG_TABLE = [
-  {
-    model: 'Triple Pipe Floor System',
-    code: 'AD-TPR-01',
-    dimensions: '5ft (L) x 18" (W) x 7ft (H)',
-    load: '120 kg distributed',
-    finish: 'Matte White / Black',
-    priceSample: 4250,
-    priceBulk: 3650,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuANfcLHGi4lVreYel-BlwuM1pTvecfJv9nRNnM84e7Lelj0I_G-hjEMMpM3vpIr8Z3G2MCtXoxZE_RV2KspORksfRx8tw2rZ6S1M0CGG05erGzLdqA0fK9RpjTseAMI866FNs2JlsKXroVKXTvk6xAz4zVplfqNerAMfjScu5PfztG_kD80xzxzTff1EUKaTXAN85t4oFgSFplDvB_rwr5BsDY4du6353WdCJyl0AikHpbLk1W3TwcF'
-  },
-  {
-    model: 'PVD Brushed Gold Wall Channel',
-    code: 'AD-GWC-08',
-    dimensions: '8ft Length (1.5mm Gauge)',
-    load: '90 kg per span',
-    finish: 'Brushed Champagne Gold',
-    priceSample: 1850,
-    priceBulk: 1450,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuClT6ge6RN12UIi2RPVOANrMrDgqsYuTP7Ls5jY1AC5IyDOy62CkKre7woNRLE1b5Q2X5URkJbb2cOmLgTtmA_Zll6rTYfA1udmKC6Fp0Ussb5LDs9-jq0F5wiDGzsY2A1O9ac3zG9G2X0Oz9rYXBqy4waXfeT2Dxu2U4LVMMn713ljJsdQ_jVd5UJRYuoD41fzms9Ox-G4HgOqcjl__CgxabBUt6NZDMXZwyu5Bse_KcejpmuzeIFD'
-  },
-  {
-    model: 'Bumper Exhibition Trolley Rack',
-    code: 'AD-BUM-24',
-    dimensions: '4.5ft (L) x 20" (W) x 5.5ft (H)',
-    load: '150 kg roll load',
-    finish: 'Industrial Slate Steel',
-    priceSample: 3400,
-    priceBulk: 2850,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBiQf3OvWoegDvH-m2yt1aDU8yvyqpoecTKbSZJDwX4A8bPR19PPCM4o2ABBmYmoVI2eaGXDzf0ELqxF5T1n7oNrlELnQwSdFiH9PWzdi8LsORyGW_5cG6r8BTtTA5v3I_9RxEmS8smmDid0UzTQ-VUthqdf4jrTRNaAacfRKyIi7hlkkF0fr_C8TJbjp4GyNyS6uhNmrYJq2GSQDNBtuEKfvT-kgzweIEfAuOqKIWPYSEbh0rKlKtc'
-  },
-  {
-    model: 'Fiberglass Headless Mannequin',
-    code: 'AD-MNQ-03',
-    dimensions: 'Male / Female 5.9ft',
-    load: 'Tempered Glass Stand',
-    finish: 'Matte Chalk White',
-    priceSample: 5200,
-    priceBulk: 4400,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBEqCcjy_fYK3Cw7gryoeOyyDmLx8_L27fTn5TgzFm-4mQUyTUdcBdaxLtdJxklBXMHNPOLCAYM_sCNW7FNGXLoL9_GP-BcQaz-PM2AwuDDuNP5x4z5vyRPA3RvOf5nFpsBQ6Cyb6Nk1p8PYC3D6uBn6tmZDl8mSnXue-iLR_zTpRjBDCa5XHAbpNKx4qIbxMRCSxAR9kJWcf4Cjmkpbv-pJIyWwPdZn8nSVsl62ygi7f5hyIJVIrH9'
-  }
-];
+export const REVIEWS = CLIENT_REVIEWS;
+export const INITIAL_CATALOG_PRODUCTS = INITIAL_PRODUCTS;

@@ -25,7 +25,6 @@ interface AuthContextValue {
   error: string | null;
   login: (credentials: Credentials) => Promise<void>;
   signup: (details: SignupDetails) => Promise<void>;
-  loginWithGoogle: () => void;
   logout: () => Promise<void>;
   openAuthDialog: () => void;
   closeAuthDialog: () => void;
@@ -87,10 +86,6 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     setAuthDialogOpen(false);
   }, []);
 
-  const loginWithGoogle = useCallback(() => {
-    window.location.assign('/api/auth/google');
-  }, []);
-
   const logout = useCallback(async () => {
     setError(null);
     await authRequest<void>('/api/auth/logout', {});
@@ -104,12 +99,11 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     error,
     login,
     signup,
-    loginWithGoogle,
     logout,
     openAuthDialog: () => setAuthDialogOpen(true),
     closeAuthDialog: () => setAuthDialogOpen(false),
     isAuthDialogOpen,
-  }), [user, isLoading, error, login, signup, loginWithGoogle, logout, isAuthDialogOpen]);
+  }), [user, isLoading, error, login, signup, logout, isAuthDialogOpen]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

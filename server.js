@@ -11,10 +11,10 @@ import mysql from 'mysql2/promise';
 const app = express();
 const port = Number(process.env.PORT || 3001);
 const production = process.env.NODE_ENV === 'production';
-const sessionCookie = 'alldisplay_admin_session';
-const customerSessionCookie = 'alldisplay_customer_session';
-const oauthStateCookie = 'alldisplay_google_state';
-const oauthNonceCookie = 'alldisplay_google_nonce';
+const sessionCookie = 'vinayak_admin_session';
+const customerSessionCookie = 'vinayak_customer_session';
+const oauthStateCookie = 'vinayak_google_state';
+const oauthNonceCookie = 'vinayak_google_nonce';
 const sessionTtlSeconds = 8 * 60 * 60;
 const customerSessionTtlSeconds = 7 * 24 * 60 * 60;
 const oauthConfigured = Boolean(
@@ -293,12 +293,27 @@ function requireGoogleOAuth(_request, response, next) {
   next();
 }
 
+async function checkDatabaseReady() {
+  if (!pool) return false;
+  try {
+    const ready = await schemaReady;
+    if (ready) return true;
+  } catch {}
+  try {
+    await pool.query('SELECT 1 FROM catalog_products LIMIT 1');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function requireDatabase(request, response, next) {
   if (!pool) {
     return response.status(503).json({ error: 'MySQL is not configured. Set the server environment variables and restart.' });
   }
   try {
-    if (!await schemaReady) throw new Error('MySQL schema initialization failed.');
+    const ready = await checkDatabaseReady();
+    if (!ready) throw new Error('MySQL schema initialization failed.');
     next();
   } catch {
     response.status(503).json({ error: 'Could not initialize the MySQL catalog tables.' });
@@ -343,7 +358,7 @@ app.get('/api/health', async (_request, response) => {
   }
 
   try {
-    if (!await schemaReady) throw new Error('MySQL catalog tables are unavailable.');
+    if (!await checkDatabaseReady()) throw new Error('MySQL catalog tables are unavailable.');
     await pool.query('SELECT 1');
     response.json({ configured: true, connected: true });
   } catch {
@@ -361,8 +376,8 @@ app.post('/api/auth/signup', requireAuthRequest, requireDatabase, authLimit, asy
   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return response.status(400).json({ error: 'Enter a valid email address.' });
   }
-  if (password.length < 12 || password.length > 128) {
-    return response.status(400).json({ error: 'Password must be between 12 and 128 characters.' });
+  if (password.length < 6 || password.length > 128) {
+    return response.status(400).json({ error: 'Password must be between 6 and 128 characters.' });
   }
 
   try {
@@ -723,6 +738,11 @@ app.put('/api/homepage-banners', requireDatabase, requireSameOrigin, requireAdmi
 
 app.put('/api/settings', requireDatabase, requireSameOrigin, requireAdmin, async (request, response, next) => {
   const settings = request.body?.settings;
+  if (settings && typeof settings === 'object') {
+    const brand = settings.brandName || settings.storeName || 'Vinayak Packaging';
+    settings.storeName = brand;
+    settings.brandName = brand;
+  }
   const textFields = [
     'whatsappNumber',
     'alternateWhatsapp',
@@ -983,12 +1003,12 @@ if (existsSync(buildDirectory)) {
   app.get('*', (_request, response) => response.sendFile(path.join(buildDirectory, 'index.html')));
 } else if (!production) {
   app.get('/', (_request, response) => {
-    response.status(200).send('All Display API is running. Start Vite on port 3000 for the storefront.');
+    response.status(200).send('Vinayak Packaging API is running. Start Vite on port 3000 for the storefront.');
   });
 }
 
 app.listen(port, () => {
-  console.log(`All Display API listening on port ${port}`);
+  console.log(`Vinayak Packaging API listening on port ${port}`);
 });
 
 if (pool) {
