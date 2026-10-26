@@ -10,6 +10,41 @@ interface AdminSettingsViewProps {
 export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, showToast }) => {
   const [settings, setSettings] = useState<AdminSettings>(() => storeManager.getSettings());
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [dbInfo, setDbInfo] = useState<{
+    configured: boolean;
+    connected: boolean;
+    host: string | null;
+    database: string | null;
+    user: string | null;
+    mode: string;
+  } | null>(null);
+  const [testUrl, setTestUrl] = useState('');
+  const [isTestingDb, setIsTestingDb] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; message?: string; error?: string } | null>(null);
+
+  React.useEffect(() => {
+    storeManager.getDatabaseInfo().then(setDbInfo).catch(() => null);
+  }, []);
+
+  const handleTestDatabase = async () => {
+    setIsTestingDb(true);
+    setTestResult(null);
+    try {
+      const res = await storeManager.testDatabaseConnection(testUrl.trim() || undefined);
+      setTestResult(res);
+      if (res.success) {
+        showToast('Database connection test successful!');
+      } else {
+        showToast(res.error || 'Connection failed.');
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Database test failed';
+      setTestResult({ success: false, error: msg });
+      showToast(msg);
+    } finally {
+      setIsTestingDb(false);
+    }
+  };
 
   const handleChange = (field: keyof AdminSettings, value: string | number) => {
     setSettings((prev) => {
@@ -331,6 +366,105 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
           </button>
         </div>
       </form>
+
+      {/* SECTION 4: CLOUD DATABASE CONFIGURATION & TESTER */}
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col gap-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div className="flex items-center gap-2">
+            <AppIcon name="database" className="text-orange-600 text-[22px]" />
+            <div>
+              <h2 className="font-bold text-base text-slate-900">Cloud MySQL Database Connection</h2>
+              <p className="text-xs text-slate-500">Live persistence settings for Vercel Serverless deployment</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+              dbInfo?.connected
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : 'bg-blue-50 text-blue-700 border border-blue-200'
+            }`}>
+              <span className={`w-2 h-2 rounded-full ${dbInfo?.connected ? 'bg-emerald-500 animate-pulse' : 'bg-blue-500'}`} />
+              {dbInfo?.connected ? 'Connected (MySQL)' : 'Standalone Mode (Active)'}
+            </span>
+          </div>
+        </div>
+
+        {/* Info summary */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
+          <div>
+            <span className="text-slate-500 block mb-0.5">Mode:</span>
+            <span className="font-semibold text-slate-800">
+              {dbInfo?.connected ? 'Cloud MySQL Database' : 'Standalone In-Memory / LocalStorage'}
+            </span>
+          </div>
+          <div>
+            <span className="text-slate-500 block mb-0.5">Host:</span>
+            <span className="font-mono text-slate-800">{dbInfo?.host || 'None (Local memory)'}</span>
+          </div>
+          <div>
+            <span className="text-slate-500 block mb-0.5">Database:</span>
+            <span className="font-mono text-slate-800">{dbInfo?.database || 'None'}</span>
+          </div>
+        </div>
+
+        {/* Database Tester */}
+        <div className="flex flex-col gap-3 pt-2">
+          <label className="text-xs font-semibold text-slate-800">Test MySQL Connection String</label>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              value={testUrl}
+              onChange={(e) => setTestUrl(e.target.value)}
+              placeholder="mysql://username:password@host:3306/dbname?ssl=true (Leave blank to test active server connection)"
+              className="flex-1 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
+            />
+            <button
+              type="button"
+              disabled={isTestingDb}
+              onClick={handleTestDatabase}
+              className="px-5 py-3 rounded-xl bg-slate-900 hover:bg-orange-600 text-white text-xs font-bold transition-colors cursor-pointer shrink-0 disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {isTestingDb ? (
+                <>
+                  <AppIcon name="refresh" className="animate-spin text-sm" />
+                  <span>Testing...</span>
+                </>
+              ) : (
+                <>
+                  <AppIcon name="wifi_tethering" className="text-sm" />
+                  <span>Test Connection</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {testResult && (
+            <div className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
+              testResult.success
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                : 'bg-rose-50 text-rose-800 border border-rose-200'
+            }`}>
+              <AppIcon name={testResult.success ? 'check_circle' : 'error'} className="text-base shrink-0" />
+              <span>{testResult.message || testResult.error}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Step-by-step instructions */}
+        <div className="bg-amber-50/60 border border-amber-200/80 rounded-xl p-4 text-xs text-amber-950 flex flex-col gap-2">
+          <div className="font-bold flex items-center gap-1.5 text-amber-900">
+            <AppIcon name="info" className="text-base text-amber-600" />
+            <span>How to Connect Cloud MySQL on Vercel:</span>
+          </div>
+          <ol className="list-decimal list-inside space-y-1 text-slate-700 leading-relaxed ml-1">
+            <li>Go to your Vercel Dashboard &gt; <strong>All_Display</strong> project &gt; <strong>Settings</strong> &gt; <strong>Environment Variables</strong>.</li>
+            <li>Add <code>DATABASE_URL</code> with your cloud database URI (e.g. from TiDB Cloud, PlanetScale, Railway, or AWS RDS).</li>
+            <li>Add <code>ADMIN_PASSWORD</code>: <code>12345678912345678</code></li>
+            <li>Add <code>MYSQL_SSL</code>: <code>true</code> and <code>MYSQL_SSL_REJECT_UNAUTHORIZED</code>: <code>false</code>.</li>
+            <li>Redeploy your latest commit. Tables will automatically be created on the cloud database!</li>
+          </ol>
+        </div>
+      </div>
     </div>
   );
 };

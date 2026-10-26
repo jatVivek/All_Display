@@ -24,7 +24,7 @@ const oauthConfigured = Boolean(
 );
 const scrypt = promisify(scryptCallback);
 const rootDirectory = path.dirname(fileURLToPath(import.meta.url));
-const uploadDirectory = path.join(rootDirectory, 'public', 'uploads');
+const uploadDirectory = process.env.VERCEL ? '/tmp/uploads' : path.join(rootDirectory, 'public', 'uploads');
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '12345678912345678';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'b5bc5ae7de4729b601e432c196e061e4bdb13f514ee5aa991160d10e2ce207b4';
@@ -117,7 +117,7 @@ app.use((request, response, next) => {
     response.setHeader('Access-Control-Allow-Origin', origin);
     response.setHeader('Access-Control-Allow-Credentials', 'true');
     response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Admin-Request');
+    response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Admin-Request, X-Auth-Request');
   }
   if (request.method === 'OPTIONS') {
     return response.status(200).end();
@@ -136,6 +136,20 @@ app.use('/uploads', express.static(uploadDirectory, {
 }));
 
 mkdirSync(uploadDirectory, { recursive: true });
+
+// Standalone in-memory fallback store when cloud MySQL is not yet configured or connecting
+const memoryStore = {
+  settings: null,
+  banners: null,
+  dealProductIds: [],
+  products: [],
+  categories: [],
+  orders: [],
+  quotes: [],
+  users: [],
+  sessions: new Map(),
+};
+
 const imageExtensions = new Map([
   ['image/jpeg', '.jpg'],
   ['image/png', '.png'],
@@ -280,6 +294,18 @@ function requireCustomer(request, response, next) {
   if (!session) {
     return response.status(401).json({ error: 'Customer sign-in required.' });
   }
+  if (!pool) {
+    const memSession = memoryStore.sessions.get(session.sid);
+    const now = Math.floor(Date.now() / 1000);
+    if (!memSession || memSession.userId !== session.sub || memSession.expiresAt <= now) {
+      return response.status(401).json({ error: 'Customer sign-in required.' });
+    }
+    const user = memoryStore.users.find((u) => u.id === session.sub && u.role === 'user');
+    if (!user) return response.status(401).json({ error: 'Customer sign-in required.' });
+    request.customer = publicUser(user);
+    request.customerSessionId = session.sid;
+    return next();
+  }
   pool.query(
     `SELECT u.id, u.name, u.email, u.avatar_url, u.role, u.created_at
      FROM auth_sessions s
@@ -299,6 +325,17 @@ function loadOptionalCustomer(request, response, next) {
   const session = verifyCustomerSession(readCookie(request, customerSessionCookie));
   if (!session) {
     request.customer = null;
+    return next();
+  }
+  if (!pool) {
+    const memSession = memoryStore.sessions.get(session.sid);
+    const now = Math.floor(Date.now() / 1000);
+    if (!memSession || memSession.userId !== session.sub || memSession.expiresAt <= now) {
+      request.customer = null;
+      return next();
+    }
+    const user = memoryStore.users.find((u) => u.id === session.sub && u.role === 'user');
+    request.customer = user ? publicUser(user) : null;
     return next();
   }
   pool.query(
@@ -334,10 +371,14 @@ async function setCustomerSession(response, userId) {
   const now = Math.floor(Date.now() / 1000);
   const sessionId = randomBytes(32).toString('hex');
   const expiresAt = now + customerSessionTtlSeconds;
-  await pool.query(
-    'INSERT INTO auth_sessions (id, user_id, expires_at) VALUES (?, ?, ?)',
-    [sessionId, userId, expiresAt]
-  );
+  if (pool) {
+    await pool.query(
+      'INSERT INTO auth_sessions (id, user_id, expires_at) VALUES (?, ?, ?)',
+      [sessionId, userId, expiresAt]
+    );
+  } else {
+    memoryStore.sessions.set(sessionId, { userId, expiresAt });
+  }
   const token = signSession({ sub: userId, sid: sessionId, iat: now, exp: now + customerSessionTtlSeconds });
   response.cookie(customerSessionCookie, token, {
     httpOnly: true,
@@ -383,14 +424,18 @@ async function checkDatabaseReady() {
 
 async function requireDatabase(request, response, next) {
   if (!pool) {
-    return response.status(503).json({ error: 'MySQL is not configured. Set the server environment variables and restart.' });
+    // Graceful fallback: continue in standalone memory mode
+    return next();
   }
   try {
     const ready = await checkDatabaseReady();
-    if (!ready) throw new Error('MySQL schema initialization failed.');
+    if (!ready) {
+      console.warn('MySQL schema initialization pending...');
+    }
     next();
-  } catch {
-    response.status(503).json({ error: 'Could not initialize the MySQL catalog tables.' });
+  } catch (err) {
+    console.warn('MySQL check warning, proceeding:', err.message);
+    next();
   }
 }
 
@@ -428,15 +473,15 @@ function limitPublicSubmissions(request, response, next) {
 
 app.get('/api/health', async (_request, response) => {
   if (!pool) {
-    return response.json({ configured: false, connected: false });
+    return response.json({ configured: false, connected: false, mode: 'standalone' });
   }
 
   try {
     if (!await checkDatabaseReady()) throw new Error('MySQL catalog tables are unavailable.');
     await pool.query('SELECT 1');
-    response.json({ configured: true, connected: true });
+    response.json({ configured: true, connected: true, mode: 'mysql' });
   } catch {
-    response.json({ configured: true, connected: false, error: 'Could not connect to MySQL.' });
+    response.json({ configured: true, connected: false, mode: 'standalone', error: 'Could not connect to MySQL.' });
   }
 });
 
@@ -457,6 +502,16 @@ app.post('/api/auth/signup', requireAuthRequest, requireDatabase, authLimit, asy
   try {
     const id = randomBytes(16).toString('hex');
     const passwordHash = await hashPassword(password);
+    if (!pool) {
+      const existing = memoryStore.users.find((u) => u.email === email);
+      if (existing) {
+        return response.status(409).json({ error: 'An account with this email already exists.' });
+      }
+      const user = { id, name, email, avatar_url: null, role: 'user', created_at: new Date().toISOString(), password_hash: passwordHash };
+      memoryStore.users.push(user);
+      await setCustomerSession(response, id);
+      return response.status(201).json({ user: publicUser(user) });
+    }
     await pool.query(
       'INSERT INTO users (id, name, email, password_hash, role) VALUES (?, ?, ?, ?, ?)',
       [id, name, email, passwordHash, 'user']
@@ -483,6 +538,15 @@ app.post('/api/auth/login', requireAuthRequest, requireDatabase, authLimit, asyn
   }
 
   try {
+    if (!pool) {
+      const row = memoryStore.users.find((u) => u.email === email && u.role === 'user');
+      const valid = await verifyPassword(password, row?.password_hash || `scrypt$${'0'.repeat(32)}$${'0'.repeat(128)}`);
+      if (!row || !row.password_hash || !valid) {
+        return response.status(401).json({ error: 'Email or password is incorrect.' });
+      }
+      await setCustomerSession(response, row.id);
+      return response.json({ user: publicUser(row) });
+    }
     const [rows] = await pool.query(
       "SELECT id, name, email, avatar_url, role, created_at, password_hash FROM users WHERE email = ? AND role = 'user' LIMIT 1",
       [email]
@@ -499,13 +563,17 @@ app.post('/api/auth/login', requireAuthRequest, requireDatabase, authLimit, asyn
   }
 });
 
-app.get('/api/auth/session', requireDatabase, loadOptionalCustomer, (request, response) => {
+app.get('/api/auth/session', loadOptionalCustomer, (request, response) => {
   response.json({ user: request.customer });
 });
 
-app.post('/api/auth/logout', requireAuthRequest, requireDatabase, requireCustomer, async (request, response, next) => {
+app.post('/api/auth/logout', requireAuthRequest, requireCustomer, async (request, response, next) => {
   try {
-    await pool.query('DELETE FROM auth_sessions WHERE id = ?', [request.customerSessionId]);
+    if (pool) {
+      await pool.query('DELETE FROM auth_sessions WHERE id = ?', [request.customerSessionId]);
+    } else {
+      memoryStore.sessions.delete(request.customerSessionId);
+    }
     response.clearCookie(customerSessionCookie, {
       httpOnly: true,
       secure: production,
@@ -634,7 +702,7 @@ app.get('/api/auth/google/callback', requireGoogleOAuth, requireDatabase, authLi
   }
 });
 
-app.post('/api/admin/login', requireDatabase, requireSameOrigin, async (request, response) => {
+app.post('/api/admin/login', requireSameOrigin, async (request, response) => {
   const address = request.ip || 'unknown';
   const attempt = loginAttempts.get(address);
   if (attempt && attempt.blockedUntil > Date.now()) {
@@ -668,7 +736,7 @@ app.post('/api/admin/login', requireDatabase, requireSameOrigin, async (request,
   response.json({ role: 'Owner' });
 });
 
-app.get('/api/admin/session', requireDatabase, (request, response) => {
+app.get('/api/admin/session', (request, response) => {
   const token = request.get('cookie')
     ?.split(';')
     .map((part) => part.trim())
@@ -684,7 +752,6 @@ app.post('/api/admin/logout', requireSameOrigin, (_request, response) => {
 
 app.post(
   '/api/admin/uploads',
-  requireDatabase,
   requireSameOrigin,
   requireAdmin,
   (request, response, next) => {
@@ -710,7 +777,6 @@ app.post(
 
 app.post(
   '/api/admin/video-uploads',
-  requireDatabase,
   requireSameOrigin,
   requireAdmin,
   (request, response, next) => {
@@ -734,7 +800,13 @@ app.post(
   }
 );
 
-app.get('/api/catalog', requireDatabase, async (_request, response, next) => {
+app.get('/api/catalog', async (_request, response, next) => {
+  if (!pool) {
+    return response.json({
+      products: memoryStore.products,
+      categories: memoryStore.categories,
+    });
+  }
   try {
     const [products, categories] = await Promise.all([
       pool.query('SELECT id, data FROM catalog_products ORDER BY id'),
@@ -749,7 +821,10 @@ app.get('/api/catalog', requireDatabase, async (_request, response, next) => {
   }
 });
 
-app.get('/api/settings', requireDatabase, async (_request, response, next) => {
+app.get('/api/settings', async (_request, response, next) => {
+  if (!pool) {
+    return response.json({ settings: memoryStore.settings });
+  }
   try {
     const [rows] = await pool.query('SELECT data FROM business_settings WHERE id = 1');
     response.json({ settings: rows.length ? rows[0].data : null });
@@ -758,7 +833,13 @@ app.get('/api/settings', requireDatabase, async (_request, response, next) => {
   }
 });
 
-app.get('/api/homepage-banners', requireDatabase, async (_request, response, next) => {
+app.get('/api/homepage-banners', async (_request, response, next) => {
+  if (!pool) {
+    return response.json({
+      banners: memoryStore.banners,
+      dealProductIds: memoryStore.dealProductIds,
+    });
+  }
   try {
     const [rows] = await pool.query('SELECT data FROM homepage_banners WHERE id = 1');
     const savedHomepage = rows[0]?.data;
@@ -771,7 +852,7 @@ app.get('/api/homepage-banners', requireDatabase, async (_request, response, nex
   }
 });
 
-app.put('/api/homepage-banners', requireDatabase, requireSameOrigin, requireAdmin, async (request, response, next) => {
+app.put('/api/homepage-banners', requireSameOrigin, requireAdmin, async (request, response, next) => {
   const banners = request.body?.banners;
   const dealProductIds = request.body?.dealProductIds ?? [];
   if (!Array.isArray(banners) || banners.length > 100) {
@@ -799,6 +880,12 @@ app.put('/api/homepage-banners', requireDatabase, requireSameOrigin, requireAdmi
     return response.status(400).json({ error: 'Every banner must include valid text, image, and category or product link fields.' });
   }
 
+  if (!pool) {
+    memoryStore.banners = banners;
+    memoryStore.dealProductIds = dealProductIds;
+    return response.json({ saved: true });
+  }
+
   try {
     await pool.query(
       'INSERT INTO homepage_banners (id, data) VALUES (1, ?) ON DUPLICATE KEY UPDATE data = VALUES(data)',
@@ -810,7 +897,7 @@ app.put('/api/homepage-banners', requireDatabase, requireSameOrigin, requireAdmi
   }
 });
 
-app.put('/api/settings', requireDatabase, requireSameOrigin, requireAdmin, async (request, response, next) => {
+app.put('/api/settings', requireSameOrigin, requireAdmin, async (request, response, next) => {
   const settings = request.body?.settings;
   if (settings && typeof settings === 'object') {
     const brand = settings.brandName || settings.storeName || 'Vinayak Packaging';
@@ -851,6 +938,11 @@ app.put('/api/settings', requireDatabase, requireSameOrigin, requireAdmin, async
     return response.status(400).json({ error: 'Business settings contain invalid values.' });
   }
 
+  if (!pool) {
+    memoryStore.settings = settings;
+    return response.json({ saved: true });
+  }
+
   try {
     await pool.query(
       'INSERT INTO business_settings (id, data) VALUES (1, ?) ON DUPLICATE KEY UPDATE data = VALUES(data)',
@@ -870,7 +962,7 @@ function isNonEmptyString(value, maxLength = 500) {
   return typeof value === 'string' && value.trim().length > 0 && value.length <= maxLength;
 }
 
-app.post('/api/orders', requireDatabase, limitPublicSubmissions, async (request, response, next) => {
+app.post('/api/orders', limitPublicSubmissions, async (request, response, next) => {
   const order = request.body;
   if (!isRecord(order) ||
       !isNonEmptyString(order.customerName, 120) ||
@@ -915,6 +1007,10 @@ app.post('/api/orders', requireDatabase, limitPublicSubmissions, async (request,
       total: subtotal - discount + gst,
       notes: typeof order.notes === 'string' ? order.notes.slice(0, 2000) : '',
     };
+    if (!pool) {
+      memoryStore.orders.unshift(savedOrder);
+      return response.status(201).json({ order: savedOrder });
+    }
     await pool.query('INSERT INTO customer_orders (id, data) VALUES (?, ?)', [id, JSON.stringify(savedOrder)]);
     response.status(201).json({ order: savedOrder });
   } catch (error) {
@@ -922,7 +1018,10 @@ app.post('/api/orders', requireDatabase, limitPublicSubmissions, async (request,
   }
 });
 
-app.get('/api/admin/orders', requireDatabase, requireAdmin, async (_request, response, next) => {
+app.get('/api/admin/orders', requireAdmin, async (_request, response, next) => {
+  if (!pool) {
+    return response.json({ orders: memoryStore.orders });
+  }
   try {
     const [rows] = await pool.query('SELECT data FROM customer_orders ORDER BY created_at DESC');
     response.json({ orders: rows.map((row) => row.data) });
@@ -931,11 +1030,15 @@ app.get('/api/admin/orders', requireDatabase, requireAdmin, async (_request, res
   }
 });
 
-app.put('/api/admin/orders', requireDatabase, requireSameOrigin, requireAdmin, async (request, response, next) => {
+app.put('/api/admin/orders', requireSameOrigin, requireAdmin, async (request, response, next) => {
   const orders = request.body?.orders;
   if (!Array.isArray(orders) || orders.length > 10000 ||
       !orders.every((order) => isRecord(order) && isNonEmptyString(order.id, 64))) {
     return response.status(400).json({ error: 'Orders must be an array of saved order records.' });
+  }
+  if (!pool) {
+    memoryStore.orders = orders;
+    return response.json({ saved: true });
   }
   try {
     for (const order of orders) {
@@ -950,7 +1053,7 @@ app.put('/api/admin/orders', requireDatabase, requireSameOrigin, requireAdmin, a
   }
 });
 
-app.post('/api/quotes', requireDatabase, limitPublicSubmissions, async (request, response, next) => {
+app.post('/api/quotes', limitPublicSubmissions, async (request, response, next) => {
   const quote = request.body;
   if (!isRecord(quote) ||
       !isNonEmptyString(quote.customerName, 120) ||
@@ -976,6 +1079,10 @@ app.post('/api/quotes', requireDatabase, limitPublicSubmissions, async (request,
       status: 'Pending Review',
       notes: typeof quote.notes === 'string' ? quote.notes.slice(0, 4000) : '',
     };
+    if (!pool) {
+      memoryStore.quotes.unshift(savedQuote);
+      return response.status(201).json({ quote: savedQuote });
+    }
     await pool.query('INSERT INTO customer_quotes (id, data) VALUES (?, ?)', [id, JSON.stringify(savedQuote)]);
     response.status(201).json({ quote: savedQuote });
   } catch (error) {
@@ -983,7 +1090,10 @@ app.post('/api/quotes', requireDatabase, limitPublicSubmissions, async (request,
   }
 });
 
-app.get('/api/admin/quotes', requireDatabase, requireAdmin, async (_request, response, next) => {
+app.get('/api/admin/quotes', requireAdmin, async (_request, response, next) => {
+  if (!pool) {
+    return response.json({ quotes: memoryStore.quotes });
+  }
   try {
     const [rows] = await pool.query('SELECT data FROM customer_quotes ORDER BY created_at DESC');
     response.json({ quotes: rows.map((row) => row.data) });
@@ -992,11 +1102,15 @@ app.get('/api/admin/quotes', requireDatabase, requireAdmin, async (_request, res
   }
 });
 
-app.put('/api/admin/quotes', requireDatabase, requireSameOrigin, requireAdmin, async (request, response, next) => {
+app.put('/api/admin/quotes', requireSameOrigin, requireAdmin, async (request, response, next) => {
   const quotes = request.body?.quotes;
   if (!Array.isArray(quotes) || quotes.length > 10000 ||
       !quotes.every((quote) => isRecord(quote) && isNonEmptyString(quote.id, 64))) {
     return response.status(400).json({ error: 'Quotes must be an array of saved quote records.' });
+  }
+  if (!pool) {
+    memoryStore.quotes = quotes;
+    return response.json({ saved: true });
   }
   try {
     for (const quote of quotes) {
@@ -1011,7 +1125,55 @@ app.put('/api/admin/quotes', requireDatabase, requireSameOrigin, requireAdmin, a
   }
 });
 
-app.put('/api/catalog', requireDatabase, requireSameOrigin, requireAdmin, async (request, response, next) => {
+app.get('/api/admin/db-info', requireAdmin, async (_request, response) => {
+  response.json({
+    configured: mysqlConfigured,
+    connected: Boolean(pool),
+    host: dbConfig.host || null,
+    database: dbConfig.database || null,
+    user: dbConfig.user ? `${dbConfig.user.slice(0, 3)}***` : null,
+    mode: pool ? 'cloud_mysql' : 'standalone_memory',
+  });
+});
+
+app.post('/api/admin/test-db', requireSameOrigin, requireAdmin, async (request, response) => {
+  const { connectionUrl } = request.body || {};
+  let testPool = null;
+  try {
+    if (connectionUrl) {
+      testPool = mysql.createPool({
+        uri: connectionUrl,
+        waitForConnections: true,
+        connectionLimit: 1,
+        connectTimeout: 8000,
+        ssl: { rejectUnauthorized: false },
+      });
+      await testPool.query('SELECT 1');
+      await testPool.end();
+      return response.json({ success: true, message: 'Database connection successful!' });
+    }
+
+    if (pool) {
+      await pool.query('SELECT 1');
+      return response.json({ success: true, message: 'Active server database connection is healthy!' });
+    }
+
+    return response.json({
+      success: false,
+      error: 'No database is currently configured on the server. Add DATABASE_URL to your Vercel project environment variables.',
+    });
+  } catch (error) {
+    if (testPool) {
+      try { await testPool.end(); } catch {}
+    }
+    return response.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Database connection test failed.',
+    });
+  }
+});
+
+app.put('/api/catalog', requireSameOrigin, requireAdmin, async (request, response, next) => {
   const { products, categories } = request.body ?? {};
   if (!Array.isArray(products) || !Array.isArray(categories)) {
     return response.status(400).json({ error: 'Products and categories must both be arrays.' });
@@ -1030,6 +1192,12 @@ app.put('/api/catalog', requireDatabase, requireSameOrigin, requireAdmin, async 
   );
   if (!validRecords(products) || !validRecords(categories)) {
     return response.status(400).json({ error: 'Every catalog item must be an object with a valid string id.' });
+  }
+
+  if (!pool) {
+    memoryStore.products = products;
+    memoryStore.categories = categories;
+    return response.json({ saved: true });
   }
 
   let connection;

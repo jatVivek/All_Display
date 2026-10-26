@@ -166,8 +166,14 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
 
           <form onSubmit={handleLogin} className="w-full flex flex-col gap-4">
             {syncStatus === 'local' && (
-              <div role="status" className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900">
-                MySQL is not configured yet. Set the database and admin credentials in the server's <code>.env</code> file, then restart it.
+              <div role="status" className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-xs text-blue-900 flex items-start gap-2.5">
+                <AppIcon name="cloud_off" className="text-blue-600 text-base shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-bold text-blue-950">Standalone Mode Active</span>
+                  <span className="text-blue-800 text-[11px] leading-relaxed">
+                    You can sign in now to manage products, banners, and settings. Cloud MySQL can be connected in Vercel settings whenever you are ready.
+                  </span>
+                </div>
               </div>
             )}
             <div className="flex flex-col gap-1.5">

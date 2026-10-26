@@ -403,16 +403,19 @@ class CentralStoreService {
 
   private async refreshCatalog() {
     try {
-      const status = await this.apiRequest<{ configured: boolean; connected: boolean }>('/api/health');
-      this.apiConfigured = status.configured;
-      if (!status.configured) {
-        this.state = { ...this.state, catalogSyncStatus: 'local', catalogSyncError: null };
-        this.notify();
-      } else if (status.connected) {
-        await Promise.all([this.loadSharedCatalog(), this.loadSharedSettings(), this.loadSharedHomepageBanners()]);
+      const status = await this.apiRequest<{ configured: boolean; connected: boolean; mode?: string }>('/api/health');
+      this.apiConfigured = true;
+      if (status.connected) {
+        this.state = { ...this.state, catalogSyncStatus: 'connected', catalogSyncError: null };
       } else {
-        this.setCatalogSyncError('The server is configured but cannot connect to MySQL.');
+        this.state = { ...this.state, catalogSyncStatus: 'local', catalogSyncError: null };
       }
+      await Promise.allSettled([
+        this.loadSharedCatalog(),
+        this.loadSharedSettings(),
+        this.loadSharedHomepageBanners(),
+      ]);
+      this.notify();
     } catch {
       this.apiConfigured = false;
       this.state = { ...this.state, catalogSyncStatus: 'local', catalogSyncError: null };
@@ -506,8 +509,12 @@ class CentralStoreService {
     });
     this.apiConfigured = true;
     this.adminAuthenticated = true;
-    await this.migrateLocalCatalogIfCloudIsEmpty();
-    await Promise.all([
+    try {
+      await this.migrateLocalCatalogIfCloudIsEmpty();
+    } catch (e) {
+      console.warn('Catalog migration deferred:', e);
+    }
+    await Promise.allSettled([
       this.loadSharedCatalog(),
       this.migrateLocalSettingsIfCloudIsEmpty(),
       this.loadSharedHomepageBanners(),
@@ -517,33 +524,44 @@ class CentralStoreService {
   }
 
   private async migrateLocalSettingsIfCloudIsEmpty() {
-    const { settings } = await this.apiRequest<{ settings: AdminSettings | null }>('/api/settings');
-    if (settings) {
-      this.state = { ...this.state, settings };
-      this.notify();
-      return;
+    try {
+      const { settings } = await this.apiRequest<{ settings: AdminSettings | null }>('/api/settings');
+      if (settings) {
+        this.state = { ...this.state, settings };
+        this.notify();
+        return;
+      }
+      await this.apiRequest('/api/settings', {
+        method: 'PUT',
+        headers: { 'X-Admin-Request': '1' },
+        body: JSON.stringify({ settings: this.state.settings }),
+      });
+    } catch (e) {
+      console.warn('Settings migration deferred:', e);
     }
-    await this.apiRequest('/api/settings', {
-      method: 'PUT',
-      headers: { 'X-Admin-Request': '1' },
-      body: JSON.stringify({ settings: this.state.settings }),
-    });
   }
 
   public async getAdminRole(): Promise<AdminRole | null> {
-    if (!this.apiConfigured) await this.refreshCatalog();
-    if (!this.apiConfigured) return null;
-    const session = await this.apiRequest<{ role: AdminRole | null }>('/api/admin/session');
-    if (!session.role) return null;
-    this.adminAuthenticated = true;
-    await this.migrateLocalCatalogIfCloudIsEmpty();
-    await Promise.all([
-      this.loadSharedCatalog(),
-      this.migrateLocalSettingsIfCloudIsEmpty(),
-      this.loadSharedHomepageBanners(),
-      this.loadOperationalData(),
-    ]);
-    return session.role;
+    try {
+      const session = await this.apiRequest<{ role: AdminRole | null }>('/api/admin/session');
+      if (!session.role) return null;
+      this.adminAuthenticated = true;
+      this.apiConfigured = true;
+      try {
+        await this.migrateLocalCatalogIfCloudIsEmpty();
+      } catch (e) {
+        console.warn('Catalog migration deferred:', e);
+      }
+      await Promise.allSettled([
+        this.loadSharedCatalog(),
+        this.migrateLocalSettingsIfCloudIsEmpty(),
+        this.loadSharedHomepageBanners(),
+        this.loadOperationalData(),
+      ]);
+      return session.role;
+    } catch {
+      return null;
+    }
   }
 
   public async signOutAdmin() {
@@ -795,6 +813,27 @@ class CentralStoreService {
     window.dispatchEvent(new CustomEvent('alldisplay_data_updated', { detail: { settings: normalizedSettings } }));
     this.notify();
     return true;
+  }
+
+  public async getDatabaseInfo(): Promise<{
+    configured: boolean;
+    connected: boolean;
+    host: string | null;
+    database: string | null;
+    user: string | null;
+    mode: string;
+  }> {
+    return this.apiRequest('/api/admin/db-info', {
+      headers: { 'X-Admin-Request': '1' },
+    });
+  }
+
+  public async testDatabaseConnection(connectionUrl?: string): Promise<{ success: boolean; message?: string; error?: string }> {
+    return this.apiRequest('/api/admin/test-db', {
+      method: 'POST',
+      headers: { 'X-Admin-Request': '1' },
+      body: JSON.stringify({ connectionUrl }),
+    });
   }
 
   public async resetAllData(): Promise<boolean> {
