@@ -268,10 +268,6 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
         requirements,
         variations: variations.length > 0 ? variations : undefined,
         ...(videoUrl.trim() ? { videoUrl: videoUrl.trim() } : {}),
-        finishes: [
-          { name: finish, color: '#1A1C20' },
-          { name: 'Pure White', color: '#FFFFFF' }
-        ],
         createdAt: now,
         sortOrder: 0,
       };
@@ -294,7 +290,8 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
         stockStatus,
         dispatchReadiness,
         requirements,
-        variations: variations.length > 0 ? variations : undefined
+        variations: variations.length > 0 ? variations : undefined,
+        finishes: undefined,
       } : p));
       saved = await storeManager.saveProducts(updated);
     }

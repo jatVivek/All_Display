@@ -281,12 +281,24 @@ class CentralStoreService {
     });
   }
 
+  public sanitizeProduct = (p: Product): Product => {
+    if (!p || typeof p !== 'object') return p;
+    // Strip injected/legacy static finishes if product has no variations
+    if (!p.variations || p.variations.length === 0) {
+      if (p.finishes) {
+        const { finishes: _f, ...rest } = p;
+        return rest as Product;
+      }
+    }
+    return p;
+  };
+
   public loadCustomProducts(): Product[] {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.CUSTOM_PRODUCTS);
       if (stored !== null) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) return parsed.map(this.sanitizeProduct);
       }
     } catch {}
     return [];
@@ -294,7 +306,8 @@ class CentralStoreService {
 
   public saveCustomProducts(custom: Product[]): void {
     try {
-      localStorage.setItem(STORAGE_KEYS.CUSTOM_PRODUCTS, JSON.stringify(custom));
+      const sanitized = custom.map(this.sanitizeProduct);
+      localStorage.setItem(STORAGE_KEYS.CUSTOM_PRODUCTS, JSON.stringify(sanitized));
     } catch (e) {
       console.warn('Could not persist custom products locally:', e);
     }
@@ -870,7 +883,8 @@ class CentralStoreService {
   }
 
   public async saveProducts(products: Product[]): Promise<boolean> {
-    const sorted = this.sortNewestProductsFirst(products);
+    const sanitized = products.map(this.sanitizeProduct);
+    const sorted = this.sortNewestProductsFirst(sanitized);
     const indexed = sorted.map((p, index) => ({
       ...p,
       sortOrder: index,

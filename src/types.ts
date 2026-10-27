@@ -54,7 +54,7 @@ export interface Product {
   image: string;
   images?: string[];
   videoUrl?: string;
-  finishes: { name: string; color: string }[];
+  finishes?: { name: string; color: string }[];
   variations?: ProductVariation[];
   requirements?: string[]; // e.g. ['online-sellers', 'instagram-shop', 'retail-shops', 'new-jewellery']
   material?: string;

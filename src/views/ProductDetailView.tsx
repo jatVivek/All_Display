@@ -151,11 +151,11 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
 
   // Selected Finish (fallback if no variations)
   const [selectedFinish, setSelectedFinish] = useState<string>(() => {
-    return currentProduct.finishes?.[0]?.name || currentProduct.finish || 'Standard';
+    return currentProduct.finish || 'Standard';
   });
 
   useEffect(() => {
-    setSelectedFinish(currentProduct.finishes?.[0]?.name || currentProduct.finish || 'Standard');
+    setSelectedFinish(currentProduct.finish || 'Standard');
   }, [currentProduct.id]);
 
   // Quantity state (MOQ aware)
@@ -223,11 +223,9 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
         const opt = v.options.find(o => o.id === optId);
         if (opt) parts.push(`${v.name}: ${opt.name}`);
       });
-    } else if (selectedFinish) {
-      parts.push(`Finish: ${selectedFinish}`);
     }
     return parts.join(', ');
-  }, [currentProduct, selectedVariations, selectedFinish]);
+  }, [currentProduct, selectedVariations]);
 
   // Add to Cart
   const handleAddToCart = () => {
@@ -249,7 +247,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
       quantity,
       moq: moqNumber,
       unitLabel: currentProduct.unit,
-      finish: selectedFinish,
+      finish: selectedVariationsSummary || currentProduct.finish || 'Standard',
       sizeOrSpec: selectedVariationsSummary || currentProduct.structuralProfile || 'Standard',
       gauge: currentProduct.specs?.gauge || 'Factory Standard',
       packingType: 'Standard Protective Packaging',
@@ -602,33 +600,6 @@ Please confirm stock availability and freight to my location.`;
                     </div>
                   );
                 })}
-              </div>
-            ) : currentProduct.finishes && currentProduct.finishes.length > 0 ? (
-              /* Fallback Finishes Swatch Selector */
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-slate-900 uppercase tracking-wide">
-                  Color / Finish: <span className="text-orange-600 font-semibold">{selectedFinish}</span>
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {currentProduct.finishes.map(finish => (
-                    <button
-                      key={finish.name}
-                      type="button"
-                      onClick={() => setSelectedFinish(finish.name)}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center gap-2 border ${
-                        selectedFinish === finish.name
-                          ? 'bg-orange-50 border-orange-600 text-orange-900 ring-1 ring-orange-500'
-                          : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
-                      }`}
-                    >
-                      <span
-                        className="w-3.5 h-3.5 rounded-full border border-slate-300"
-                        style={{ backgroundColor: finish.color || '#CBD5E1' }}
-                      />
-                      <span>{finish.name}</span>
-                    </button>
-                  ))}
-                </div>
               </div>
             ) : null}
 
