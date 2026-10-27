@@ -30,6 +30,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -371,15 +372,25 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-slate-800">Confirm New Password</label>
-                <input
-                  type={showNewPassword ? 'text' : 'password'}
-                  required
-                  minLength={6}
-                  value={confirmNewPassword}
-                  onChange={(e) => setConfirmNewPassword(e.target.value)}
-                  placeholder="Re-enter new password"
-                  className="p-3 w-full rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white"
-                />
+                <div className="relative flex items-center">
+                  <input
+                    type={showConfirmNewPassword ? 'text' : 'password'}
+                    required
+                    minLength={6}
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    placeholder="Re-enter new password"
+                    className="p-3 pr-10 w-full rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                    className="absolute right-3 text-slate-400 hover:text-slate-700 cursor-pointer p-1"
+                    aria-label={showConfirmNewPassword ? 'Hide password' : 'Show password'}
+                  >
+                    <AppIcon name={showConfirmNewPassword ? 'visibility_off' : 'visibility'} className="text-base" />
+                  </button>
+                </div>
               </div>
 
               <div className="pt-2 flex justify-end">

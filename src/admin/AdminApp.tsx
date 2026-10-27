@@ -41,6 +41,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [passwordInput, setPasswordInput] = useState('');
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
 
   // Navigation & Role state
@@ -187,15 +188,25 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
             )}
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-slate-800">Admin password</label>
-              <input
-                type="password"
-                required
-                autoComplete="current-password"
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                placeholder="Default: Admin123456"
-                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all"
-              />
+              <div className="relative flex items-center">
+                <input
+                  type={showAdminPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  placeholder="Default: Admin123456"
+                  className="w-full px-4 py-3 pr-11 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAdminPassword(!showAdminPassword)}
+                  className="absolute right-3.5 text-slate-400 hover:text-slate-700 cursor-pointer p-1"
+                  aria-label={showAdminPassword ? 'Hide password' : 'Show password'}
+                >
+                  <AppIcon name={showAdminPassword ? 'visibility_off' : 'visibility'} className="text-base" />
+                </button>
+              </div>
               {loginError && (
                 <span role="alert" className="text-xs text-rose-600 text-center font-medium">
                   {loginError}
