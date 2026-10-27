@@ -1424,20 +1424,32 @@ app.get('/api/admin/customers', requireAdmin, async (_request, response, next) =
         const [rows] = await pool.query(
           "SELECT id, name, email, phone, avatar_url, role, created_at FROM users WHERE role = 'user' ORDER BY created_at DESC"
         );
-        registeredUsers = rows.map(publicUser);
+        registeredUsers = rows.map((r) => {
+          const memUser = memoryStore.users.find((u) => u.email.toLowerCase() === r.email.toLowerCase());
+          return publicUser({ ...r, phone: r.phone || memUser?.phone || null });
+        });
       } catch (err) {
         if (err?.message?.includes('Unknown column')) {
           const [rows] = await pool.query(
             "SELECT id, name, email, avatar_url, role, created_at FROM users WHERE role = 'user' ORDER BY created_at DESC"
           );
-          registeredUsers = rows.map(publicUser);
+          registeredUsers = rows.map((r) => {
+            const memUser = memoryStore.users.find((u) => u.email.toLowerCase() === r.email.toLowerCase());
+            return publicUser({ ...r, phone: memUser?.phone || null });
+          });
         } else {
           console.warn('MySQL customers query fallback to memory:', err.message);
         }
       }
     }
-    if (registeredUsers.length === 0) {
-      registeredUsers = memoryStore.users.filter((u) => u.role === 'user').map(publicUser);
+
+    // Merge in any users recorded in memory or seed cache
+    const existingEmails = new Set(registeredUsers.map((u) => u.email.toLowerCase()));
+    for (const memUser of memoryStore.users) {
+      if (memUser && memUser.email && !existingEmails.has(memUser.email.toLowerCase())) {
+        registeredUsers.push(publicUser(memUser));
+        existingEmails.add(memUser.email.toLowerCase());
+      }
     }
 
     // Load orders to compute stats per registered user

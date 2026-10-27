@@ -1301,6 +1301,16 @@ class CentralStoreService {
 
   public async refreshCustomers(): Promise<void> {
     try {
+      if (this.state.customers.length > 0) {
+        await fetch('/api/admin/customers/sync', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Request': '1',
+          },
+          body: JSON.stringify({ customers: this.state.customers }),
+        }).catch(() => {});
+      }
       const res = await this.apiRequest<{ customers: RegisteredCustomer[] }>('/api/admin/customers');
       if (Array.isArray(res.customers)) {
         const merged = this.mergeCustomers(this.state.customers, res.customers);
