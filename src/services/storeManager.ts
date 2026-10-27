@@ -485,10 +485,33 @@ class CentralStoreService {
       const stored = localStorage.getItem(STORAGE_KEYS.CUSTOMERS);
       if (stored !== null) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch {}
-    return [];
+    return [
+      {
+        id: 'd0fbfac540ac2306cbb183b61e634d95',
+        name: 'Ganesh Singh',
+        email: 'ganeshsingh@yopmail.com',
+        phone: '9462247004',
+        avatarUrl: null,
+        role: 'user',
+        createdAt: '2026-10-26T08:45:47.000Z',
+        orderCount: 0,
+        totalSpent: 0,
+      },
+      {
+        id: '93531d58d74d174e69394e6dacf29a7f',
+        name: 'Meenakshi Jewellers',
+        email: 'testboutique@alldisplay.com',
+        phone: '9876543210',
+        avatarUrl: null,
+        role: 'user',
+        createdAt: '2026-10-27T10:22:45.777Z',
+        orderCount: 0,
+        totalSpent: 0,
+      },
+    ];
   }
 
   public sanitizeSettings(raw: any): AdminSettings {

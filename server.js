@@ -144,6 +144,29 @@ try {
   // Read-only filesystem in serverless environments
 }
 
+const SEED_USERS = [
+  {
+    id: "d0fbfac540ac2306cbb183b61e634d95",
+    name: "Ganesh Singh",
+    email: "ganeshsingh@yopmail.com",
+    phone: "9462247004",
+    avatar_url: null,
+    role: "user",
+    created_at: "2026-10-26T08:45:47.000Z",
+    password_hash: null,
+  },
+  {
+    id: "93531d58d74d174e69394e6dacf29a7f",
+    name: "Meenakshi Jewellers",
+    email: "testboutique@alldisplay.com",
+    phone: "9876543210",
+    avatar_url: null,
+    role: "user",
+    created_at: "2026-10-27T10:22:45.777Z",
+    password_hash: "scrypt$c2cd3cd5ae0cf0797214945c71c36b16$87dd1ca99d46b766518e6c4e1b878b6e9678125fe361a20ccdfa72a0547bf3682ab9df35c9558b6224ff98e752d12ce3042147d9d36d6bb47c4725cee86040fe",
+  },
+];
+
 // Standalone in-memory fallback store when cloud MySQL is not yet configured or connecting
 const memoryStore = {
   settings: null,
@@ -153,7 +176,7 @@ const memoryStore = {
   categories: [],
   orders: [],
   quotes: [],
-  users: [],
+  users: [...SEED_USERS],
   sessions: new Map(),
 };
 
@@ -208,6 +231,9 @@ function loadDiskUsers() {
       }
     }
   } catch {}
+  if (memoryStore.users.length === 0) {
+    memoryStore.users.push(...SEED_USERS);
+  }
 }
 function saveDiskUsers() {
   try {
