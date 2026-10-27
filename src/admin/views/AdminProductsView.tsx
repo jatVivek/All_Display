@@ -24,10 +24,14 @@ export const AdminProductsView: React.FC<AdminProductsViewProps> = ({
     window.addEventListener('alldisplay_catalog_updated', handleUpdate);
     window.addEventListener('alldisplay_data_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
+    const unsubscribe = storeManager.subscribe((state) => {
+      setProducts(state.products);
+    });
     return () => {
       window.removeEventListener('alldisplay_catalog_updated', handleUpdate);
       window.removeEventListener('alldisplay_data_updated', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
+      unsubscribe();
     };
   }, []);
 

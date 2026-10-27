@@ -59,12 +59,19 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     window.addEventListener('vinayak_wishlist_updated', handleUpdate);
     window.addEventListener('vinayak_settings_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
+    const unsubscribe = storeManager.subscribe((state) => {
+      setProducts(state.products);
+      setCategories(state.categories);
+      setWishlistIds(storeManager.getWishlist());
+      setSettings(state.settings);
+    });
     return () => {
       window.removeEventListener('alldisplay_catalog_updated', handleUpdate);
       window.removeEventListener('alldisplay_data_updated', handleUpdate);
       window.removeEventListener('vinayak_wishlist_updated', handleUpdate);
       window.removeEventListener('vinayak_settings_updated', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
+      unsubscribe();
     };
   }, []);
 

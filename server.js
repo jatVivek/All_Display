@@ -157,6 +157,31 @@ const memoryStore = {
   sessions: new Map(),
 };
 
+const catalogDiskCachePath = path.join(uploadDirectory, 'catalog_cache.json');
+function loadDiskCatalog() {
+  try {
+    if (existsSync(catalogDiskCachePath)) {
+      const raw = readFileSync(catalogDiskCachePath, 'utf-8');
+      const data = JSON.parse(raw);
+      if (Array.isArray(data?.products) && data.products.length > 0) {
+        memoryStore.products = data.products;
+      }
+      if (Array.isArray(data?.categories) && data.categories.length > 0) {
+        memoryStore.categories = data.categories;
+      }
+    }
+  } catch {}
+}
+function saveDiskCatalog() {
+  try {
+    writeFileSync(catalogDiskCachePath, JSON.stringify({
+      products: memoryStore.products,
+      categories: memoryStore.categories,
+    }));
+  } catch {}
+}
+loadDiskCatalog();
+
 const imageExtensions = new Map([
   ['image/jpeg', '.jpg'],
   ['image/png', '.png'],
@@ -860,6 +885,9 @@ function sortNewestRecordsFirst(records, idPrefix = 'prod-') {
 
 app.get('/api/catalog', async (_request, response, next) => {
   if (!pool) {
+    if (!memoryStore.products || memoryStore.products.length === 0) {
+      loadDiskCatalog();
+    }
     return response.json({
       products: sortNewestRecordsFirst(memoryStore.products, 'prod-'),
       categories: sortNewestRecordsFirst(memoryStore.categories, 'cat-'),
@@ -1290,6 +1318,7 @@ app.put('/api/catalog', requireSameOrigin, requireAdmin, async (request, respons
   if (!pool) {
     memoryStore.products = products;
     memoryStore.categories = categories;
+    saveDiskCatalog();
     return response.json({ saved: true });
   }
 

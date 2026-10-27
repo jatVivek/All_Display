@@ -157,7 +157,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
       const processedUrls: string[] = [];
       for (const file of files) {
         // Compress client-side into compact high-clarity WebP Data URL (Issue #20 & #21)
-        const compressedDataUrl = await compressImage(file, { maxWidth: 900, maxHeight: 900, quality: 0.82 });
+        const compressedDataUrl = await compressImage(file, { maxWidth: 720, maxHeight: 720, quality: 0.78 });
         processedUrls.push(compressedDataUrl);
       }
       setImages((current) => [...current, ...processedUrls]);
