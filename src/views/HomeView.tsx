@@ -361,7 +361,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               onMouseLeave={() => setIsCategoryHovered(false)}
               onTouchStart={() => setIsCategoryHovered(true)}
               onTouchEnd={() => setIsCategoryHovered(false)}
-              className="flex items-center gap-3 sm:gap-6 overflow-x-auto pb-2 pt-2 px-1 scrollbar-none scroll-smooth"
+              className="flex items-center gap-3 sm:gap-6 overflow-x-auto pb-3 pt-3 px-2 scrollbar-none scroll-smooth"
             >
               {activeCategoriesList.map((cat, idx) => (
                 <button

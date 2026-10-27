@@ -71,26 +71,27 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
 
   // Sync profile when user logs in or profile updates
   useEffect(() => {
-    const syncProfile = () => {
+    const syncProfile = (isDirectEvent = false) => {
       const sStore = getStoredProfileVal('store', user);
       const sProp = user?.name || getStoredProfileVal('name', user);
       const sPhone = (getStoredProfileVal('phone', user) || user?.phone || '').replace(/^(\+91|91)/, '').replace(/\D/g, '').slice(0, 10);
       const sDest = getStoredProfileVal('address', user);
       const sPin = getStoredProfileVal('pincode', user);
 
-      if (sStore) setStoreName(prev => prev || sStore);
-      if (sProp) setProprietor(prev => prev || sProp);
-      if (sPhone) setWhatsapp(prev => prev || sPhone);
-      if (sDest) setDestination(prev => prev || sDest);
-      if (sPin) setPincode(prev => prev || sPin);
+      if (sStore) setStoreName(prev => (isDirectEvent || !prev.trim() ? sStore : prev));
+      if (sProp) setProprietor(prev => (isDirectEvent || !prev.trim() ? sProp : prev));
+      if (sPhone) setWhatsapp(prev => (isDirectEvent || !prev.trim() ? sPhone : prev));
+      if (sDest) setDestination(prev => (isDirectEvent || !prev.trim() ? sDest : prev));
+      if (sPin) setPincode(prev => (isDirectEvent || !prev.trim() ? sPin : prev));
     };
 
-    syncProfile();
-    window.addEventListener('alldisplay_profile_updated', syncProfile);
-    window.addEventListener('vinayak_user_profile_updated', syncProfile);
+    syncProfile(false);
+    const onProfileUpdate = () => syncProfile(true);
+    window.addEventListener('alldisplay_profile_updated', onProfileUpdate);
+    window.addEventListener('vinayak_user_profile_updated', onProfileUpdate);
     return () => {
-      window.removeEventListener('alldisplay_profile_updated', syncProfile);
-      window.removeEventListener('vinayak_user_profile_updated', syncProfile);
+      window.removeEventListener('alldisplay_profile_updated', onProfileUpdate);
+      window.removeEventListener('vinayak_user_profile_updated', onProfileUpdate);
     };
   }, [user]);
 

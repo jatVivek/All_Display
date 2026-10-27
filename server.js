@@ -242,6 +242,29 @@ function saveDiskUsers() {
 }
 loadDiskUsers();
 
+const settingsDiskCachePath = path.join(uploadDirectory, 'settings_cache.json');
+const settingsSeedPath = path.join(rootDirectory, 'public', 'uploads', 'settings_cache.json');
+function loadDiskSettings() {
+  try {
+    const targetPath = existsSync(settingsDiskCachePath) ? settingsDiskCachePath : (existsSync(settingsSeedPath) ? settingsSeedPath : null);
+    if (targetPath) {
+      const raw = readFileSync(targetPath, 'utf-8');
+      const data = JSON.parse(raw);
+      if (data && typeof data === 'object') {
+        memoryStore.settings = sanitizeSettingsObject(data);
+      }
+    }
+  } catch {}
+}
+function saveDiskSettings() {
+  try {
+    if (memoryStore.settings) {
+      writeFileSync(settingsDiskCachePath, JSON.stringify(memoryStore.settings));
+    }
+  } catch {}
+}
+loadDiskSettings();
+
 const imageExtensions = new Map([
   ['image/jpeg', '.jpg'],
   ['image/png', '.png'],
@@ -1101,6 +1124,9 @@ function sanitizeSettingsObject(settings) {
 
 app.get('/api/settings', async (_request, response, next) => {
   if (!pool) {
+    if (!memoryStore.settings) {
+      loadDiskSettings();
+    }
     let settings = memoryStore.settings;
     if (typeof settings === 'string') {
       try { settings = JSON.parse(settings); } catch {}
@@ -1230,6 +1256,7 @@ app.put('/api/settings', requireSameOrigin, requireAdmin, async (request, respon
 
   if (!pool) {
     memoryStore.settings = settings;
+    saveDiskSettings();
     return response.json({ saved: true, settings });
   }
 
@@ -1238,6 +1265,8 @@ app.put('/api/settings', requireSameOrigin, requireAdmin, async (request, respon
       'INSERT INTO business_settings (id, data) VALUES (1, ?) ON DUPLICATE KEY UPDATE data = VALUES(data)',
       [JSON.stringify(settings)]
     );
+    memoryStore.settings = settings;
+    saveDiskSettings();
     response.json({ saved: true, settings });
   } catch (error) {
     next(error);
