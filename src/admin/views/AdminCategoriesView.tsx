@@ -178,7 +178,7 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
                     <td className="py-3 px-4 font-bold text-slate-900">
                       <div className="flex items-center gap-1.5">
                         <span>{cat.name}</span>
-                        {(cat.createdAt || cat.id.startsWith('cat-')) && (
+                        {!['cat-1', 'cat-2', 'cat-3', 'cat-4', 'cat-5', 'cat-6', 'cat-7', 'cat-8', 'cat-9'].includes(cat.id) && (Boolean(cat.createdAt) || (cat.id.startsWith('cat-') && cat.id.length > 8)) && (
                           <span className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.2 rounded shrink-0">
                             NEW
                           </span>

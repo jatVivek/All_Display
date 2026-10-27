@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppIcon } from '../components/AppIcon';
 import { ActiveView, HomepageBanner, Product } from '../types';
 import { storeManager } from '../services/storeManager';
@@ -24,6 +24,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [dealProductIds, setDealProductIds] = useState(() => storeManager.getHomepageDealProductIds());
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [isCategoryHovered, setIsCategoryHovered] = useState(false);
   const [wishlistIds, setWishlistIds] = useState<string[]>(() => storeManager.getWishlist());
   const [settings, setSettings] = useState(() => storeManager.getSettings());
   const [categories, setCategories] = useState(() => storeManager.getCategories());
@@ -84,6 +85,29 @@ export const HomeView: React.FC<HomeViewProps> = ({
     }
   };
 
+  // Auto-scroll categories smoothly every 3.2s unless hovered or user is touching
+  useEffect(() => {
+    if (isCategoryHovered) return;
+
+    const interval = setInterval(() => {
+      const container = categoryScrollRef.current;
+      if (!container) return;
+
+      const maxScrollLeft = container.scrollWidth - container.clientWidth;
+      if (maxScrollLeft <= 10) return; // All items fit on screen without scroll
+
+      // When reaching or near the end, loop smoothly back to beginning
+      if (container.scrollLeft >= maxScrollLeft - 15) {
+        container.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        const step = container.clientWidth > 640 ? 220 : 140;
+        container.scrollBy({ left: step, behavior: 'smooth' });
+      }
+    }, 3200);
+
+    return () => clearInterval(interval);
+  }, [isCategoryHovered]);
+
   // Default category images fallback map
   const defaultCategoryIcons: Record<string, string> = {
     'Display Bust': '/assets/vinayak/cat_bust.png',
@@ -95,21 +119,27 @@ export const HomeView: React.FC<HomeViewProps> = ({
     'Packaging Tools': '/assets/vinayak/cat_bag.png',
   };
 
+  const initialCatIds = useMemo(() => new Set(['cat-1', 'cat-2', 'cat-3', 'cat-4', 'cat-5', 'cat-6', 'cat-7', 'cat-8', 'cat-9']), []);
+
   // Issue #5: Filter categories to only those with at least 1 product (Newest categories first)
-  const activeCategoriesList = categories
-    .map((cat) => {
-      const count = products.filter((p) => p.category.toLowerCase() === cat.name.toLowerCase()).length;
-      return {
-        id: cat.id,
-        title: cat.name,
-        category: cat.name,
-        icon: cat.image || defaultCategoryIcons[cat.name] || '/assets/vinayak/cat_stand.png',
-        count: `${count} Item${count === 1 ? '' : 's'}`,
-        itemCount: count,
-        createdAt: cat.createdAt,
-      };
-    })
-    .filter((cat) => cat.itemCount > 0);
+  const activeCategoriesList = useMemo(() => {
+    return categories
+      .map((cat) => {
+        const count = products.filter((p) => p.category.toLowerCase() === cat.name.toLowerCase()).length;
+        const isNew = !initialCatIds.has(cat.id) && Boolean(cat.createdAt || (cat.id.startsWith('cat-') && cat.id.length > 8));
+        return {
+          id: cat.id,
+          title: cat.name,
+          category: cat.name,
+          icon: cat.image || defaultCategoryIcons[cat.name] || '/assets/vinayak/cat_stand.png',
+          count: `${count} Item${count === 1 ? '' : 's'}`,
+          itemCount: count,
+          createdAt: cat.createdAt,
+          isNew,
+        };
+      })
+      .filter((cat) => cat.itemCount > 0);
+  }, [categories, products, initialCatIds]);
 
   // Requirements Cards (Configurable via Admin, Issue #12)
   const allRequirementCards = [
@@ -327,26 +357,32 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
             <div
               ref={categoryScrollRef}
-              className="flex items-center gap-3 sm:gap-6 overflow-x-auto pb-1.5 scrollbar-none scroll-smooth"
+              onMouseEnter={() => setIsCategoryHovered(true)}
+              onMouseLeave={() => setIsCategoryHovered(false)}
+              onTouchStart={() => setIsCategoryHovered(true)}
+              onTouchEnd={() => setIsCategoryHovered(false)}
+              className="flex items-center gap-3 sm:gap-6 overflow-x-auto pb-2 pt-2 px-1 scrollbar-none scroll-smooth"
             >
               {activeCategoriesList.map((cat, idx) => (
                 <button
-                  key={idx}
+                  key={cat.id || idx}
                   type="button"
                   onClick={() => setActiveView('shop', `/shop?category=${encodeURIComponent(cat.category)}`)}
                   className="flex flex-col items-center gap-1.5 group shrink-0 min-w-[75px] sm:min-w-[110px] cursor-pointer"
                 >
-                  <div className="relative w-14 h-14 sm:w-20 sm:h-20 rounded-full p-1 bg-white border border-slate-200 group-hover:border-orange-500 group-hover:shadow-md transition-all duration-300 flex items-center justify-center overflow-hidden">
-                    <img
-                      src={cat.icon}
-                      alt={cat.title}
-                      className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-300"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=150&q=80';
-                      }}
-                    />
-                    {(cat.createdAt || cat.id.startsWith('cat-')) && (
-                      <span className="absolute top-0.5 right-0.5 bg-emerald-600 text-white text-[7px] sm:text-[8px] font-black px-1.5 py-0.2 rounded-full shadow-xs">
+                  <div className="relative">
+                    <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full p-1 bg-white border border-slate-200 group-hover:border-orange-500 group-hover:shadow-md transition-all duration-300 flex items-center justify-center overflow-hidden">
+                      <img
+                        src={cat.icon}
+                        alt={cat.title}
+                        className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-300"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=150&q=80';
+                        }}
+                      />
+                    </div>
+                    {cat.isNew && (
+                      <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-[8px] sm:text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-md border-2 border-white z-20 pointer-events-none uppercase tracking-wider">
                         NEW
                       </span>
                     )}
