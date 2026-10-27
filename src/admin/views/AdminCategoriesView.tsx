@@ -52,7 +52,7 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
     setIsUploading(true);
     try {
       // Issue #20: Compress client-side to prevent freeze and bandwidth bloat
-      const compressed = await compressImage(file, { maxWidth: 800, maxHeight: 800, quality: 0.85 });
+      const compressed = await compressImage(file, { maxWidth: 500, maxHeight: 500, quality: 0.82 });
       setImage(compressed);
       showToast('Category image loaded & optimized.');
     } catch {

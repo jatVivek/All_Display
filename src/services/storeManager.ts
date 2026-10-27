@@ -145,7 +145,7 @@ const STORAGE_KEYS = {
   PRODUCTS: 'alldisplay_store_products_v4',
   ORDERS: 'alldisplay_store_orders_v3',
   QUOTES: 'alldisplay_store_quotes_v3',
-  SETTINGS: 'alldisplay_store_settings_v3',
+  SETTINGS: 'alldisplay_store_settings_v4',
   HOMEPAGE: 'alldisplay_store_homepage_v3',
   HOMEPAGE_DEALS: 'alldisplay_store_homepage_deals_v3',
   CATEGORIES: 'alldisplay_store_categories_v3',
@@ -455,11 +455,13 @@ class CentralStoreService {
   }
 
   private async apiRequest<T>(url: string, options: RequestInit = {}): Promise<T> {
+    const token = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('alldisplay_admin_token') : null;
     const response = await fetch(url, {
       ...options,
       credentials: 'same-origin',
       headers: {
         ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        ...(token ? { 'X-Admin-Token': token } : {}),
         ...options.headers,
       },
     });
@@ -533,11 +535,14 @@ class CentralStoreService {
   }
 
   public async signInAdmin(password: string): Promise<AdminRole> {
-    await this.apiRequest('/api/admin/login', {
+    const res = await this.apiRequest<{ role: AdminRole; token?: string }>('/api/admin/login', {
       method: 'POST',
       headers: { 'X-Admin-Request': '1' },
       body: JSON.stringify({ password }),
     });
+    if (res?.token && typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem('alldisplay_admin_token', res.token);
+    }
     this.apiConfigured = true;
     this.adminAuthenticated = true;
     try {
@@ -551,7 +556,7 @@ class CentralStoreService {
       this.loadSharedHomepageBanners(),
       this.loadOperationalData(),
     ]);
-    return 'Owner';
+    return res?.role || 'Owner';
   }
 
   private async migrateLocalSettingsIfCloudIsEmpty() {
@@ -597,6 +602,9 @@ class CentralStoreService {
 
   public async signOutAdmin() {
     this.adminAuthenticated = false;
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem('alldisplay_admin_token');
+    }
     await this.apiRequest('/api/admin/logout', {
       method: 'POST',
       headers: { 'X-Admin-Request': '1' },

@@ -4,6 +4,7 @@ import { HomepageBanner } from '../../types';
 import { storeManager } from '../../services/storeManager';
 import { LoadingButton } from '../../components/LoadingStates';
 import { ImageCropperModal, CropAspectRatio } from '../components/ImageCropperModal';
+import { compressImage } from '../../utils/imageCompressor';
 
 interface AdminHomepageViewProps {
   showToast: (msg: string) => void;
@@ -92,11 +93,10 @@ export const AdminHomepageView: React.FC<AdminHomepageViewProps> = ({ showToast 
   const handleUploadCroppedFile = async (bannerId: string, field: 'image' | 'mobileImage', file: File) => {
     setUploadingBannerId(bannerId);
     try {
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = () => reject(new Error('Failed to read image'));
-        reader.readAsDataURL(file);
+      const dataUrl = await compressImage(file, {
+        maxWidth: field === 'mobileImage' ? 800 : 1280,
+        maxHeight: field === 'mobileImage' ? 600 : 720,
+        quality: 0.82,
       });
       updateBanner(bannerId, { [field]: dataUrl });
       showToast('Cropped uniform banner applied successfully!');

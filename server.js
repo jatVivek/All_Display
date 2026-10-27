@@ -441,7 +441,9 @@ function requireAdmin(request, response, next) {
     ?.split(';')
     .map((part) => part.trim())
     .find((part) => part.startsWith(`${sessionCookie}=`))
-    ?.slice(sessionCookie.length + 1);
+    ?.slice(sessionCookie.length + 1)
+    ?? request.get('x-admin-token')
+    ?? request.get('authorization')?.replace(/^Bearer\s+/i, '');
 
   if (!verifySession(token)) {
     return response.status(401).json({ error: 'Admin sign-in required.' });
@@ -759,19 +761,21 @@ app.post('/api/admin/login', requireSameOrigin, async (request, response) => {
   response.cookie(sessionCookie, token, {
     httpOnly: true,
     secure: production,
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: sessionTtlSeconds * 1000,
     path: '/',
   });
-  response.json({ role: 'Owner' });
+  response.json({ role: 'Owner', token });
 });
 
 app.get('/api/admin/session', (request, response) => {
-  const token = request.get('cookie')
+  const token = request.cookies?.[sessionCookie] ?? request.get('cookie')
     ?.split(';')
     .map((part) => part.trim())
     .find((part) => part.startsWith(`${sessionCookie}=`))
-    ?.slice(sessionCookie.length + 1);
+    ?.slice(sessionCookie.length + 1)
+    ?? request.get('x-admin-token')
+    ?? request.get('authorization')?.replace(/^Bearer\s+/i, '');
   response.json({ role: verifySession(token) ? 'Owner' : null });
 });
 
@@ -860,7 +864,10 @@ app.get('/api/catalog', async (_request, response, next) => {
 app.get('/api/settings', async (_request, response, next) => {
   if (!pool) {
     let settings = memoryStore.settings;
-    if (settings) {
+    if (typeof settings === 'string') {
+      try { settings = JSON.parse(settings); } catch {}
+    }
+    if (settings && typeof settings === 'object') {
       if (settings.storeName === 'Vinayak Packaging') settings.storeName = 'All Display';
       if (settings.brandName === 'Vinayak Packaging') settings.brandName = 'All Display';
       if (typeof settings.logoUrl === 'string' && settings.logoUrl.startsWith('/uploads/')) {
@@ -872,7 +879,10 @@ app.get('/api/settings', async (_request, response, next) => {
   try {
     const [rows] = await pool.query('SELECT data FROM business_settings WHERE id = 1');
     let settings = rows.length ? rows[0].data : null;
-    if (settings) {
+    if (typeof settings === 'string') {
+      try { settings = JSON.parse(settings); } catch {}
+    }
+    if (settings && typeof settings === 'object') {
       if (settings.storeName === 'Vinayak Packaging') settings.storeName = 'All Display';
       if (settings.brandName === 'Vinayak Packaging') settings.brandName = 'All Display';
       if (typeof settings.logoUrl === 'string' && settings.logoUrl.startsWith('/uploads/')) {

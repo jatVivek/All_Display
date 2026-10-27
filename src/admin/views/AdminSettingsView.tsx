@@ -25,6 +25,38 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
 
   React.useEffect(() => {
     storeManager.getDatabaseInfo().then(setDbInfo).catch(() => null);
+
+    // Auto-sanitize legacy "Vinayak Packaging" and broken "/uploads/..." URLs on mount
+    const current = storeManager.getSettings();
+    let needsUpdate = false;
+    let brand = current.brandName || current.storeName || 'All Display';
+    if (!brand || brand === 'Vinayak Packaging') {
+      brand = 'All Display';
+      needsUpdate = true;
+    }
+    let logo = current.logoUrl || '/assets/vinayak/logo.png';
+    if (typeof logo === 'string' && logo.startsWith('/uploads/')) {
+      logo = '/assets/vinayak/logo.png';
+      needsUpdate = true;
+    }
+    if (needsUpdate) {
+      const sanitized = { ...current, brandName: brand, storeName: brand, logoUrl: logo };
+      setSettings(sanitized);
+      void storeManager.saveSettings(sanitized);
+    }
+
+    const unsubscribe = storeManager.subscribe((state) => {
+      if (state.settings) {
+        setSettings((prev) => {
+          let updatedLogo = state.settings.logoUrl || prev.logoUrl;
+          if (typeof updatedLogo === 'string' && updatedLogo.startsWith('/uploads/')) {
+            updatedLogo = '/assets/vinayak/logo.png';
+          }
+          return { ...state.settings, logoUrl: updatedLogo };
+        });
+      }
+    });
+    return unsubscribe;
   }, []);
 
   const handleTestDatabase = async () => {
@@ -61,30 +93,45 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
 
   const handleUploadLogo = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    event.target.value = '';
     if (!file) return;
 
     setIsUploadingLogo(true);
     try {
-      // Issue #2 & #20: Compress client-side directly into high-clarity WebP Data URL
-      const compressedLogo = await compressImage(file, { maxWidth: 800, maxHeight: 400, quality: 0.9 });
+      // Issue #2 & #20: High-clarity client-side WebP compression (max 500x250, 0.88 quality ~ 15-25 KB)
+      const compressedLogo = await compressImage(file, { maxWidth: 500, maxHeight: 250, quality: 0.88 });
       
       handleChange('logoUrl', compressedLogo);
-      const updatedSettings = { ...settings, logoUrl: compressedLogo };
+      const updatedSettings = {
+        ...settings,
+        storeName: settings.brandName || settings.storeName || 'All Display',
+        brandName: settings.brandName || settings.storeName || 'All Display',
+        logoUrl: compressedLogo,
+      };
       await storeManager.saveSettings(updatedSettings);
       showToast('Brand logo updated and synced across storefront!');
     } catch (error) {
       showToast(error instanceof Error ? error.message : 'Logo upload failed.');
     } finally {
       setIsUploadingLogo(false);
+      event.target.value = '';
     }
+  };
+
+  const handleResetDefaultLogo = async () => {
+    handleChange('logoUrl', '/assets/vinayak/logo.png');
+    const updatedSettings = {
+      ...settings,
+      logoUrl: '/assets/vinayak/logo.png',
+    };
+    await storeManager.saveSettings(updatedSettings);
+    showToast('Default All Display logo restored!');
   };
 
   const handleUploadRequirementImage = async (key: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const compressed = await compressImage(file, { maxWidth: 800, maxHeight: 600, quality: 0.88 });
+      const compressed = await compressImage(file, { maxWidth: 600, maxHeight: 450, quality: 0.85 });
       const currentReqs = { ...(settings.requirementImages || {}) };
       currentReqs[key] = compressed;
       handleChange('requirementImages', currentReqs);
@@ -193,53 +240,71 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-center gap-6">
             <div className="flex flex-col items-center gap-2 shrink-0">
               <div className="w-24 h-24 rounded-2xl bg-white border border-slate-200 p-2 flex items-center justify-center shadow-xs overflow-hidden">
-                {settings.logoUrl ? (
-                  <img
-                    src={settings.logoUrl}
-                    alt="Brand Logo Preview"
-                    className="max-w-full max-h-full object-contain"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/assets/vinayak/logo.png';
-                    }}
-                  />
-                ) : (
-                  <span className="text-xs text-slate-400 font-semibold text-center">No Logo Set</span>
-                )}
+                <img
+                  src={settings.logoUrl || '/assets/vinayak/logo.png'}
+                  alt="Brand Logo Preview"
+                  className="max-w-full max-h-full object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/assets/vinayak/logo.png';
+                  }}
+                />
               </div>
               <span className="text-[10px] text-slate-500 font-medium">Logo Preview</span>
             </div>
 
             <div className="flex-1 w-full flex flex-col gap-2">
-              <label className="text-xs font-semibold text-slate-800">Brand Logo URL</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-slate-800">Brand Logo (File or URL)</label>
+                {settings.logoUrl?.startsWith('data:') && (
+                  <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold px-2 py-0.5 rounded-md">
+                    Custom Uploaded Image (Active)
+                  </span>
+                )}
+              </div>
               <input
                 type="text"
-                value={settings.logoUrl || ''}
-                onChange={(e) => handleChange('logoUrl', e.target.value)}
-                placeholder="https://... or upload from your device"
+                value={settings.logoUrl?.startsWith('data:') ? '[Uploaded WebP Image Active]' : (settings.logoUrl || '')}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val !== '[Uploaded WebP Image Active]') {
+                    handleChange('logoUrl', val);
+                  }
+                }}
+                placeholder="https://... or click Upload Logo File below"
                 className="p-2.5 rounded-xl bg-white border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500"
               />
 
-              <div className="flex items-center gap-3 mt-1">
-                <label className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-orange-700 bg-orange-100 hover:bg-orange-200 transition-colors cursor-pointer ${
+              <div className="flex flex-wrap items-center gap-2.5 mt-1">
+                <label className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-orange-700 bg-orange-100 hover:bg-orange-200 transition-colors cursor-pointer ${
                   isUploadingLogo ? 'opacity-50 cursor-wait' : ''
                 }`}>
-                  <AppIcon name="upload" className="text-sm" />
-                  <span>{isUploadingLogo ? 'Uploading...' : 'Upload Logo File'}</span>
+                  <AppIcon name={isUploadingLogo ? 'progress_activity' : 'upload'} className={`text-sm ${isUploadingLogo ? 'animate-spin' : ''}`} />
+                  <span>{isUploadingLogo ? 'Compressing & Uploading...' : 'Upload Logo File'}</span>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/webp,image/svg+xml,image/gif"
                     disabled={isUploadingLogo}
                     onChange={handleUploadLogo}
                     className="sr-only"
                   />
                 </label>
-                {settings.logoUrl && (
+
+                <button
+                  type="button"
+                  onClick={handleResetDefaultLogo}
+                  className="px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer"
+                  title="Reset to default All Display logo"
+                >
+                  Restore Default Logo
+                </button>
+
+                {settings.logoUrl && settings.logoUrl !== '/assets/vinayak/logo.png' && (
                   <button
                     type="button"
                     onClick={() => handleChange('logoUrl', '')}
-                    className="text-xs text-rose-600 hover:text-rose-800 font-medium"
+                    className="text-xs text-rose-600 hover:text-rose-800 font-medium px-2 py-1"
                   >
-                    Clear Logo
+                    Clear
                   </button>
                 )}
               </div>

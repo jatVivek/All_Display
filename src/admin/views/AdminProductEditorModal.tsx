@@ -149,7 +149,6 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
 
   const handleUploadImages = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
-    event.target.value = '';
     if (!files.length) return;
 
     setIsUploadingImage(true);
@@ -157,17 +156,8 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
     try {
       const processedUrls: string[] = [];
       for (const file of files) {
-        // Compress client-side first into high-clarity WebP Data URL (Issue #20)
-        let compressedDataUrl: string;
-        try {
-          compressedDataUrl = await compressImage(file, { maxWidth: 1600, maxHeight: 1600, quality: 0.88 });
-        } catch {
-          compressedDataUrl = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.readAsDataURL(file);
-          });
-        }
+        // Compress client-side into compact high-clarity WebP Data URL (Issue #20 & #21)
+        const compressedDataUrl = await compressImage(file, { maxWidth: 900, maxHeight: 900, quality: 0.82 });
         processedUrls.push(compressedDataUrl);
       }
       setImages((current) => [...current, ...processedUrls]);
@@ -177,6 +167,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
       onError(msg);
     } finally {
       setIsUploadingImage(false);
+      event.target.value = '';
     }
   };
 
@@ -186,27 +177,29 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
 
   const handleUploadVideo = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    event.target.value = '';
     if (!file) return;
 
     setModalError(null);
     setIsUploadingVideo(true);
     try {
-      if (file.size > 4.2 * 1024 * 1024) {
-        // Exceeds Vercel serverless request body limit
-        setModalError('Video file exceeds 4.2 MB (Vercel serverless limit). Please compress the video or enter an external hosted video URL.');
+      if (file.size > 15 * 1024 * 1024) {
+        setModalError('Video file exceeds 15 MB. Please compress the video or enter an external hosted video URL.');
         setIsUploadingVideo(false);
         return;
       }
 
-      // Try server video upload
+      // Try server video upload first
       try {
         const formData = new FormData();
         formData.append('video', file);
+        const adminToken = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('alldisplay_admin_token') : null;
         const response = await fetch('/api/admin/video-uploads', {
           method: 'POST',
           credentials: 'same-origin',
-          headers: { 'X-Admin-Request': '1' },
+          headers: {
+            'X-Admin-Request': '1',
+            ...(adminToken ? { 'X-Admin-Token': adminToken } : {}),
+          },
           body: formData,
         });
         if (response.ok) {
@@ -234,6 +227,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
       onError(msg);
     } finally {
       setIsUploadingVideo(false);
+      event.target.value = '';
     }
   };
 

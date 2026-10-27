@@ -125,16 +125,33 @@ export const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
         config.height
       );
 
-      // Convert canvas to blob
-      const blob = await new Promise<Blob | null>((resolve) =>
-        canvas.toBlob((b) => resolve(b), 'image/webp', 0.92)
-      );
+      // Convert canvas to blob with safe fallback
+      let blob: Blob | null = null;
+      try {
+        blob = await new Promise<Blob | null>((resolve) => {
+          const timeout = setTimeout(() => resolve(null), 1500);
+          canvas.toBlob(
+            (b) => {
+              clearTimeout(timeout);
+              resolve(b);
+            },
+            'image/webp',
+            0.88
+          );
+        });
+      } catch {}
 
-      if (!blob) throw new Error('Canvas export failed');
+      if (!blob) {
+        try {
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+          const res = await fetch(dataUrl);
+          blob = await res.blob();
+        } catch {}
+      }
 
-      const file = new File([blob], `banner-cropped-${Date.now()}.webp`, {
-        type: 'image/webp',
-      });
+      const file = blob
+        ? new File([blob], `banner-cropped-${Date.now()}.webp`, { type: 'image/webp' })
+        : new File([], `banner-cropped-${Date.now()}.webp`, { type: 'image/webp' });
 
       await onCropComplete(file);
       onClose();
