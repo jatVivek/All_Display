@@ -20,6 +20,7 @@ import { ContactView } from './views/ContactView';
 import { DealsView } from './views/DealsView';
 import { storeManager } from './services/storeManager';
 import { useAuth } from './auth/AuthContext';
+import { AuthDialog } from './auth/AuthDialog';
 import { WishlistModal } from './components/WishlistModal';
 import { AccountModal } from './components/AccountModal';
 
@@ -39,6 +40,7 @@ const viewPaths: Record<ActiveView, string> = {
   'luxury-gold-fixtures': '/shop/gold-boutique-fixtures',
   'hangers-accessories': '/shop/hangers-clips-and-hooks',
   admin: '/admin',
+  account: '/account',
 };
 
 const defaultCategories: Partial<Record<ActiveView, string>> = {
@@ -329,11 +331,11 @@ export default function App() {
       'Hangers, Clips & Hooks': 'hangers-accessories',
     };
     setBannerCategoryName(categoryName || 'All Categories');
-    setBannerProductId(banner.linkType === 'product' ? banner.linkId : null);
+    setBannerProductId(banner.linkType === 'product' && banner.linkId ? banner.linkId : null);
     const view = categoryViews[categoryName || ''] || 'racks-floor-stands';
     const params = new URLSearchParams();
     if (categoryName) params.set('category', categoryName);
-    if (banner.linkType === 'product') params.set('product', banner.linkId);
+    if (banner.linkType === 'product' && banner.linkId) params.set('product', banner.linkId);
     navigateToView(view, `${viewPaths[view]}?${params.toString()}`);
   };
 

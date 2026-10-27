@@ -26,7 +26,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
 
   const filteredProjects = activeCategory === 'all'
     ? PROJECT_REELS
-    : PROJECT_REELS.filter((p) => p.category === activeCategory || (activeCategory === 'wall-channel' && p.specs.wallSlotChannels.length > 0));
+    : PROJECT_REELS.filter((p) => p.category === activeCategory || (activeCategory === 'wall-channel' && (p.specs?.wallSlotChannels?.length || 0) > 0));
 
   return (
     <div className="w-full">
@@ -199,25 +199,25 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                 <div className="bg-surface-container-low rounded-lg p-3 flex flex-col gap-1 text-xs text-on-surface-variant border border-surface-container">
                   <div className="flex items-center justify-between">
                     <span className="text-outline">Floor Units:</span>
-                    <span className="font-semibold text-primary font-mono">{project.specs.floorUnits}</span>
+                    <span className="font-semibold text-primary font-mono">{project.specs?.floorUnits || project.metrics?.racksInstalled || 'Standard'}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-outline">Wall Slot Channels:</span>
-                    <span className="font-semibold text-primary font-mono">{project.specs.wallSlotChannels}</span>
+                    <span className="font-semibold text-primary font-mono">{project.specs?.wallSlotChannels || project.metrics?.capacity || 'Standard'}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-outline">Special:</span>
-                    <span className="font-semibold text-primary font-mono">{project.specs.special}</span>
+                    <span className="font-semibold text-primary font-mono">{project.specs?.special || project.metrics?.finishType || 'Custom'}</span>
                   </div>
                 </div>
 
                 {/* Action Footprint */}
                 <div className="flex items-center justify-between pt-1 border-t border-surface-container">
                   <div className="flex items-center gap-1.5">
-                    {project.finishes.map((f, i) => (
+                    {(project.finishes || []).map((f: { name: string; color: string }, i: number) => (
                       <span key={i} className="w-3.5 h-3.5 rounded-full border border-black/10" style={{ backgroundColor: f.color }} title={f.name}></span>
                     ))}
-                    <span className="text-[10px] uppercase font-bold text-outline ml-1">{project.finishLabel}</span>
+                    <span className="text-[10px] uppercase font-bold text-outline ml-1">{project.finishLabel || project.metrics?.finishType || ''}</span>
                   </div>
                   <a 
                     href={getWhatsAppLink(`Hi All Display, I saw the ${project.title} setup. Please quote for a similar setup.`)}
@@ -348,17 +348,17 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                   ))}
                 </div>
                 <p className="text-xs text-on-surface-variant italic leading-relaxed">
-                  "{rev.text}"
+                  "{rev.text || rev.comment}"
                 </p>
               </div>
 
               <div className="flex items-center gap-3 pt-3 border-t border-surface-container">
                 <div className="w-9 h-9 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-xs text-primary">
-                  {rev.initials}
+                  {rev.initials || rev.author?.slice(0, 2).toUpperCase() || 'AD'}
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xs font-bold text-primary">{rev.author}</span>
-                  <span className="text-[10px] text-on-surface-variant">{rev.role} • {rev.location}</span>
+                  <span className="text-[10px] text-on-surface-variant">{rev.role} • {rev.location || rev.city || rev.storeName}</span>
                 </div>
               </div>
             </div>

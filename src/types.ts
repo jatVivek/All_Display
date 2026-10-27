@@ -129,6 +129,13 @@ export interface ProjectReel {
     finishType: string;
   };
   clientQuote: string;
+  specs?: {
+    floorUnits: string;
+    wallSlotChannels: string;
+    special: string;
+  };
+  finishes?: { name: string; color: string }[];
+  finishLabel?: string;
 }
 
 export interface Review {
@@ -143,4 +150,7 @@ export interface Review {
   verifiedWholesaleBuyer: boolean;
   avatar: string;
   helpfulCount: number;
+  text?: string;
+  initials?: string;
+  location?: string;
 }

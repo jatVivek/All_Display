@@ -47,7 +47,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
     }
   };
 
-  const handleChange = (field: keyof AdminSettings, value: string | number) => {
+  const handleChange = (field: keyof AdminSettings, value: string | number | Record<string, string>) => {
     setSettings((prev) => {
       const next = { ...prev, [field]: value };
       if (field === 'brandName') {

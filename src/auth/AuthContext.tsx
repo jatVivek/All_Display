@@ -7,6 +7,7 @@ export interface AuthUser {
   avatarUrl: string | null;
   role: 'user' | 'admin';
   createdAt: string;
+  phone?: string;
 }
 
 interface Credentials {

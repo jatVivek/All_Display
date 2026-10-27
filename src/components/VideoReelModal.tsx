@@ -101,15 +101,15 @@ export const VideoReelModal: React.FC<VideoReelModalProps> = ({ reel, onClose })
               </span>
               <div className="flex justify-between py-1 border-b border-white/5">
                 <span className="text-white/60">Floor Display Units:</span>
-                <span className="font-semibold text-white">{reel.specs.floorUnits}</span>
+                <span className="font-semibold text-white">{reel.specs?.floorUnits || reel.metrics?.racksInstalled || 'Standard'}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-white/5">
                 <span className="text-white/60">Wall Slot Channels:</span>
-                <span className="font-semibold text-white">{reel.specs.wallSlotChannels}</span>
+                <span className="font-semibold text-white">{reel.specs?.wallSlotChannels || reel.metrics?.capacity || 'Standard'}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-white/5">
                 <span className="text-white/60">Special Configuration:</span>
-                <span className="font-semibold text-white">{reel.specs.special}</span>
+                <span className="font-semibold text-white">{reel.specs?.special || reel.metrics?.finishType || 'Custom'}</span>
               </div>
               <div className="flex justify-between py-1">
                 <span className="text-white/60">Turnkey Execution:</span>
@@ -121,7 +121,7 @@ export const VideoReelModal: React.FC<VideoReelModalProps> = ({ reel, onClose })
             <div className="flex items-center gap-3">
               <span className="text-xs text-white/70">Coating Spec:</span>
               <div className="flex items-center gap-2">
-                {reel.finishes.map((f, i) => (
+                {(reel.finishes || []).map((f: { name: string; color: string }, i: number) => (
                   <div key={i} className="flex items-center gap-1.5 bg-black/30 px-2 py-1 rounded-md border border-white/10">
                     <span className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: f.color }}></span>
                     <span className="text-[11px] text-white/90">{f.name}</span>
