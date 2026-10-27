@@ -39,12 +39,29 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
 
   const brandName = settings.brandName || settings.storeName || 'All Display';
 
-  // Consignee state - auto-fill from user profile if available
-  const [storeName, setStoreName] = useState(() => localStorage.getItem('vinayak_user_store') || '');
-  const [proprietor, setProprietor] = useState(() => user?.name || '');
-  const [whatsapp, setWhatsapp] = useState(() => user?.phone || localStorage.getItem('vinayak_user_phone') || '');
-  const [destination, setDestination] = useState(() => localStorage.getItem('vinayak_user_address') || '');
-  const [pincode, setPincode] = useState(() => localStorage.getItem('vinayak_user_pincode') || '');
+  // Helper to retrieve saved user profile / shipping address from local storage
+  const getStoredProfileVal = (key: string, userObj = user) => {
+    if (typeof window === 'undefined') return '';
+    if (userObj?.id) {
+      const uVal = localStorage.getItem(`alldisplay_user_${key}_${userObj.id}`) || localStorage.getItem(`vinayak_user_${key}_${userObj.id}`);
+      if (uVal) return uVal;
+    }
+    if (userObj?.email) {
+      const eVal = localStorage.getItem(`alldisplay_user_${key}_${userObj.email}`) || localStorage.getItem(`vinayak_user_${key}_${userObj.email}`);
+      if (eVal) return eVal;
+    }
+    return localStorage.getItem(`alldisplay_user_${key}`) || localStorage.getItem(`vinayak_user_${key}`) || '';
+  };
+
+  // Consignee state - auto-fill from user profile / address if available
+  const [storeName, setStoreName] = useState(() => getStoredProfileVal('store'));
+  const [proprietor, setProprietor] = useState(() => user?.name || getStoredProfileVal('name') || '');
+  const [whatsapp, setWhatsapp] = useState(() => {
+    const raw = getStoredProfileVal('phone') || user?.phone || '';
+    return raw.replace(/^(\+91|91)/, '').replace(/\D/g, '').slice(0, 10);
+  });
+  const [destination, setDestination] = useState(() => getStoredProfileVal('address'));
+  const [pincode, setPincode] = useState(() => getStoredProfileVal('pincode'));
   const [launchTimeline, setLaunchTimeline] = useState<'7days' | '15days' | 'nextmonth'>('7days');
   const [notes, setNotes] = useState('');
   const [copiedNotification, setCopiedNotification] = useState(false);
@@ -52,13 +69,70 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [submissionNotice, setSubmissionNotice] = useState<string | null>(null);
 
-  // Sync profile when user logs in
+  // Sync profile when user logs in or profile updates
   useEffect(() => {
-    if (user) {
-      if (!proprietor) setProprietor(user.name);
-      if (!whatsapp && user.phone) setWhatsapp(user.phone);
-    }
+    const syncProfile = () => {
+      const sStore = getStoredProfileVal('store', user);
+      const sProp = user?.name || getStoredProfileVal('name', user);
+      const sPhone = (getStoredProfileVal('phone', user) || user?.phone || '').replace(/^(\+91|91)/, '').replace(/\D/g, '').slice(0, 10);
+      const sDest = getStoredProfileVal('address', user);
+      const sPin = getStoredProfileVal('pincode', user);
+
+      if (sStore) setStoreName(prev => prev || sStore);
+      if (sProp) setProprietor(prev => prev || sProp);
+      if (sPhone) setWhatsapp(prev => prev || sPhone);
+      if (sDest) setDestination(prev => prev || sDest);
+      if (sPin) setPincode(prev => prev || sPin);
+    };
+
+    syncProfile();
+    window.addEventListener('alldisplay_profile_updated', syncProfile);
+    window.addEventListener('vinayak_user_profile_updated', syncProfile);
+    return () => {
+      window.removeEventListener('alldisplay_profile_updated', syncProfile);
+      window.removeEventListener('vinayak_user_profile_updated', syncProfile);
+    };
   }, [user]);
+
+  const handleStoreNameChange = (val: string) => {
+    setStoreName(val);
+    localStorage.setItem('alldisplay_user_store', val);
+    localStorage.setItem('vinayak_user_store', val);
+    if (user?.id) localStorage.setItem(`alldisplay_user_store_${user.id}`, val);
+    if (user?.email) localStorage.setItem(`alldisplay_user_store_${user.email}`, val);
+  };
+
+  const handleProprietorChange = (val: string) => {
+    setProprietor(val);
+    localStorage.setItem('alldisplay_user_name', val);
+    localStorage.setItem('vinayak_user_name', val);
+    if (user?.id) localStorage.setItem(`alldisplay_user_name_${user.id}`, val);
+    if (user?.email) localStorage.setItem(`alldisplay_user_name_${user.email}`, val);
+  };
+
+  const handleDestinationChange = (val: string) => {
+    setDestination(val);
+    localStorage.setItem('alldisplay_user_address', val);
+    localStorage.setItem('vinayak_user_address', val);
+    if (user?.id) localStorage.setItem(`alldisplay_user_address_${user.id}`, val);
+    if (user?.email) localStorage.setItem(`alldisplay_user_address_${user.email}`, val);
+  };
+
+  const handlePincodeChange = (val: string) => {
+    setPincode(val);
+    localStorage.setItem('alldisplay_user_pincode', val);
+    localStorage.setItem('vinayak_user_pincode', val);
+    if (user?.id) localStorage.setItem(`alldisplay_user_pincode_${user.id}`, val);
+    if (user?.email) localStorage.setItem(`alldisplay_user_pincode_${user.email}`, val);
+  };
+
+  const handleWhatsappChange = (val: string) => {
+    setWhatsapp(val);
+    localStorage.setItem('alldisplay_user_phone', val);
+    localStorage.setItem('vinayak_user_phone', val);
+    if (user?.id) localStorage.setItem(`alldisplay_user_phone_${user.id}`, val);
+    if (user?.email) localStorage.setItem(`alldisplay_user_phone_${user.email}`, val);
+  };
 
   // Calculations
   const grossSubtotal = cart.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0);
@@ -379,9 +453,17 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                   {/* Consignee Registration Form */}
                   <div className="bg-surface-container-lowest rounded-xl p-4 shadow-sm border border-surface-container flex flex-col gap-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs uppercase font-bold tracking-wider text-secondary">
-                        1. Dispatch Consignee Details
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs uppercase font-bold tracking-wider text-secondary">
+                          1. Dispatch Consignee Details
+                        </span>
+                        {(destination || storeName) && (
+                          <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                            <AppIcon name="check_circle" className="text-[12px] text-emerald-600" />
+                            From Saved Profile
+                          </span>
+                        )}
+                      </div>
                       <span className="text-[10px] text-outline uppercase bg-surface-container px-2 py-0.5 rounded font-semibold">
                         Commercial GST
                       </span>
@@ -392,9 +474,10 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                         <label className="font-semibold text-on-surface">Store / Business Trade Name *</label>
                         <input
                           type="text"
-                              required
+                          required
                           value={storeName}
-                          onChange={(e) => setStoreName(e.target.value)}
+                          onChange={(e) => handleStoreNameChange(e.target.value)}
+                          placeholder="e.g. Kaveri Jewellery Studio"
                           className="w-full bg-surface-container-low px-3 py-2 rounded-lg text-on-surface border border-surface-container focus:outline-none focus:border-primary"
                         />
                       </div>
@@ -402,8 +485,10 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                         <label className="font-semibold text-on-surface">Proprietor / Contact *</label>
                         <input
                           type="text"
+                          required
                           value={proprietor}
-                          onChange={(e) => setProprietor(e.target.value)}
+                          onChange={(e) => handleProprietorChange(e.target.value)}
+                          placeholder="Contact person name"
                           className="w-full bg-surface-container-low px-3 py-2 rounded-lg text-on-surface border border-surface-container focus:outline-none focus:border-primary"
                         />
                       </div>
@@ -415,7 +500,8 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                             type="tel"
                             required
                             value={whatsapp}
-                            onChange={(e) => setWhatsapp(e.target.value)}
+                            onChange={(e) => handleWhatsappChange(e.target.value)}
+                            placeholder="9876543210"
                             className="w-full bg-transparent text-on-surface focus:outline-none font-mono"
                           />
                           <AppIcon name="check_circle" className="text-[#25D366] text-[16px]" />
@@ -427,7 +513,8 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                           type="text"
                           required
                           value={destination}
-                          onChange={(e) => setDestination(e.target.value)}
+                          onChange={(e) => handleDestinationChange(e.target.value)}
+                          placeholder="City, State (or full address)"
                           className="w-full bg-surface-container-low px-3 py-2 rounded-lg text-on-surface border border-surface-container focus:outline-none focus:border-primary"
                         />
                       </div>
@@ -437,7 +524,8 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                           type="text"
                           required
                           value={pincode}
-                          onChange={(e) => setPincode(e.target.value)}
+                          onChange={(e) => handlePincodeChange(e.target.value)}
+                          placeholder="600001"
                           className="w-full bg-surface-container-low px-3 py-2 rounded-lg text-on-surface border border-surface-container focus:outline-none focus:border-primary font-mono"
                         />
                       </div>

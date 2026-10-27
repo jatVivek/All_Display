@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppIcon } from './AppIcon';
 import { useAuth } from '../auth/AuthContext';
 import { storeManager } from '../services/storeManager';
@@ -17,12 +17,35 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 }) => {
   const { user, logout } = useAuth();
   useScrollLock(isOpen && Boolean(user));
+  const getStoredProfileVal = (key: string) => {
+    if (typeof window === 'undefined') return '';
+    if (user?.id) {
+      const uVal = localStorage.getItem(`alldisplay_user_${key}_${user.id}`) || localStorage.getItem(`vinayak_user_${key}_${user.id}`);
+      if (uVal) return uVal;
+    }
+    if (user?.email) {
+      const eVal = localStorage.getItem(`alldisplay_user_${key}_${user.email}`) || localStorage.getItem(`vinayak_user_${key}_${user.email}`);
+      if (eVal) return eVal;
+    }
+    return localStorage.getItem(`alldisplay_user_${key}`) || localStorage.getItem(`vinayak_user_${key}`) || '';
+  };
+
   const [activeTab, setActiveTab] = useState<'orders' | 'address' | 'security'>('orders');
-  const [savedPhone, setSavedPhone] = useState(() => localStorage.getItem('alldisplay_user_phone') || localStorage.getItem('vinayak_user_phone') || '');
-  const [savedAddress, setSavedAddress] = useState(() => localStorage.getItem('alldisplay_user_address') || localStorage.getItem('vinayak_user_address') || '');
-  const [savedPincode, setSavedPincode] = useState(() => localStorage.getItem('alldisplay_user_pincode') || localStorage.getItem('vinayak_user_pincode') || '');
-  const [savedStore, setSavedStore] = useState(() => localStorage.getItem('alldisplay_user_store') || localStorage.getItem('vinayak_user_store') || '');
+  const [savedPhone, setSavedPhone] = useState(() => getStoredProfileVal('phone') || user?.phone || '');
+  const [savedAddress, setSavedAddress] = useState(() => getStoredProfileVal('address'));
+  const [savedPincode, setSavedPincode] = useState(() => getStoredProfileVal('pincode'));
+  const [savedStore, setSavedStore] = useState(() => getStoredProfileVal('store'));
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Sync profile fields whenever modal opens or user updates
+  useEffect(() => {
+    if (isOpen && user) {
+      setSavedPhone(getStoredProfileVal('phone') || user.phone || '');
+      setSavedAddress(getStoredProfileVal('address'));
+      setSavedPincode(getStoredProfileVal('pincode'));
+      setSavedStore(getStoredProfileVal('store'));
+    }
+  }, [isOpen, user]);
 
   // Security / Reset Password state (Issue #32)
   const [currentPassword, setCurrentPassword] = useState('');
@@ -45,10 +68,40 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem('alldisplay_user_phone', savedPhone);
-    localStorage.setItem('alldisplay_user_address', savedAddress);
-    localStorage.setItem('alldisplay_user_pincode', savedPincode);
-    localStorage.setItem('alldisplay_user_store', savedStore);
+    const phone = savedPhone.trim();
+    const address = savedAddress.trim();
+    const pincode = savedPincode.trim();
+    const store = savedStore.trim();
+
+    localStorage.setItem('alldisplay_user_phone', phone);
+    localStorage.setItem('alldisplay_user_address', address);
+    localStorage.setItem('alldisplay_user_pincode', pincode);
+    localStorage.setItem('alldisplay_user_store', store);
+
+    // Keep legacy fallback keys in sync
+    localStorage.setItem('vinayak_user_phone', phone);
+    localStorage.setItem('vinayak_user_address', address);
+    localStorage.setItem('vinayak_user_pincode', pincode);
+    localStorage.setItem('vinayak_user_store', store);
+
+    // Save user-scoped keys if authenticated
+    if (user?.id) {
+      localStorage.setItem(`alldisplay_user_phone_${user.id}`, phone);
+      localStorage.setItem(`alldisplay_user_address_${user.id}`, address);
+      localStorage.setItem(`alldisplay_user_pincode_${user.id}`, pincode);
+      localStorage.setItem(`alldisplay_user_store_${user.id}`, store);
+    }
+    if (user?.email) {
+      localStorage.setItem(`alldisplay_user_phone_${user.email}`, phone);
+      localStorage.setItem(`alldisplay_user_address_${user.email}`, address);
+      localStorage.setItem(`alldisplay_user_pincode_${user.email}`, pincode);
+      localStorage.setItem(`alldisplay_user_store_${user.email}`, store);
+    }
+
+    // Broadcast profile updates to active views (e.g. OrderListView checkout)
+    window.dispatchEvent(new Event('alldisplay_profile_updated'));
+    window.dispatchEvent(new Event('vinayak_user_profile_updated'));
+
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2500);
   };
