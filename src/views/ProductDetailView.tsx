@@ -33,6 +33,16 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   const allProducts = storeManager.getProducts().length > 0 ? storeManager.getProducts() : INITIAL_PRODUCTS;
   const currentProduct: Product = useMemo(() => {
     if (initialProduct) return initialProduct;
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/products/')) {
+      const rawSlug = window.location.pathname.replace(/^\/products\//, '').replace(/\/+$/, '');
+      const slug = decodeURIComponent(rawSlug).toLowerCase().trim();
+      const match = allProducts.find((p) => 
+        (p.code && p.code.toLowerCase().trim() === slug) ||
+        (p.id && p.id.toLowerCase().trim() === slug) ||
+        (p.title && p.title.toLowerCase().trim() === slug)
+      );
+      if (match) return match;
+    }
     return allProducts[0] || INITIAL_PRODUCTS[0];
   }, [initialProduct, allProducts]);
 
@@ -67,10 +77,11 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   const [activeImgIndex, setActiveImgIndex] = useState(0);
   const [isVideoActive, setIsVideoActive] = useState(false);
 
-  // Reset active image on product change
+  // Reset active image & video, and scroll smoothly to the top of the product description
   useEffect(() => {
     setActiveImgIndex(0);
     setIsVideoActive(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentProduct.id]);
 
   // Video renderer helper supporting YouTube, Vimeo, and HTML5 video
@@ -259,9 +270,10 @@ Please confirm stock availability and freight to my location.`;
 
   // Related products from the same category or overall
   const relatedProducts = useMemo(() => {
-    return allProducts
-      .filter(p => p.id !== currentProduct.id && (p.category === currentProduct.category || true))
-      .slice(0, 4);
+    const currentCat = (currentProduct.category || '').toLowerCase();
+    const sameCategory = allProducts.filter(p => p.id !== currentProduct.id && (p.category || '').toLowerCase() === currentCat);
+    const others = allProducts.filter(p => p.id !== currentProduct.id && (p.category || '').toLowerCase() !== currentCat);
+    return [...sameCategory, ...others].slice(0, 4);
   }, [allProducts, currentProduct]);
 
   return (
@@ -768,7 +780,11 @@ Please confirm stock availability and freight to my location.`;
                 return (
                   <div
                     key={rel.id}
-                    className="bg-white rounded-2xl border border-slate-100 hover:border-slate-200 p-3 sm:p-4 shadow-2xs hover:shadow-md transition-all flex flex-col group"
+                    onClick={() => {
+                      if (onSelectProduct) onSelectProduct(rel);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="bg-white rounded-2xl border border-slate-100 hover:border-orange-300 p-3 sm:p-4 shadow-2xs hover:shadow-md transition-all flex flex-col group cursor-pointer"
                   >
                     <div className="relative aspect-square w-full rounded-xl bg-slate-50 overflow-hidden mb-3">
                       <img
@@ -782,7 +798,7 @@ Please confirm stock availability and freight to my location.`;
                           e.stopPropagation();
                           storeManager.toggleWishlist(rel);
                         }}
-                        className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-xs cursor-pointer ${
+                        className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-xs cursor-pointer z-10 ${
                           relInWishlist
                             ? 'bg-rose-50 text-rose-600'
                             : 'bg-white/80 text-slate-400 hover:text-rose-500'
@@ -796,25 +812,17 @@ Please confirm stock availability and freight to my location.`;
                     <span className="text-[10px] font-bold text-orange-600 uppercase tracking-wider mb-1">
                       {rel.category}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => onSelectProduct ? onSelectProduct(rel) : null}
-                      className="text-left font-bold text-xs sm:text-sm text-slate-900 hover:text-orange-600 line-clamp-2 transition-colors cursor-pointer mb-2"
-                    >
+                    <h4 className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-orange-600 line-clamp-2 transition-colors mb-2">
                       {rel.title}
-                    </button>
+                    </h4>
 
                     <div className="mt-auto pt-2 flex items-center justify-between">
                       <span className="text-sm font-black text-slate-900">
                         ₹{rel.price.toLocaleString('en-IN')}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => onSelectProduct ? onSelectProduct(rel) : null}
-                        className="px-2.5 py-1.5 rounded-lg bg-orange-50 hover:bg-orange-600 text-orange-700 hover:text-white transition-all text-xs font-semibold cursor-pointer"
-                      >
+                      <span className="px-2.5 py-1.5 rounded-lg bg-orange-50 group-hover:bg-orange-600 text-orange-700 group-hover:text-white transition-all text-xs font-semibold">
                         View Details
-                      </button>
+                      </span>
                     </div>
                   </div>
                 );

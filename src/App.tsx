@@ -1,7 +1,7 @@
 import { AppIcon } from './components/AppIcon';
 import React, { useState, useEffect, useRef } from 'react';
 import { ActiveView, HomepageBanner, Product, CartItem, ProjectReel, ConsigneeDetails } from './types';
-import { PROJECT_REELS } from './data/catalog';
+import { PROJECT_REELS, INITIAL_PRODUCTS } from './data/catalog';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
@@ -82,7 +82,7 @@ export default function App() {
       return [];
     }
   });
-  const [, setStoreVersion] = useState(0);
+  const [storeVersion, setStoreVersion] = useState(0);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [bannerCategoryName, setBannerCategoryName] = useState(() => (
     new URLSearchParams(window.location.search).get('category') ||
@@ -108,8 +108,14 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(() => {
     const path = typeof window !== 'undefined' ? window.location.pathname : '';
     if (path.startsWith('/products/')) {
-      const slug = path.replace('/products/', '').toLowerCase();
-      const match = storeManager.getProducts().find((p) => p.code.toLowerCase() === slug || p.id.toLowerCase() === slug);
+      const rawSlug = path.replace(/^\/products\//, '').replace(/\/+$/, '');
+      const slug = decodeURIComponent(rawSlug).toLowerCase().trim();
+      const allProds: Product[] = storeManager.getProducts().length > 0 ? storeManager.getProducts() : INITIAL_PRODUCTS;
+      const match = allProds.find((p: Product) => 
+        (p.code && p.code.toLowerCase().trim() === slug) ||
+        (p.id && p.id.toLowerCase().trim() === slug) ||
+        (p.title && p.title.toLowerCase().trim() === slug)
+      );
       if (match) return match;
     }
     return storeManager.getProducts()[0] || null;
@@ -184,6 +190,17 @@ export default function App() {
       setBannerCategoryName(params.get('category') || defaultCategories[route.view] || 'All Categories');
       setBannerProductId(params.get('product'));
       setActiveView(route.view);
+      if (route.view === 'pdp' && window.location.pathname.startsWith('/products/')) {
+        const rawSlug = window.location.pathname.replace(/^\/products\//, '').replace(/\/+$/, '');
+        const slug = decodeURIComponent(rawSlug).toLowerCase().trim();
+        const allProds: Product[] = storeManager.getProducts().length > 0 ? storeManager.getProducts() : INITIAL_PRODUCTS;
+        const match = allProds.find((p: Product) => 
+          (p.code && p.code.toLowerCase().trim() === slug) ||
+          (p.id && p.id.toLowerCase().trim() === slug) ||
+          (p.title && p.title.toLowerCase().trim() === slug)
+        );
+        if (match) setSelectedProduct(match);
+      }
       if (route.view === activeView && route.view === 'home' && route.section) {
         requestAnimationFrame(() => {
           document.getElementById(route.section!)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -223,16 +240,24 @@ export default function App() {
 
   const handleSelectProduct = (product: Product) => {
     setSelectedProduct(product);
-    navigateToView('pdp', `/products/${encodeURIComponent(product.code.toLowerCase())}`);
+    const codeSlug = (product.code || product.id || '').toLowerCase().trim();
+    navigateToView('pdp', `/products/${encodeURIComponent(codeSlug)}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   useEffect(() => {
     if (window.location.pathname.startsWith('/products/')) {
-      const slug = window.location.pathname.replace('/products/', '').toLowerCase();
-      const match = storeManager.getProducts().find((p) => p.code.toLowerCase() === slug || p.id.toLowerCase() === slug);
+      const rawSlug = window.location.pathname.replace(/^\/products\//, '').replace(/\/+$/, '');
+      const slug = decodeURIComponent(rawSlug).toLowerCase().trim();
+      const allProds: Product[] = storeManager.getProducts().length > 0 ? storeManager.getProducts() : INITIAL_PRODUCTS;
+      const match = allProds.find((p: Product) => 
+        (p.code && p.code.toLowerCase().trim() === slug) ||
+        (p.id && p.id.toLowerCase().trim() === slug) ||
+        (p.title && p.title.toLowerCase().trim() === slug)
+      );
       if (match) setSelectedProduct(match);
     }
-  }, [activeView]);
+  }, [activeView, storeVersion]);
 
   useEffect(() => {
     if (activeView === 'account') {
