@@ -227,24 +227,14 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => navigateTo('home')}
               className="flex items-center gap-2.5 text-left group cursor-pointer min-w-0 w-full"
             >
-              {settings.logoUrl ? (
-                <img
-                  src={settings.logoUrl}
-                  alt={brandName}
-                  className="h-9 sm:h-11 w-auto max-w-[80px] sm:max-w-[100px] object-contain rounded-lg shrink-0"
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
-                    const parent = (e.target as HTMLElement).parentElement;
-                    const fallback = parent?.querySelector('.logo-fallback');
-                    if (fallback) fallback.classList.remove('hidden');
-                  }}
-                />
-              ) : null}
-              <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-xs p-1.5 shrink-0 logo-fallback ${settings.logoUrl ? 'hidden' : ''}`}>
-                <span className="font-extrabold text-xs sm:text-sm tracking-wider">
-                  {brandName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase() || 'AD'}
-                </span>
-              </div>
+              <img
+                src={settings.logoUrl || '/assets/vinayak/logo.png'}
+                alt={brandName}
+                className="h-9 sm:h-11 w-auto max-w-[90px] sm:max-w-[120px] object-contain rounded-lg shrink-0"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/assets/vinayak/logo.png';
+                }}
+              />
               <div className="flex flex-col min-w-0 overflow-hidden">
                 <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 group-hover:text-orange-600 transition-colors uppercase leading-tight truncate">
                   {brandName}
@@ -520,11 +510,16 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="w-4/5 max-w-sm bg-white h-full shadow-2xl p-6 flex flex-col justify-between overflow-y-auto">
             <div className="flex flex-col gap-6">
               <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-orange-600 text-white flex items-center justify-center font-bold text-xs">
-                    {brandName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase() || 'AD'}
-                  </div>
-                  <span className="font-bold text-sm text-slate-900">{brandName}</span>
+                <div className="flex items-center gap-2.5">
+                  <img
+                    src={settings.logoUrl || '/assets/vinayak/logo.png'}
+                    alt={brandName}
+                    className="h-8 w-auto max-w-[120px] object-contain rounded-md"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/assets/vinayak/logo.png';
+                    }}
+                  />
+                  <span className="font-bold text-sm text-slate-900 truncate">{brandName}</span>
                 </div>
                 <button onClick={() => setMobileMenuOpen(false)} className="text-slate-400">
                   <AppIcon name="close" className="text-lg" />

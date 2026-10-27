@@ -156,8 +156,15 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
         <div className="bg-white max-w-md w-full rounded-3xl shadow-2xl overflow-hidden border border-slate-200 p-8 flex flex-col items-center animate-in fade-in duration-300">
-          <div className="w-14 h-14 rounded-2xl bg-orange-600 text-white flex items-center justify-center font-extrabold text-2xl mb-4 shadow-md">
-            AD
+          <div className="h-14 mb-4 flex items-center justify-center">
+            <img
+              src={storeManager.getSettings().logoUrl || '/assets/vinayak/logo.png'}
+              alt="All Display Admin"
+              className="max-h-14 w-auto max-w-[200px] object-contain"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/assets/vinayak/logo.png';
+              }}
+            />
           </div>
           <h1 className="text-2xl font-extrabold text-slate-900 text-center mb-1">
             All Display Admin

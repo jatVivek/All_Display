@@ -52,17 +52,14 @@ export const Footer: React.FC<FooterProps> = ({ setActiveView, onOpenWishlist, o
           {/* 1. Brand Identity & Assurance */}
           <div className="flex flex-col items-center md:items-start gap-3">
             <div className="flex items-center gap-2 mb-1">
-              {settings.logoUrl ? (
-                <img
-                  src={settings.logoUrl}
-                  alt={brandName}
-                  className="h-8 w-auto object-contain max-w-[140px]"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-lg bg-orange-600 text-white flex items-center justify-center font-bold text-xs">
-                  AD
-                </div>
-              )}
+              <img
+                src={settings.logoUrl || '/assets/vinayak/logo.png'}
+                alt={brandName}
+                className="h-8 w-auto object-contain max-w-[140px]"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/assets/vinayak/logo.png';
+                }}
+              />
               <span className="font-extrabold text-slate-900 tracking-tight text-base">
                 {brandName}
               </span>

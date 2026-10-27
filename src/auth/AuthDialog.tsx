@@ -1,12 +1,22 @@
 import { AppIcon } from '../components/AppIcon';
-import React, { FormEvent, useState } from 'react';
+import React, { FormEvent, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useScrollLock } from '../hooks/useScrollLock';
+import { storeManager, AdminSettings } from '../services/storeManager';
 
 export const AuthDialog: React.FC = () => {
   const { isAuthDialogOpen, closeAuthDialog, login, signup } = useAuth();
   useScrollLock(isAuthDialogOpen);
+  const [settings, setSettings] = useState<AdminSettings>(() => storeManager.getSettings());
   const [mode, setMode] = useState<'login' | 'signup'>('login');
+
+  useEffect(() => {
+    return storeManager.subscribe((state) => {
+      if (state.settings) {
+        setSettings(state.settings);
+      }
+    });
+  }, []);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -71,8 +81,15 @@ export const AuthDialog: React.FC = () => {
       >
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <div className="w-10 h-10 rounded-2xl bg-orange-600 text-white flex items-center justify-center font-extrabold text-base mb-3 shadow-xs">
-              AD
+            <div className="h-11 mb-3 flex items-center">
+              <img
+                src={settings.logoUrl || '/assets/vinayak/logo.png'}
+                alt={settings.brandName || 'All Display'}
+                className="max-h-11 w-auto max-w-[160px] object-contain rounded-md"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/assets/vinayak/logo.png';
+                }}
+              />
             </div>
             <h2 id="auth-dialog-title" className="text-xl sm:text-2xl font-bold text-slate-900">
               {mode === 'login' ? 'Customer Sign In' : 'Create Customer Account'}

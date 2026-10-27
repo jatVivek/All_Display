@@ -1,6 +1,7 @@
 import { AppIcon } from '../../components/AppIcon';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AdminTab } from '../AdminApp';
+import { storeManager } from '../../services/storeManager';
 
 interface AdminHeaderProps {
   activeTab: AdminTab;
@@ -19,12 +20,29 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   onOpenTour,
   onExitAdmin
 }) => {
+  const [logoUrl, setLogoUrl] = useState(() => storeManager.getSettings().logoUrl || '/assets/vinayak/logo.png');
+
+  useEffect(() => {
+    return storeManager.subscribe((state) => {
+      if (state.settings?.logoUrl) {
+        setLogoUrl(state.settings.logoUrl);
+      }
+    });
+  }, []);
+
   return (
     <header className="bg-white text-slate-800 h-16 px-6 flex items-center justify-between border-b border-slate-200 shrink-0 shadow-xs">
       {/* Brand & Breadcrumb */}
       <div className="flex items-center gap-4">
-        <div className="w-10 h-10 rounded-xl bg-orange-600 text-white flex items-center justify-center font-bold text-base shadow-xs">
-          AD
+        <div className="h-10 flex items-center shrink-0">
+          <img
+            src={logoUrl}
+            alt="All Display Admin"
+            className="h-9 sm:h-10 w-auto max-w-[120px] object-contain rounded-lg"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/assets/vinayak/logo.png';
+            }}
+          />
         </div>
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
