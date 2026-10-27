@@ -65,11 +65,52 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   }, [currentProduct]);
 
   const [activeImgIndex, setActiveImgIndex] = useState(0);
+  const [isVideoActive, setIsVideoActive] = useState(false);
 
   // Reset active image on product change
   useEffect(() => {
     setActiveImgIndex(0);
+    setIsVideoActive(false);
   }, [currentProduct.id]);
+
+  // Video renderer helper supporting YouTube, Vimeo, and HTML5 video
+  const renderVideoPlayer = (url: string, autoPlay = false) => {
+    if (!url) return null;
+    const trimmed = url.trim();
+    const ytMatch = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    if (ytMatch) {
+      return (
+        <iframe
+          src={`https://www.youtube.com/embed/${ytMatch[1]}${autoPlay ? '?autoplay=1' : ''}`}
+          title="Product Video"
+          className="w-full h-full border-0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      );
+    }
+    const vimeoMatch = trimmed.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|video\/|)(\d+)/);
+    if (vimeoMatch) {
+      return (
+        <iframe
+          src={`https://player.vimeo.com/video/${vimeoMatch[3]}${autoPlay ? '?autoplay=1' : ''}`}
+          title="Product Video"
+          className="w-full h-full border-0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      );
+    }
+    return (
+      <video
+        src={trimmed}
+        controls
+        autoPlay={autoPlay}
+        playsInline
+        className="w-full h-full object-contain bg-black"
+      />
+    );
+  };
 
   // Selected variations state: map of variation id -> selected option id
   const [selectedVariations, setSelectedVariations] = useState<Record<string, string>>(() => {
@@ -256,61 +297,102 @@ Please confirm stock availability and freight to my location.`;
           
           {/* LEFT: Multi-Angle Image Gallery (5 cols) */}
           <div className="lg:col-span-6 flex flex-col gap-4">
-            {/* Main Stage Image */}
+            {/* Main Stage Image / Video */}
             <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shadow-xs flex items-center justify-center group">
-              <img
-                src={gallery[activeImgIndex] || currentProduct.image}
-                alt={currentProduct.title}
-                className="w-full h-full object-contain p-6 transition-transform duration-500 group-hover:scale-105"
-              />
+              {isVideoActive && currentProduct.videoUrl ? (
+                <div className="w-full h-full relative flex items-center justify-center bg-black">
+                  {renderVideoPlayer(currentProduct.videoUrl, true)}
 
-              {/* Badges on Main Image */}
-              <div className="absolute top-4 left-4 flex flex-col gap-1.5 items-start">
-                {currentProduct.badge && (
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-orange-600 text-white shadow-xs">
-                    {currentProduct.badge}
-                  </span>
-                )}
-                <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-500 text-white shadow-2xs">
-                  {currentProduct.stockStatus || 'In Stock'}
-                </span>
-              </div>
+                  {/* Return to Photos Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsVideoActive(false)}
+                    className="absolute top-4 right-4 z-30 px-3 py-1.5 rounded-full bg-black/80 hover:bg-black text-white text-xs font-semibold backdrop-blur-sm transition-all cursor-pointer flex items-center gap-1.5 shadow-md border border-white/20"
+                    title="Return to image view"
+                  >
+                    <AppIcon name="close" className="text-sm" />
+                    <span>View Photos</span>
+                  </button>
 
-              {/* Wishlist Button on Image */}
-              <button
-                type="button"
-                onClick={handleToggleWishlist}
-                className={`absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-md cursor-pointer ${
-                  inWishlist
-                    ? 'bg-rose-50 text-rose-600 border border-rose-200'
-                    : 'bg-white/90 text-slate-400 hover:text-rose-500 hover:bg-white border border-slate-200'
-                }`}
-                title={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-              >
-                <AppIcon
-                  name="favorite"
-                  className={`text-xl ${inWishlist ? 'text-rose-600 fill-current' : ''}`}
-                />
-              </button>
-
-              {/* Image index counter */}
-              {gallery.length > 1 && (
-                <div className="absolute bottom-4 right-4 px-2.5 py-1 rounded-lg bg-black/60 text-white text-[11px] font-medium backdrop-blur-xs">
-                  {activeImgIndex + 1} / {gallery.length}
+                  <div className="absolute bottom-4 right-4 px-2.5 py-1 rounded-lg bg-black/75 text-white text-[11px] font-medium backdrop-blur-xs flex items-center gap-1.5 z-20">
+                    <AppIcon name="videocam" className="text-orange-400 text-xs" />
+                    <span>Product Video</span>
+                  </div>
                 </div>
+              ) : (
+                <>
+                  <img
+                    src={gallery[activeImgIndex] || currentProduct.image}
+                    alt={currentProduct.title}
+                    className="w-full h-full object-contain p-6 transition-transform duration-500 group-hover:scale-105"
+                  />
+
+                  {/* Badges on Main Image */}
+                  <div className="absolute top-4 left-4 flex flex-col gap-1.5 items-start">
+                    {currentProduct.badge && (
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-orange-600 text-white shadow-xs">
+                        {currentProduct.badge}
+                      </span>
+                    )}
+                    <span className="px-3 py-1 rounded-full text-[11px] font-semibold bg-emerald-500 text-white shadow-2xs">
+                      {currentProduct.stockStatus || 'In Stock'}
+                    </span>
+                  </div>
+
+                  {/* Wishlist Button on Image */}
+                  <button
+                    type="button"
+                    onClick={handleToggleWishlist}
+                    className={`absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-md cursor-pointer z-10 ${
+                      inWishlist
+                        ? 'bg-rose-50 text-rose-600 border border-rose-200'
+                        : 'bg-white/90 text-slate-400 hover:text-rose-500 hover:bg-white border border-slate-200'
+                    }`}
+                    title={inWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+                  >
+                    <AppIcon
+                      name="favorite"
+                      className={`text-xl ${inWishlist ? 'text-rose-600 fill-current' : ''}`}
+                    />
+                  </button>
+
+                  {/* Prominent Watch Video Button on Main Image */}
+                  {currentProduct.videoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setIsVideoActive(true)}
+                      className="absolute bottom-4 left-4 z-20 flex items-center gap-2 px-3.5 py-2 rounded-full bg-slate-900/90 hover:bg-orange-600 text-white text-xs font-bold shadow-lg backdrop-blur-sm transition-all cursor-pointer group/vid border border-white/20 hover:scale-105"
+                    >
+                      <span className="w-5 h-5 rounded-full bg-orange-500 group-hover/vid:bg-white text-white group-hover/vid:text-orange-600 flex items-center justify-center transition-colors">
+                        <AppIcon name="play_arrow" className="text-xs translate-x-0.5" />
+                      </span>
+                      <span>Watch Product Video</span>
+                    </button>
+                  )}
+
+                  {/* Image/Media index counter */}
+                  {(gallery.length > 1 || Boolean(currentProduct.videoUrl)) && (
+                    <div className="absolute bottom-4 right-4 px-2.5 py-1 rounded-lg bg-black/60 text-white text-[11px] font-medium backdrop-blur-xs">
+                      {activeImgIndex + 1} / {gallery.length + (currentProduct.videoUrl ? 1 : 0)}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
-            {/* Thumbnail Strip */}
-            {gallery.length > 1 && (
+            {/* Thumbnail Strip (Images + Video) */}
+            {(gallery.length > 1 || Boolean(currentProduct.videoUrl)) && (
               <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-thin">
                 {gallery.map((imgUrl, idx) => (
                   <button
                     key={idx}
                     type="button"
-                    onClick={() => setActiveImgIndex(idx)}
+                    onClick={() => {
+                      setActiveImgIndex(idx);
+                      setIsVideoActive(false);
+                    }}
                     className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-all shrink-0 cursor-pointer bg-slate-50 ${
-                      activeImgIndex === idx
+                      !isVideoActive && activeImgIndex === idx
                         ? 'border-orange-500 ring-2 ring-orange-200'
                         : 'border-slate-200 hover:border-slate-300 opacity-70 hover:opacity-100'
                     }`}
@@ -322,6 +404,34 @@ Please confirm stock availability and freight to my location.`;
                     />
                   </button>
                 ))}
+
+                {/* Video Thumbnail (Positioned directly beside product images) */}
+                {currentProduct.videoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setIsVideoActive(true)}
+                    className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-all shrink-0 cursor-pointer bg-slate-900 group ${
+                      isVideoActive
+                        ? 'border-orange-500 ring-2 ring-orange-200 opacity-100'
+                        : 'border-slate-200 hover:border-orange-400 opacity-85 hover:opacity-100'
+                    }`}
+                    title="Play Product Demonstration Video"
+                  >
+                    <img
+                      src={gallery[0] || currentProduct.image}
+                      alt="Product Video Preview"
+                      className="w-full h-full object-cover opacity-35 group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-white pointer-events-none">
+                      <div className="w-8 h-8 rounded-full bg-orange-600 group-hover:bg-orange-500 text-white flex items-center justify-center shadow-md transition-all group-hover:scale-110">
+                        <AppIcon name="play_arrow" className="text-sm translate-x-0.5" />
+                      </div>
+                      <span className="text-[9px] font-black tracking-wider uppercase bg-black/70 px-1.5 py-0.5 rounded text-orange-300">
+                        VIDEO
+                      </span>
+                    </div>
+                  </button>
+                )}
               </div>
             )}
 
@@ -602,48 +712,27 @@ Please confirm stock availability and freight to my location.`;
             {/* Issue #13: Product Demonstration Video */}
             {currentProduct.videoUrl && (
               <div className="mt-4 pt-6 border-t border-slate-100 flex flex-col gap-3">
-                <div className="flex items-center gap-2">
-                  <AppIcon name="videocam" className="text-orange-500 text-lg" />
-                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-                    Product Demonstration Video
-                  </h3>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AppIcon name="videocam" className="text-orange-500 text-lg" />
+                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                      Product Demonstration Video
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsVideoActive(true);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="text-xs text-orange-600 hover:text-orange-700 font-bold flex items-center gap-1 cursor-pointer bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-200"
+                  >
+                    <AppIcon name="play_arrow" className="text-sm" />
+                    <span>Watch on Main Stage</span>
+                  </button>
                 </div>
                 <div className="w-full rounded-2xl overflow-hidden bg-black shadow-md aspect-video border border-slate-200">
-                  {(() => {
-                    const url = currentProduct.videoUrl;
-                    const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-                    if (ytMatch) {
-                      return (
-                        <iframe
-                          src={`https://www.youtube.com/embed/${ytMatch[1]}`}
-                          title="Product Video"
-                          className="w-full h-full border-0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
-                      );
-                    }
-                    const vimeoMatch = url.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|video\/|)(\d+)/);
-                    if (vimeoMatch) {
-                      return (
-                        <iframe
-                          src={`https://player.vimeo.com/video/${vimeoMatch[3]}`}
-                          title="Product Video"
-                          className="w-full h-full border-0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
-                      );
-                    }
-                    return (
-                      <video
-                        src={currentProduct.videoUrl}
-                        controls
-                        playsInline
-                        className="w-full h-full object-contain"
-                      />
-                    );
-                  })()}
+                  {renderVideoPlayer(currentProduct.videoUrl, false)}
                 </div>
               </div>
             )}

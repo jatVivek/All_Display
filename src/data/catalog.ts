@@ -19,6 +19,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "stockStatus": "In Stock (Chennai Depot)",
     "moq": "MOQ: 1 Unit",
     "image": "/assets/vinayak/prod_10in_bust.png",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
     "images": [
       "/assets/vinayak/prod_10in_bust.png",
       "/assets/vinayak/prod_velvet_necklace.png",
@@ -444,6 +445,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "badge": "Best Seller",
     "badgeType": "neutral",
     "image": "/assets/vinayak/prod_10in_bust.png",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
     "images": [
       "/assets/vinayak/prod_10in_bust.png",
       "/assets/vinayak/prod_velvet_necklace.png",
@@ -868,6 +870,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "stockStatus": "In Stock (Chennai Depot)",
     "moq": "MOQ: 1 Unit",
     "image": "/assets/vinayak/prod_10in_bust.png",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
     "images": [
       "/assets/vinayak/prod_10in_bust.png",
       "/assets/vinayak/prod_velvet_necklace.png",
@@ -7243,6 +7246,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "stockStatus": "In Stock (Chennai Depot)",
     "moq": "MOQ: 1 Unit",
     "image": "/assets/vinayak/prod_10in_bust.png",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
     "images": [
       "/assets/vinayak/prod_10in_bust.png",
       "/assets/vinayak/cat_mannequin.png",
@@ -7584,6 +7588,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "badge": "Best Seller",
     "badgeType": "neutral",
     "image": "/assets/vinayak/prod_10in_bust.png",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
     "images": [
       "/assets/vinayak/prod_10in_bust.png",
       "/assets/vinayak/cat_mannequin.png",
@@ -7924,6 +7929,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     "stockStatus": "In Stock (Chennai Depot)",
     "moq": "MOQ: 1 Unit",
     "image": "/assets/vinayak/prod_10in_bust.png",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
     "images": [
       "/assets/vinayak/prod_10in_bust.png",
       "/assets/vinayak/cat_mannequin.png",

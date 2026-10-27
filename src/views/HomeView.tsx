@@ -548,11 +548,19 @@ export const HomeView: React.FC<HomeViewProps> = ({
                         className="w-full h-full object-contain p-1.5 sm:p-2 group-hover:scale-105 transition-transform duration-500"
                       />
 
-                      {discountPercent > 0 && (
-                        <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-orange-600 text-white text-[8px] sm:text-[9px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full shadow-xs">
-                          {discountPercent}% OFF
-                        </div>
-                      )}
+                      <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 flex flex-col gap-1 items-start">
+                        {discountPercent > 0 && (
+                          <div className="bg-orange-600 text-white text-[8px] sm:text-[9px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full shadow-xs">
+                            {discountPercent}% OFF
+                          </div>
+                        )}
+                        {product.videoUrl && (
+                          <div className="flex items-center gap-1 bg-slate-900/85 backdrop-blur-xs text-white text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded-md shadow-xs">
+                            <AppIcon name="videocam" className="text-orange-400 text-[10px]" />
+                            <span>Video</span>
+                          </div>
+                        )}
+                      </div>
 
                       <button
                         type="button"

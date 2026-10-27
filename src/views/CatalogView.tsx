@@ -732,6 +732,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                               Options Available
                             </span>
                           )}
+                          {product.videoUrl && (
+                            <span className="bg-slate-900/85 backdrop-blur-xs text-white text-[9px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-xs">
+                              <AppIcon name="videocam" className="text-orange-400 text-[11px]" />
+                              <span>Video</span>
+                            </span>
+                          )}
                         </div>
 
                         {/* Floating Wishlist Heart */}
