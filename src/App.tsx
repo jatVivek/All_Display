@@ -73,8 +73,9 @@ export default function App() {
   ));
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
-      localStorage.removeItem('vinayak_cart');
-      localStorage.removeItem('alldisplay_cart');
+      ['vinayak_cart', 'vinayak_store_settings', 'vinayak_store_settings_v2', 'alldisplay_store_settings_v2', 'alldisplay_store_settings_v3', 'alldisplay_cart'].forEach((k) => {
+        try { localStorage.removeItem(k); } catch {}
+      });
       const savedCart = localStorage.getItem('alldisplay_cart_v3');
       const parsedCart: unknown = savedCart ? JSON.parse(savedCart) : [];
       return Array.isArray(parsedCart) ? parsedCart as CartItem[] : [];

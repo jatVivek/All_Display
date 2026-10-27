@@ -228,11 +228,11 @@ export const Header: React.FC<HeaderProps> = ({
               className="flex items-center gap-2.5 text-left group cursor-pointer min-w-0 w-full"
             >
               <img
-                src={settings.logoUrl || '/assets/vinayak/logo.png'}
+                src={settings.logoUrl || '/assets/logo_alldisplay.svg'}
                 alt={brandName}
                 className="h-9 sm:h-11 w-auto max-w-[90px] sm:max-w-[120px] object-contain rounded-lg shrink-0"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/assets/vinayak/logo.png';
+                  (e.target as HTMLImageElement).src = '/assets/logo_alldisplay.svg';
                 }}
               />
               <div className="flex flex-col min-w-0 overflow-hidden">
@@ -512,11 +512,11 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                 <div className="flex items-center gap-2.5">
                   <img
-                    src={settings.logoUrl || '/assets/vinayak/logo.png'}
+                    src={settings.logoUrl || '/assets/logo_alldisplay.svg'}
                     alt={brandName}
                     className="h-8 w-auto max-w-[120px] object-contain rounded-md"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/assets/vinayak/logo.png';
+                      (e.target as HTMLImageElement).src = '/assets/logo_alldisplay.svg';
                     }}
                   />
                   <span className="font-bold text-sm text-slate-900 truncate">{brandName}</span>

@@ -79,6 +79,7 @@ export interface AdminSettings {
   showroomAddress?: string;
   siteUrl?: string;
   requirementImages?: Record<string, string>;
+  updatedAt?: number;
 }
 
 export interface AdminCategory {
@@ -172,7 +173,7 @@ const DEFAULT_SETTINGS: AdminSettings = {
   businessAddress: '29, Perumal Mudali St, Sowcarpet, George Town, Chennai, Tamil Nadu 600001',
   showroomAddress: '29, Perumal Mudali St, Sowcarpet, George Town, Chennai, Tamil Nadu 600001',
   brandTagline: 'Jewellery Display, Trays & Packaging Solutions',
-  logoUrl: '/assets/vinayak/logo.png',
+  logoUrl: '/assets/logo_alldisplay.svg',
   headerNotice: 'Direct Factory Wholesale • Sowcarpet Depot, Chennai • Same-Day Dispatch Across India',
   supportEmail: 'contact@alldisplay.com',
   supportPhone: '+91 94622 47004',
@@ -446,17 +447,71 @@ class CentralStoreService {
     return [];
   }
 
+  public sanitizeSettings(raw: any): AdminSettings {
+    const fallback = DEFAULT_SETTINGS;
+    if (!raw || typeof raw !== 'object') return fallback;
+
+    let brand = raw.brandName || raw.storeName || fallback.brandName;
+    if (typeof brand === 'string') {
+      brand = brand.replace(/vinayak(\s+packaging)?/gi, 'All Display').trim() || 'All Display';
+    } else {
+      brand = 'All Display';
+    }
+
+    let logo = raw.logoUrl;
+    if (!logo || typeof logo !== 'string' || logo.startsWith('/uploads/') || logo.includes('vinayak/logo.png')) {
+      logo = '/assets/logo_alldisplay.svg';
+    }
+
+    let upiId = raw.upiId || fallback.upiId;
+    if (typeof upiId === 'string' && /vinayak/i.test(upiId)) {
+      upiId = 'alldisplay@icici';
+    }
+
+    let supportEmail = raw.supportEmail || fallback.supportEmail;
+    if (typeof supportEmail === 'string' && /vinayak/i.test(supportEmail)) {
+      supportEmail = 'contact@alldisplay.com';
+    }
+
+    let whatsappNumber = raw.whatsappNumber;
+    if (typeof whatsappNumber === 'string') {
+      const digits = whatsappNumber.replace(/\D/g, '');
+      whatsappNumber = digits.length === 10 ? `91${digits}` : (digits || fallback.whatsappNumber);
+    } else {
+      whatsappNumber = fallback.whatsappNumber;
+    }
+
+    let alternateWhatsapp = raw.alternateWhatsapp;
+    if (typeof alternateWhatsapp === 'string' && alternateWhatsapp.trim()) {
+      const altDigits = alternateWhatsapp.replace(/\D/g, '');
+      alternateWhatsapp = altDigits.length === 10 ? `91${altDigits}` : (altDigits || whatsappNumber);
+    } else {
+      alternateWhatsapp = whatsappNumber || fallback.alternateWhatsapp;
+    }
+
+    const supportPhone = raw.supportPhone || fallback.supportPhone;
+
+    return {
+      ...fallback,
+      ...raw,
+      storeName: brand,
+      brandName: brand,
+      logoUrl: logo,
+      upiId,
+      supportEmail,
+      whatsappNumber,
+      alternateWhatsapp,
+      supportPhone,
+      updatedAt: typeof raw.updatedAt === 'number' ? raw.updatedAt : undefined,
+    };
+  }
+
   private loadSettings(): AdminSettings {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.SETTINGS);
       if (stored !== null) {
         const parsed = JSON.parse(stored);
-        if (!parsed.storeName || parsed.storeName === 'Vinayak Packaging') parsed.storeName = 'All Display';
-        if (!parsed.brandName || parsed.brandName === 'Vinayak Packaging') parsed.brandName = 'All Display';
-        if (typeof parsed.logoUrl === 'string' && parsed.logoUrl.startsWith('/uploads/')) {
-          parsed.logoUrl = '/assets/vinayak/logo.png';
-        }
-        return parsed;
+        return this.sanitizeSettings(parsed);
       }
     } catch {}
     return DEFAULT_SETTINGS;
@@ -547,24 +602,30 @@ class CentralStoreService {
 
   private async loadSharedSettings() {
     try {
-      const { settings } = await this.apiRequest<{ settings: AdminSettings | null }>('/api/settings');
-      if (settings && Object.keys(settings).length > 0) {
-        let brand = settings.brandName || settings.storeName || this.state.settings.brandName || 'All Display';
-        if (brand === 'Vinayak Packaging') brand = 'All Display';
-        let logo = settings.logoUrl || this.state.settings.logoUrl || '/assets/vinayak/logo.png';
-        if (typeof logo === 'string' && logo.startsWith('/uploads/')) {
-          logo = '/assets/vinayak/logo.png';
+      const { settings: cloudSettings } = await this.apiRequest<{ settings: AdminSettings | null }>('/api/settings');
+      if (cloudSettings && Object.keys(cloudSettings).length > 0) {
+        const localSettings = this.state.settings;
+        const sanitizedCloud = this.sanitizeSettings(cloudSettings);
+
+        // Conflict resolution: only overwrite local settings if cloud settings are newer!
+        const localTime = typeof localSettings.updatedAt === 'number' ? localSettings.updatedAt : 0;
+        const cloudTime = typeof sanitizedCloud.updatedAt === 'number' ? sanitizedCloud.updatedAt : 0;
+
+        if (localTime > 0 && cloudTime < localTime) {
+          // Local settings are newer than cloud! Push local to cloud instead of letting stale cloud wipe local
+          if (this.adminAuthenticated) {
+            void this.apiRequest('/api/settings', {
+              method: 'PUT',
+              headers: { 'X-Admin-Request': '1' },
+              body: JSON.stringify({ settings: localSettings }),
+            }).catch(() => null);
+          }
+          return;
         }
-        const normalized: AdminSettings = {
-          ...this.state.settings,
-          ...settings,
-          storeName: brand,
-          brandName: brand,
-          logoUrl: logo,
-        };
-        this.state = { ...this.state, settings: normalized };
+
+        this.state = { ...this.state, settings: sanitizedCloud };
         try {
-          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(normalized));
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(sanitizedCloud));
         } catch {}
         this.notify();
       }
@@ -745,10 +806,19 @@ class CentralStoreService {
   private async migrateLocalSettingsIfCloudIsEmpty() {
     try {
       const { settings } = await this.apiRequest<{ settings: AdminSettings | null }>('/api/settings');
-      if (settings) {
-        this.state = { ...this.state, settings };
-        this.notify();
-        return;
+      if (settings && Object.keys(settings).length > 0) {
+        const sanitized = this.sanitizeSettings(settings);
+        const localTime = typeof this.state.settings.updatedAt === 'number' ? this.state.settings.updatedAt : 0;
+        const cloudTime = typeof sanitized.updatedAt === 'number' ? sanitized.updatedAt : 0;
+
+        if (localTime === 0 || cloudTime >= localTime) {
+          this.state = { ...this.state, settings: sanitized };
+          try {
+            localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(sanitized));
+          } catch {}
+          this.notify();
+          return;
+        }
       }
       await this.apiRequest('/api/settings', {
         method: 'PUT',
@@ -971,6 +1041,7 @@ class CentralStoreService {
       localStorage.setItem(STORAGE_KEYS.WISHLIST, JSON.stringify(list));
     } catch {}
     window.dispatchEvent(new CustomEvent('vinayak_wishlist_updated', { detail: { productId: id, isNowInWishlist, list } }));
+    window.dispatchEvent(new CustomEvent('alldisplay_wishlist_updated', { detail: { productId: id, isNowInWishlist, list } }));
     this.notify();
     return isNowInWishlist;
   }
@@ -980,6 +1051,7 @@ class CentralStoreService {
       localStorage.removeItem(STORAGE_KEYS.WISHLIST);
     } catch {}
     window.dispatchEvent(new CustomEvent('vinayak_wishlist_updated', { detail: { list: [] } }));
+    window.dispatchEvent(new CustomEvent('alldisplay_wishlist_updated', { detail: { list: [] } }));
     this.notify();
   }
 
@@ -1061,20 +1133,17 @@ class CentralStoreService {
   }
 
   public async saveSettings(settings: AdminSettings): Promise<boolean> {
-    const brand = settings.brandName || settings.storeName || 'All Display';
-    const normalizedSettings: AdminSettings = {
-      ...settings,
-      storeName: brand,
-      brandName: brand,
-    };
+    const timestamp = Date.now();
+    const sanitized = this.sanitizeSettings({ ...settings, updatedAt: timestamp });
 
     // 1. Immediately persist locally so admin changes are never lost or reverted
-    this.state = { ...this.state, settings: normalizedSettings };
+    this.state = { ...this.state, settings: sanitized };
     try {
-      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(normalizedSettings));
+      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(sanitized));
     } catch {}
-    window.dispatchEvent(new CustomEvent('vinayak_settings_updated', { detail: { settings: normalizedSettings } }));
-    window.dispatchEvent(new CustomEvent('alldisplay_data_updated', { detail: { settings: normalizedSettings } }));
+    window.dispatchEvent(new CustomEvent('vinayak_settings_updated', { detail: { settings: sanitized } }));
+    window.dispatchEvent(new CustomEvent('alldisplay_settings_updated', { detail: { settings: sanitized } }));
+    window.dispatchEvent(new CustomEvent('alldisplay_data_updated', { detail: { settings: sanitized } }));
     this.notify();
 
     // 2. Sync to cloud API if connected
@@ -1083,7 +1152,7 @@ class CentralStoreService {
         await this.apiRequest('/api/settings', {
           method: 'PUT',
           headers: { 'X-Admin-Request': '1' },
-          body: JSON.stringify({ settings: normalizedSettings }),
+          body: JSON.stringify({ settings: sanitized }),
         });
         this.state = { ...this.state, catalogSyncStatus: 'connected', catalogSyncError: null };
       } catch (error) {

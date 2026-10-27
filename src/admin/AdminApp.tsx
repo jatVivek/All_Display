@@ -58,7 +58,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
 
   // Onboarding tour state
   const [showTour, setShowTour] = useState<boolean>(() => {
-    return localStorage.getItem('vinayak_admin_tour_seen') === 'open';
+    return localStorage.getItem('alldisplay_admin_tour_seen') === 'open';
   });
   const [tourStep, setTourStep] = useState(1);
 
@@ -159,11 +159,11 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
         <div className="bg-white max-w-md w-full rounded-3xl shadow-2xl overflow-hidden border border-slate-200 p-8 flex flex-col items-center animate-in fade-in duration-300">
           <div className="h-14 mb-4 flex items-center justify-center">
             <img
-              src={storeManager.getSettings().logoUrl || '/assets/vinayak/logo.png'}
+              src={storeManager.getSettings().logoUrl || '/assets/logo_alldisplay.svg'}
               alt="All Display Admin"
               className="max-h-14 w-auto max-w-[200px] object-contain"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = '/assets/vinayak/logo.png';
+                (e.target as HTMLImageElement).src = '/assets/logo_alldisplay.svg';
               }}
             />
           </div>
@@ -261,7 +261,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
               <button
                 onClick={() => {
                   setShowTour(false);
-                  localStorage.setItem('vinayak_admin_tour_seen', 'true');
+                  localStorage.setItem('alldisplay_admin_tour_seen', 'true');
                 }}
                 className="text-slate-400 hover:text-slate-600 text-xs cursor-pointer"
               >

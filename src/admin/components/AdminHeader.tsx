@@ -20,7 +20,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   onOpenTour,
   onExitAdmin
 }) => {
-  const [logoUrl, setLogoUrl] = useState(() => storeManager.getSettings().logoUrl || '/assets/vinayak/logo.png');
+  const [logoUrl, setLogoUrl] = useState(() => storeManager.getSettings().logoUrl || '/assets/logo_alldisplay.svg');
 
   useEffect(() => {
     return storeManager.subscribe((state) => {
@@ -40,7 +40,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             alt="All Display Admin"
             className="h-9 sm:h-10 w-auto max-w-[120px] object-contain rounded-lg"
             onError={(e) => {
-              (e.target as HTMLImageElement).src = '/assets/vinayak/logo.png';
+              (e.target as HTMLImageElement).src = '/assets/logo_alldisplay.svg';
             }}
           />
         </div>

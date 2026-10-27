@@ -83,11 +83,11 @@ export const AuthDialog: React.FC = () => {
           <div>
             <div className="h-11 mb-3 flex items-center">
               <img
-                src={settings.logoUrl || '/assets/vinayak/logo.png'}
+                src={settings.logoUrl || '/assets/logo_alldisplay.svg'}
                 alt={settings.brandName || 'All Display'}
                 className="max-h-11 w-auto max-w-[160px] object-contain rounded-md"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/assets/vinayak/logo.png';
+                  (e.target as HTMLImageElement).src = '/assets/logo_alldisplay.svg';
                 }}
               />
             </div>

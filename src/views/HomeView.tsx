@@ -627,7 +627,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </section>
 
-        {/* 5. WHY CHOOSE VINAYAK PACKAGING */}
+        {/* 5. WHY CHOOSE ALL DISPLAY */}
         <section className="bg-slate-50/70 rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-slate-100">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             
@@ -690,7 +690,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </section>
 
-        {/* 6. ABOUT VINAYAK PACKAGING */}
+        {/* 6. ABOUT ALL DISPLAY */}
         <section id="about-us" className="scroll-mt-24 bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-slate-100 shadow-xs grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
           <div className="lg:col-span-7 flex flex-col gap-2.5 sm:gap-3">
             <span className="w-fit bg-orange-50 text-orange-600 border border-orange-200/60 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">

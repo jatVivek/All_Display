@@ -135,7 +135,7 @@ app.use('/uploads', (req, res, next) => {
   if (existsSync(filePath)) {
     return res.sendFile(filePath);
   }
-  return res.redirect('/assets/vinayak/logo.png');
+  return res.redirect('/assets/logo_alldisplay.svg');
 });
 
 try {
@@ -921,6 +921,45 @@ app.get('/api/catalog', async (_request, response, next) => {
   }
 });
 
+function sanitizeSettingsObject(settings) {
+  if (!settings || typeof settings !== 'object') return settings;
+  const brand = (settings.brandName || settings.storeName || 'All Display').toString();
+  const cleanBrand = brand.replace(/vinayak(\s+packaging)?/gi, 'All Display').trim() || 'All Display';
+  settings.storeName = cleanBrand;
+  settings.brandName = cleanBrand;
+
+  if (typeof settings.upiId === 'string' && /vinayak/i.test(settings.upiId)) {
+    settings.upiId = 'alldisplay@icici';
+  }
+  if (typeof settings.supportEmail === 'string' && /vinayak/i.test(settings.supportEmail)) {
+    settings.supportEmail = 'contact@alldisplay.com';
+  }
+  if (!settings.logoUrl || typeof settings.logoUrl !== 'string' || settings.logoUrl.startsWith('/uploads/') || settings.logoUrl.includes('vinayak/logo.png')) {
+    settings.logoUrl = '/assets/logo_alldisplay.svg';
+  }
+  if (!settings.siteUrl) {
+    settings.siteUrl = 'https://all-display.vercel.app/';
+  }
+  if (typeof settings.whatsappNumber === 'string') {
+    const digits = settings.whatsappNumber.replace(/\D/g, '');
+    if (digits.length >= 10 && digits.length <= 15) {
+      settings.whatsappNumber = digits.length === 10 ? `91${digits}` : digits;
+    }
+  }
+  if (typeof settings.alternateWhatsapp === 'string') {
+    const altDigits = settings.alternateWhatsapp.replace(/\D/g, '');
+    if (altDigits.length >= 10 && altDigits.length <= 15) {
+      settings.alternateWhatsapp = altDigits.length === 10 ? `91${altDigits}` : altDigits;
+    }
+  } else if (!settings.alternateWhatsapp) {
+    settings.alternateWhatsapp = settings.whatsappNumber || '919462247004';
+  }
+  if (!settings.supportPhone) {
+    settings.supportPhone = '+91 94622 47004';
+  }
+  return settings;
+}
+
 app.get('/api/settings', async (_request, response, next) => {
   if (!pool) {
     let settings = memoryStore.settings;
@@ -928,11 +967,7 @@ app.get('/api/settings', async (_request, response, next) => {
       try { settings = JSON.parse(settings); } catch {}
     }
     if (settings && typeof settings === 'object') {
-      if (settings.storeName === 'Vinayak Packaging') settings.storeName = 'All Display';
-      if (settings.brandName === 'Vinayak Packaging') settings.brandName = 'All Display';
-      if (typeof settings.logoUrl === 'string' && settings.logoUrl.startsWith('/uploads/')) {
-        settings.logoUrl = '/assets/vinayak/logo.png';
-      }
+      settings = sanitizeSettingsObject(settings);
     }
     return response.json({ settings });
   }
@@ -943,11 +978,7 @@ app.get('/api/settings', async (_request, response, next) => {
       try { settings = JSON.parse(settings); } catch {}
     }
     if (settings && typeof settings === 'object') {
-      if (settings.storeName === 'Vinayak Packaging') settings.storeName = 'All Display';
-      if (settings.brandName === 'Vinayak Packaging') settings.brandName = 'All Display';
-      if (typeof settings.logoUrl === 'string' && settings.logoUrl.startsWith('/uploads/')) {
-        settings.logoUrl = '/assets/vinayak/logo.png';
-      }
+      settings = sanitizeSettingsObject(settings);
     }
     response.json({ settings });
   } catch (error) {
@@ -1037,31 +1068,30 @@ app.put('/api/homepage-banners', requireSameOrigin, requireAdmin, async (request
 });
 
 app.put('/api/settings', requireSameOrigin, requireAdmin, async (request, response, next) => {
-  const settings = request.body?.settings;
-  if (settings && typeof settings === 'object') {
-    const brand = settings.brandName || settings.storeName || 'All Display';
-    settings.storeName = brand;
-    settings.brandName = brand;
-    if (!settings.siteUrl) {
-      settings.siteUrl = 'https://all-display.vercel.app/';
-    }
-  }
+  let settings = request.body?.settings;
   if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
     return response.status(400).json({ error: 'Invalid settings format.' });
   }
-  const whatsappDigits = typeof settings?.whatsappNumber === 'string'
+
+  const whatsappDigits = typeof settings.whatsappNumber === 'string'
     ? settings.whatsappNumber.replace(/\D/g, '')
     : '';
-  const alternateWhatsappDigits = typeof settings?.alternateWhatsapp === 'string'
+  const alternateWhatsappDigits = typeof settings.alternateWhatsapp === 'string'
     ? settings.alternateWhatsapp.replace(/\D/g, '')
     : '';
+
   if (whatsappDigits && (whatsappDigits.length < 10 || whatsappDigits.length > 15)) {
     return response.status(400).json({ error: 'Enter a valid 10-digit WhatsApp number.' });
   }
+  if (alternateWhatsappDigits && (alternateWhatsappDigits.length < 10 || alternateWhatsappDigits.length > 15)) {
+    return response.status(400).json({ error: 'Enter a valid 10-digit Alternate WhatsApp number.' });
+  }
+
+  settings = sanitizeSettingsObject(settings);
 
   if (!pool) {
     memoryStore.settings = settings;
-    return response.json({ saved: true });
+    return response.json({ saved: true, settings });
   }
 
   try {
@@ -1069,7 +1099,7 @@ app.put('/api/settings', requireSameOrigin, requireAdmin, async (request, respon
       'INSERT INTO business_settings (id, data) VALUES (1, ?) ON DUPLICATE KEY UPDATE data = VALUES(data)',
       [JSON.stringify(settings)]
     );
-    response.json({ saved: true });
+    response.json({ saved: true, settings });
   } catch (error) {
     next(error);
   }

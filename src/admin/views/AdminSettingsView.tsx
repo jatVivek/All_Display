@@ -30,13 +30,13 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
     const current = storeManager.getSettings();
     let needsUpdate = false;
     let brand = current.brandName || current.storeName || 'All Display';
-    if (!brand || brand === 'Vinayak Packaging') {
+    if (!brand || /vinayak/i.test(brand)) {
       brand = 'All Display';
       needsUpdate = true;
     }
-    let logo = current.logoUrl || '/assets/vinayak/logo.png';
-    if (typeof logo === 'string' && logo.startsWith('/uploads/')) {
-      logo = '/assets/vinayak/logo.png';
+    let logo = current.logoUrl || '/assets/logo_alldisplay.svg';
+    if (typeof logo === 'string' && (logo.startsWith('/uploads/') || logo.includes('vinayak/logo.png'))) {
+      logo = '/assets/logo_alldisplay.svg';
       needsUpdate = true;
     }
     if (needsUpdate) {
@@ -49,8 +49,8 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
       if (state.settings) {
         setSettings((prev) => {
           let updatedLogo = state.settings.logoUrl || prev.logoUrl;
-          if (typeof updatedLogo === 'string' && updatedLogo.startsWith('/uploads/')) {
-            updatedLogo = '/assets/vinayak/logo.png';
+          if (typeof updatedLogo === 'string' && (updatedLogo.startsWith('/uploads/') || updatedLogo.includes('vinayak/logo.png'))) {
+            updatedLogo = '/assets/logo_alldisplay.svg';
           }
           return { ...state.settings, logoUrl: updatedLogo };
         });
@@ -118,10 +118,10 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
   };
 
   const handleResetDefaultLogo = async () => {
-    handleChange('logoUrl', '/assets/vinayak/logo.png');
+    handleChange('logoUrl', '/assets/logo_alldisplay.svg');
     const updatedSettings = {
       ...settings,
-      logoUrl: '/assets/vinayak/logo.png',
+      logoUrl: '/assets/logo_alldisplay.svg',
     };
     await storeManager.saveSettings(updatedSettings);
     showToast('Default All Display logo restored!');
@@ -150,11 +150,38 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
       showToast('Staff role cannot modify business settings. Switch to Owner mode.');
       return;
     }
-    if (!await storeManager.saveSettings(settings)) {
+
+    const cleanDigits = (n?: string) => (n || '').replace(/\D/g, '');
+    const pDigits = cleanDigits(settings.whatsappNumber);
+    const aDigits = cleanDigits(settings.alternateWhatsapp);
+
+    if (pDigits && (pDigits.length < 10 || pDigits.length > 15)) {
+      showToast('Please enter a valid 10 to 15 digit Primary WhatsApp number.');
+      return;
+    }
+    if (aDigits && (aDigits.length < 10 || aDigits.length > 15)) {
+      showToast('Please enter a valid 10 to 15 digit Alternate WhatsApp number.');
+      return;
+    }
+
+    const normalizedPrimary = pDigits.length === 10 ? `91${pDigits}` : (pDigits || settings.whatsappNumber);
+    const normalizedAlternate = aDigits.length === 10 ? `91${aDigits}` : (aDigits || settings.alternateWhatsapp || normalizedPrimary);
+
+    const payload: AdminSettings = {
+      ...settings,
+      whatsappNumber: normalizedPrimary,
+      alternateWhatsapp: normalizedAlternate,
+      supportPhone: settings.supportPhone?.trim() || '+91 94622 47004',
+      storeName: settings.brandName || settings.storeName || 'All Display',
+      brandName: settings.brandName || settings.storeName || 'All Display',
+    };
+
+    if (!await storeManager.saveSettings(payload)) {
       showToast(storeManager.getState().catalogSyncError || 'Could not save business settings.');
       return;
     }
-    showToast('Brand, business & WhatsApp settings saved successfully!');
+    setSettings(storeManager.getSettings());
+    showToast('Brand, WhatsApp numbers & business settings saved successfully!');
   };
 
   const handleReset = async () => {
@@ -241,11 +268,11 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
             <div className="flex flex-col items-center gap-2 shrink-0">
               <div className="w-24 h-24 rounded-2xl bg-white border border-slate-200 p-2 flex items-center justify-center shadow-xs overflow-hidden">
                 <img
-                  src={settings.logoUrl || '/assets/vinayak/logo.png'}
+                  src={settings.logoUrl || '/assets/logo_alldisplay.svg'}
                   alt="Brand Logo Preview"
                   className="max-w-full max-h-full object-contain"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/assets/vinayak/logo.png';
+                    (e.target as HTMLImageElement).src = '/assets/logo_alldisplay.svg';
                   }}
                 />
               </div>
@@ -298,7 +325,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
                   Restore Default Logo
                 </button>
 
-                {settings.logoUrl && settings.logoUrl !== '/assets/vinayak/logo.png' && (
+                {settings.logoUrl && settings.logoUrl !== '/assets/logo_alldisplay.svg' && settings.logoUrl !== '/assets/vinayak/logo.png' && (
                   <button
                     type="button"
                     onClick={() => handleChange('logoUrl', '')}
@@ -392,7 +419,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
             <h2 className="font-bold text-base text-slate-900">WhatsApp &amp; Support Contact</h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-slate-800">Primary WhatsApp Number (Order Desk)</label>
               <input
@@ -402,10 +429,23 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
                 placeholder="919462247004"
                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
               />
+              <span className="text-[10px] text-slate-500">For direct cart orders &amp; product inquiries.</span>
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-800">Alternate Support Phone</label>
+              <label className="text-xs font-semibold text-slate-800">Alternate WhatsApp Number (Wholesale Quotes)</label>
+              <input
+                type="tel"
+                value={settings.alternateWhatsapp || ''}
+                onChange={(e) => handleChange('alternateWhatsapp', e.target.value)}
+                placeholder="919462247004"
+                className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
+              />
+              <span className="text-[10px] text-slate-500">For wholesale quote desk &amp; specialist chat.</span>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-slate-800">Support Calling Phone (Call For Order)</label>
               <input
                 type="tel"
                 value={settings.supportPhone || ''}
@@ -413,8 +453,11 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
                 placeholder="+91 94622 47004"
                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
               />
+              <span className="text-[10px] text-slate-500">Displays on header top bar &amp; contact cards.</span>
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-slate-800">Support Email</label>
               <input
@@ -424,6 +467,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
                 placeholder="contact@alldisplay.com"
                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
               />
+              <span className="text-[10px] text-slate-500">Customer service &amp; corporate inquiries.</span>
             </div>
 
             <div className="flex flex-col gap-1.5">
@@ -438,6 +482,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
                 placeholder="29, Perumal Mudali St, Sowcarpet, George Town, Chennai - 600001"
                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
               />
+              <span className="text-[10px] text-slate-500">Physical address in Sowcarpet, Chennai.</span>
             </div>
           </div>
         </div>

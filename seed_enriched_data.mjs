@@ -25,18 +25,19 @@ async function seed() {
   const settings = {
     whatsappNumber: '919462247004',
     alternateWhatsapp: '919462247004',
-    upiId: 'vinayakpackaging@icici',
+    upiId: 'alldisplay@icici',
     bankName: 'HDFC Bank - Sowcarpet Branch, Chennai',
     accountNo: '50200049210081',
     ifscCode: 'HDFC0000231',
     minOrderValue: 500,
     shippingNotes: 'Global shipping available. Safe doorstep delivery across India from Chennai warehouse.',
-    storeName: 'Vinayak Packaging',
+    storeName: 'All Display',
+    brandName: 'All Display',
     businessAddress: '29, Perumal Mudali St, Sowcarpet, George Town, Chennai, Tamil Nadu 600001',
     brandTagline: 'Jewellery Display, Trays & Packaging Solutions',
-    logoUrl: '/assets/vinayak/logo.png',
+    logoUrl: '/assets/logo_alldisplay.svg',
     headerNotice: 'Direct Factory Wholesale • Sowcarpet Depot, Chennai • Same-Day Dispatch Across India',
-    supportEmail: 'contact@www.vinayakpack.com',
+    supportEmail: 'contact@alldisplay.com',
     supportPhone: '+91 94622 47004',
   };
 

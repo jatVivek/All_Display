@@ -9,7 +9,7 @@
     },
     {
       "source": "/uploads/(.*)",
-      "destination": "/assets/vinayak/logo.png"
+      "destination": "/assets/logo_alldisplay.svg"
     },
     {
       "source": "/((?!api|uploads|assets|.*\\..*).*)",
