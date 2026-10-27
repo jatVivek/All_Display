@@ -19,6 +19,7 @@ export const AuthDialog: React.FC = () => {
   }, []);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -54,7 +55,7 @@ export const AuthDialog: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      if (mode === 'signup') await signup({ name: name.trim(), email: email.trim(), password });
+      if (mode === 'signup') await signup({ name: name.trim(), email: email.trim(), phone: phone.trim(), password });
       else await login({ email: email.trim(), password });
       setPassword('');
       setConfirmPassword('');
@@ -143,6 +144,21 @@ export const AuthDialog: React.FC = () => {
               className="min-h-11 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs font-normal text-slate-900 outline-none focus:border-orange-500 focus:bg-white transition-all"
             />
           </label>
+
+          {mode === 'signup' && (
+            <label className="flex flex-col gap-1.5 text-xs font-semibold text-slate-700">
+              WhatsApp / Mobile Number <span className="text-[10px] text-slate-500 font-normal">(Optional, for order tracking & dispatch alerts)</span>
+              <input
+                type="tel"
+                autoComplete="tel"
+                maxLength={20}
+                placeholder="e.g. 9876543210"
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+                className="min-h-11 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs font-normal text-slate-900 outline-none focus:border-orange-500 focus:bg-white transition-all"
+              />
+            </label>
+          )}
 
           <label className="flex flex-col gap-1.5 text-xs font-semibold text-slate-700">
             Password {mode === 'signup' && <span className="text-[10px] text-slate-500 font-normal">(min 6 chars, 1 uppercase, 1 lowercase, 1 special)</span>}

@@ -27,6 +27,7 @@ export interface AdminOrder {
   total: number;
   notes: string;
   trackingNo?: string;
+  customerEmail?: string;
 }
 
 export interface AdminQuote {
@@ -57,6 +58,19 @@ export interface AdminCustomer {
   totalOrders: number;
   totalSpend: number;
   lastOrderDate: string;
+}
+
+export interface RegisteredCustomer {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  avatarUrl?: string | null;
+  role: 'user' | 'admin';
+  createdAt: string;
+  orderCount?: number;
+  totalSpent?: number;
+  lastOrderDate?: string | null;
 }
 
 export interface AdminSettings {
@@ -153,6 +167,7 @@ const STORAGE_KEYS = {
   DELETED_CATEGORY_IDS: 'alldisplay_store_deleted_cat_ids_v1',
   ORDERS: 'alldisplay_store_orders_v3',
   QUOTES: 'alldisplay_store_quotes_v3',
+  CUSTOMERS: 'alldisplay_store_customers_v1',
   SETTINGS: 'alldisplay_store_settings_v4',
   HOMEPAGE: 'alldisplay_store_homepage_v3',
   HOMEPAGE_DEALS: 'alldisplay_store_homepage_deals_v3',
@@ -187,6 +202,7 @@ export interface CentralStoreState {
   homepageDealProductIds: string[];
   orders: AdminOrder[];
   quotes: AdminQuote[];
+  customers: RegisteredCustomer[];
   settings: AdminSettings;
   catalogSyncStatus: 'local' | 'connecting' | 'connected' | 'error';
   catalogSyncError: string | null;
@@ -205,6 +221,7 @@ class CentralStoreService {
     homepageDealProductIds: this.loadHomepageDealProductIds(),
     orders: this.loadOrders(),
     quotes: this.loadQuotes(),
+    customers: this.loadCustomers(),
     settings: this.loadSettings(),
     catalogSyncStatus: 'connecting',
     catalogSyncError: null,
@@ -243,6 +260,9 @@ class CentralStoreService {
     }
     if (event.key === null || event.key === STORAGE_KEYS.QUOTES) {
       this.state = { ...this.state, quotes: this.loadQuotes() };
+    }
+    if (event.key === null || event.key === STORAGE_KEYS.CUSTOMERS) {
+      this.state = { ...this.state, customers: this.loadCustomers() };
     }
     if (event.key === null || event.key === STORAGE_KEYS.SETTINGS) {
       this.state = { ...this.state, settings: this.loadSettings() };
@@ -456,6 +476,17 @@ class CentralStoreService {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.QUOTES);
       if (stored !== null) return JSON.parse(stored);
+    } catch {}
+    return [];
+  }
+
+  private loadCustomers(): RegisteredCustomer[] {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.CUSTOMERS);
+      if (stored !== null) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
     } catch {}
     return [];
   }
@@ -676,16 +707,45 @@ class CentralStoreService {
     }
   }
 
+  private mergeCustomers(localList: RegisteredCustomer[], remoteList: RegisteredCustomer[]): RegisteredCustomer[] {
+    const map = new Map<string, RegisteredCustomer>();
+    for (const c of (localList || [])) {
+      if (c && c.email) map.set(c.email.toLowerCase(), c);
+    }
+    for (const c of (remoteList || [])) {
+      if (c && c.email) {
+        const emailLower = c.email.toLowerCase();
+        const existing = map.get(emailLower);
+        map.set(emailLower, {
+          ...(existing || {}),
+          ...c,
+          phone: c.phone || existing?.phone || '',
+        });
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+  }
+
   private async loadOperationalData() {
     try {
-      const [orders, quotes] = await Promise.all([
-        this.apiRequest<{ orders: AdminOrder[] }>('/api/admin/orders'),
-        this.apiRequest<{ quotes: AdminQuote[] }>('/api/admin/quotes'),
+      const [orders, quotes, customersRes] = await Promise.all([
+        this.apiRequest<{ orders: AdminOrder[] }>('/api/admin/orders').catch(() => ({ orders: this.state.orders })),
+        this.apiRequest<{ quotes: AdminQuote[] }>('/api/admin/quotes').catch(() => ({ quotes: this.state.quotes })),
+        this.apiRequest<{ customers: RegisteredCustomer[] }>('/api/admin/customers').catch(() => ({ customers: this.state.customers })),
       ]);
-      this.state = { ...this.state, orders: orders.orders, quotes: quotes.quotes };
+      const mergedCustomers = this.mergeCustomers(this.state.customers, customersRes.customers || []);
+      this.state = {
+        ...this.state,
+        orders: orders.orders || this.state.orders,
+        quotes: quotes.quotes || this.state.quotes,
+        customers: mergedCustomers,
+      };
+      try {
+        localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify(mergedCustomers));
+      } catch {}
       this.notify();
     } catch (error) {
-      this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to load orders and quote requests.');
+      this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to load operational data.');
     }
   }
 
@@ -1139,6 +1199,97 @@ class CentralStoreService {
     this.state = { ...this.state, quotes: [savedQuote, ...this.state.quotes] };
     this.notify();
     return savedQuote;
+  }
+
+  // Customers
+  public getRegisteredCustomers(): RegisteredCustomer[] {
+    const orders = this.state.orders;
+    return this.state.customers.map((user) => {
+      const userOrders = orders.filter((o) => {
+        const emailMatch = Boolean(o.customerEmail && o.customerEmail.toLowerCase() === user.email.toLowerCase());
+        const userPhoneDigits = user.phone ? user.phone.replace(/\D/g, '') : '';
+        const orderPhoneDigits = o.whatsapp ? o.whatsapp.replace(/\D/g, '') : '';
+        const phoneMatch = Boolean(userPhoneDigits && orderPhoneDigits && (
+          userPhoneDigits.endsWith(orderPhoneDigits.slice(-10)) ||
+          orderPhoneDigits.endsWith(userPhoneDigits.slice(-10))
+        ));
+        const nameMatch = Boolean(o.customerName && user.name && o.customerName.toLowerCase().trim() === user.name.toLowerCase().trim());
+        return emailMatch || phoneMatch || nameMatch;
+      });
+
+      const totalSpent = userOrders.reduce((sum, o) => sum + (Number(o.total) || 0), user.totalSpent || 0);
+      const lastOrder = [...userOrders].sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime())[0];
+
+      return {
+        ...user,
+        orderCount: Math.max(userOrders.length, user.orderCount || 0),
+        totalSpent,
+        lastOrderDate: lastOrder?.date || user.lastOrderDate || null,
+      };
+    });
+  }
+
+  public async saveRegisteredCustomer(
+    user: { id: string; name: string; email: string; avatarUrl?: string | null; role?: 'user' | 'admin'; createdAt?: string; phone?: string },
+    phone?: string
+  ): Promise<boolean> {
+    if (!user || !user.email) return false;
+    const existingIndex = this.state.customers.findIndex((c) => c.email.toLowerCase() === user.email.toLowerCase());
+    const newRecord: RegisteredCustomer = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: phone || user.phone || (existingIndex >= 0 ? this.state.customers[existingIndex].phone : ''),
+      avatarUrl: user.avatarUrl || null,
+      role: user.role || 'user',
+      createdAt: user.createdAt || (existingIndex >= 0 ? this.state.customers[existingIndex].createdAt : new Date().toISOString()),
+      orderCount: existingIndex >= 0 ? this.state.customers[existingIndex].orderCount : 0,
+      totalSpent: existingIndex >= 0 ? this.state.customers[existingIndex].totalSpent : 0,
+    };
+
+    let updatedList: RegisteredCustomer[];
+    if (existingIndex >= 0) {
+      updatedList = [...this.state.customers];
+      updatedList[existingIndex] = { ...updatedList[existingIndex], ...newRecord };
+    } else {
+      updatedList = [newRecord, ...this.state.customers];
+    }
+
+    this.state = { ...this.state, customers: updatedList };
+    try {
+      localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify(updatedList));
+    } catch {}
+    this.notify();
+
+    // Sync to backend
+    try {
+      await fetch('/api/admin/customers/sync', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Request': '1',
+        },
+        body: JSON.stringify({ customers: [newRecord] }),
+      });
+    } catch {}
+
+    return true;
+  }
+
+  public async refreshCustomers(): Promise<void> {
+    try {
+      const res = await this.apiRequest<{ customers: RegisteredCustomer[] }>('/api/admin/customers');
+      if (Array.isArray(res.customers)) {
+        const merged = this.mergeCustomers(this.state.customers, res.customers);
+        this.state = { ...this.state, customers: merged };
+        try {
+          localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify(merged));
+        } catch {}
+        this.notify();
+      }
+    } catch (e) {
+      console.warn('Could not refresh customers from server:', e);
+    }
   }
 
   // Settings
