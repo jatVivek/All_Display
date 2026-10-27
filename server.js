@@ -148,7 +148,7 @@ try {
 const memoryStore = {
   settings: null,
   banners: null,
-  dealProductIds: [],
+  dealProductIds: ['ad-prod-001', 'ad-prod-002', 'ad-prod-003', 'ad-prod-004'],
   products: [],
   categories: [],
   orders: [],
@@ -897,17 +897,34 @@ app.get('/api/settings', async (_request, response, next) => {
 
 app.get('/api/homepage-banners', async (_request, response, next) => {
   if (!pool) {
+    const memoryDeals = Array.isArray(memoryStore.dealProductIds)
+      ? memoryStore.dealProductIds.filter((id) => typeof id === 'string' && !id.startsWith('vp-'))
+      : [];
     return response.json({
       banners: memoryStore.banners,
-      dealProductIds: memoryStore.dealProductIds,
+      dealProductIds: memoryDeals.length > 0 ? memoryDeals : ['ad-prod-001', 'ad-prod-002', 'ad-prod-003', 'ad-prod-004'],
     });
   }
   try {
     const [rows] = await pool.query('SELECT data FROM homepage_banners WHERE id = 1');
-    const savedHomepage = rows[0]?.data;
+    let savedHomepage = rows[0]?.data;
+    if (typeof savedHomepage === 'string') {
+      try {
+        savedHomepage = JSON.parse(savedHomepage);
+      } catch {
+        savedHomepage = null;
+      }
+    }
+    const banners = Array.isArray(savedHomepage) ? savedHomepage : savedHomepage?.banners ?? null;
+    let dealProductIds = Array.isArray(savedHomepage?.dealProductIds)
+      ? savedHomepage.dealProductIds.filter((id) => typeof id === 'string' && !id.startsWith('vp-'))
+      : [];
+    if (dealProductIds.length === 0) {
+      dealProductIds = ['ad-prod-001', 'ad-prod-002', 'ad-prod-003', 'ad-prod-004'];
+    }
     response.json({
-      banners: Array.isArray(savedHomepage) ? savedHomepage : savedHomepage?.banners ?? null,
-      dealProductIds: Array.isArray(savedHomepage?.dealProductIds) ? savedHomepage.dealProductIds : [],
+      banners,
+      dealProductIds,
     });
   } catch (error) {
     next(error);

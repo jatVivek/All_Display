@@ -41,15 +41,28 @@ export const HomeView: React.FC<HomeViewProps> = ({
     };
     window.addEventListener('alldisplay_catalog_updated', handleUpdate);
     window.addEventListener('alldisplay_data_updated', handleUpdate);
+    window.addEventListener('alldisplay_deals_updated', handleUpdate);
     window.addEventListener('vinayak_wishlist_updated', handleUpdate);
     window.addEventListener('vinayak_settings_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
+
+    const unsubscribe = storeManager.subscribe((state) => {
+      setProducts(state.products);
+      setHomepageBanners(state.homepageBanners);
+      setDealProductIds(state.homepageDealProductIds);
+      setWishlistIds(storeManager.getWishlist());
+      setSettings(state.settings);
+      setCategories(state.categories);
+    });
+
     return () => {
       window.removeEventListener('alldisplay_catalog_updated', handleUpdate);
       window.removeEventListener('alldisplay_data_updated', handleUpdate);
+      window.removeEventListener('alldisplay_deals_updated', handleUpdate);
       window.removeEventListener('vinayak_wishlist_updated', handleUpdate);
       window.removeEventListener('vinayak_settings_updated', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
+      unsubscribe();
     };
   }, []);
 
@@ -133,10 +146,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
     products.some((prod) => prod.requirements?.includes(req.requirementKey))
   );
 
-  // Top Selling Products
-  const topSellingList = dealProductIds.length > 0
-    ? dealProductIds.map((id) => products.find((p) => p.id === id)).filter((p): p is Product => Boolean(p))
-    : products.slice(0, 4);
+  // Top Selling Products (Curated Deal of the Day)
+  const adminDeals = dealProductIds
+    .map((id) => products.find((p) => p.id === id))
+    .filter((p): p is Product => Boolean(p));
+
+  const topSellingList = adminDeals.length > 0 ? adminDeals : products.slice(0, 4);
 
   const activeBanner = homepageBanners[activeBannerIndex] || homepageBanners[0];
 

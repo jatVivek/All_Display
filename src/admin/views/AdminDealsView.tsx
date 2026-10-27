@@ -13,11 +13,16 @@ export const AdminDealsView: React.FC<AdminDealsViewProps> = ({ showToast }) => 
   const [products, setProducts] = useState(() => storeManager.getProducts());
   const [search, setSearch] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const isDirtyRef = React.useRef(false);
 
-  React.useEffect(() => storeManager.subscribe((state) => {
-    setProducts(state.products);
-    setDealProductIds(state.homepageDealProductIds);
-  }), []);
+  React.useEffect(() => {
+    return storeManager.subscribe((state) => {
+      setProducts(state.products);
+      if (!isDirtyRef.current) {
+        setDealProductIds(state.homepageDealProductIds);
+      }
+    });
+  }, []);
 
   const filteredProducts = useMemo(() => {
     if (!search.trim()) return products;
@@ -30,6 +35,7 @@ export const AdminDealsView: React.FC<AdminDealsViewProps> = ({ showToast }) => 
   }, [products, search]);
 
   const handleToggleDeal = (productId: string) => {
+    isDirtyRef.current = true;
     setDealProductIds((current) =>
       current.includes(productId)
         ? current.filter((id) => id !== productId)
@@ -38,11 +44,13 @@ export const AdminDealsView: React.FC<AdminDealsViewProps> = ({ showToast }) => 
   };
 
   const handleSelectAllFiltered = () => {
+    isDirtyRef.current = true;
     const idsToAdd = filteredProducts.map((p) => p.id);
     setDealProductIds((current) => Array.from(new Set([...current, ...idsToAdd])));
   };
 
   const handleClearAllDeals = () => {
+    isDirtyRef.current = true;
     setDealProductIds([]);
   };
 
@@ -50,9 +58,9 @@ export const AdminDealsView: React.FC<AdminDealsViewProps> = ({ showToast }) => 
     e.preventDefault();
     setIsSaving(true);
     try {
-      const currentBanners = storeManager.getHomepageBanners();
-      const success = await storeManager.saveHomepageBanners(currentBanners, dealProductIds);
+      const success = await storeManager.saveHomepageDealProductIds(dealProductIds);
       if (success) {
+        isDirtyRef.current = false;
         showToast(`Deal of the Day updated (${dealProductIds.length} products featured).`);
       } else {
         showToast(storeManager.getState().catalogSyncError || 'Failed to save Deal of the Day configuration.');

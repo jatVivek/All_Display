@@ -21,7 +21,8 @@ export const DealsView: React.FC<DealsViewProps> = ({
   const [dealProductIds, setDealProductIds] = useState<string[]>(() => storeManager.getHomepageDealProductIds());
   const [wishlistIds, setWishlistIds] = useState<string[]>(() => storeManager.getWishlist());
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [sortBy, setSortBy] = useState<'discount' | 'price-low' | 'price-high' | 'featured'>('discount');
+  const [sortBy, setSortBy] = useState<'featured' | 'discount' | 'price-low' | 'price-high'>('featured');
+  const [dealFilter, setDealFilter] = useState<'all' | 'curated'>('all');
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
   // Countdown timer logic to midnight IST
@@ -58,22 +59,34 @@ export const DealsView: React.FC<DealsViewProps> = ({
     };
     window.addEventListener('alldisplay_catalog_updated', handleUpdate);
     window.addEventListener('alldisplay_data_updated', handleUpdate);
+    window.addEventListener('alldisplay_deals_updated', handleUpdate);
     window.addEventListener('vinayak_wishlist_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
+
+    const unsubscribe = storeManager.subscribe((state) => {
+      setProducts(state.products);
+      setDealProductIds(state.homepageDealProductIds);
+      setWishlistIds(storeManager.getWishlist());
+    });
+
     return () => {
       window.removeEventListener('alldisplay_catalog_updated', handleUpdate);
       window.removeEventListener('alldisplay_data_updated', handleUpdate);
+      window.removeEventListener('alldisplay_deals_updated', handleUpdate);
       window.removeEventListener('vinayak_wishlist_updated', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
+      unsubscribe();
     };
   }, []);
 
-  // Collect all deal products: explicitly assigned dealProductIds + products on sale
-  const allDeals = useMemo(() => {
-    const directDeals = dealProductIds
+  const directDeals = useMemo(() => {
+    return dealProductIds
       .map((id) => products.find((p) => p.id === id))
       .filter((p): p is Product => Boolean(p));
+  }, [products, dealProductIds]);
 
+  // Collect all deal products: explicitly assigned dealProductIds + products on sale
+  const allDeals = useMemo(() => {
     const discountedProducts = products.filter(
       (p) => p.originalPrice && p.originalPrice > p.price && !dealProductIds.includes(p.id)
     );
@@ -84,13 +97,14 @@ export const DealsView: React.FC<DealsViewProps> = ({
       return products.slice(0, 8);
     }
     return combined;
-  }, [products, dealProductIds]);
+  }, [products, dealProductIds, directDeals]);
 
-  // Featured Hero Deal (first direct deal or highest discounted)
+  // Featured Hero Deal (first direct deal or first in catalog)
   const spotlightDeal = useMemo(() => {
-    if (allDeals.length === 0) return null;
-    return allDeals[0];
-  }, [allDeals]);
+    if (directDeals.length > 0) return directDeals[0];
+    if (allDeals.length > 0) return allDeals[0];
+    return null;
+  }, [directDeals, allDeals]);
 
   // Available categories in deals
   const categories = useMemo(() => {
@@ -103,13 +117,22 @@ export const DealsView: React.FC<DealsViewProps> = ({
 
   // Filtered & Sorted Deals
   const filteredDeals = useMemo(() => {
-    let list = allDeals.slice();
+    let list = (dealFilter === 'curated' && directDeals.length > 0 ? directDeals : allDeals).slice();
 
     if (selectedCategory !== 'All') {
       list = list.filter((p) => p.category.toLowerCase() === selectedCategory.toLowerCase());
     }
 
-    if (sortBy === 'discount') {
+    if (sortBy === 'featured') {
+      list.sort((a, b) => {
+        const indexA = dealProductIds.indexOf(a.id);
+        const indexB = dealProductIds.indexOf(b.id);
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+        if (indexA !== -1) return -1;
+        if (indexB !== -1) return 1;
+        return 0;
+      });
+    } else if (sortBy === 'discount') {
       list.sort((a, b) => {
         const discA = a.originalPrice ? (a.originalPrice - a.price) / a.originalPrice : 0;
         const discB = b.originalPrice ? (b.originalPrice - b.price) / b.originalPrice : 0;
@@ -122,7 +145,7 @@ export const DealsView: React.FC<DealsViewProps> = ({
     }
 
     return list;
-  }, [allDeals, selectedCategory, sortBy]);
+  }, [allDeals, directDeals, dealProductIds, dealFilter, selectedCategory, sortBy]);
 
   const handleQtyChange = (productId: string, delta: number) => {
     setQuantities((prev) => {
@@ -364,8 +387,35 @@ export const DealsView: React.FC<DealsViewProps> = ({
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-6">
         <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs flex flex-col md:flex-row items-center justify-between gap-4">
           
-          {/* Category Filter Pills */}
+          {/* Category Filter Pills & Deal Scope */}
           <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none">
+            {directDeals.length > 0 && (
+              <div className="flex items-center gap-1 shrink-0 border-r border-slate-200 pr-2 mr-1">
+                <button
+                  type="button"
+                  onClick={() => setDealFilter('curated')}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1 ${
+                    dealFilter === 'curated'
+                      ? 'bg-amber-500 text-slate-900 shadow-xs'
+                      : 'bg-amber-50 text-amber-800 hover:bg-amber-100'
+                  }`}
+                >
+                  <span>⭐</span>
+                  <span>Deal of the Day ({directDeals.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDealFilter('all')}
+                  className={`text-xs font-semibold px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                    dealFilter === 'all'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  All Deals ({allDeals.length})
+                </button>
+              </div>
+            )}
             <span className="text-xs font-bold text-slate-500 mr-2 shrink-0">Filter Deals:</span>
             {categories.map((cat) => (
               <button
@@ -396,6 +446,7 @@ export const DealsView: React.FC<DealsViewProps> = ({
                 onChange={(e) => setSortBy(e.target.value as any)}
                 className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-orange-500 cursor-pointer"
               >
+                <option value="featured">Featured Deals of the Day</option>
                 <option value="discount">Highest Discount (%)</option>
                 <option value="price-low">Price: Low to High</option>
                 <option value="price-high">Price: High to Low</option>
@@ -449,6 +500,14 @@ export const DealsView: React.FC<DealsViewProps> = ({
                     <div className="absolute top-2 left-2 bg-rose-600 text-white text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs">
                       {discountPercent}% OFF
                     </div>
+
+                    {/* Curated Deal of the Day Spotlight Indicator */}
+                    {dealProductIds.includes(product.id) && (
+                      <div className="absolute bottom-2 left-2 bg-amber-400 text-slate-900 text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1 z-10">
+                        <span>★</span>
+                        <span>Deal of the Day</span>
+                      </div>
+                    )}
 
                     {/* Wishlist Heart */}
                     <button

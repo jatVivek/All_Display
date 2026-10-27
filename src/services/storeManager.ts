@@ -279,10 +279,13 @@ class CentralStoreService {
       const stored = localStorage.getItem(STORAGE_KEYS.HOMEPAGE_DEALS);
       if (stored !== null) {
         const parsed: unknown = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.every((id) => typeof id === 'string')) return parsed;
+        if (Array.isArray(parsed) && parsed.every((id) => typeof id === 'string')) {
+          const cleaned = parsed.filter((id) => !id.startsWith('vp-'));
+          if (cleaned.length > 0) return cleaned;
+        }
       }
     } catch {}
-    return ['vp-eds-401', 'vp-vtr-102', 'vp-nbd-205', 'vp-pdc-301'];
+    return ['ad-prod-001', 'ad-prod-002', 'ad-prod-003', 'ad-prod-004'];
   }
 
   private loadOrders(): AdminOrder[] {
@@ -407,10 +410,12 @@ class CentralStoreService {
           localStorage.setItem(STORAGE_KEYS.HOMEPAGE, JSON.stringify(homepageBanners));
         } catch {}
       }
-      if (dealProductIds && dealProductIds.length > 0) {
-        this.state = { ...this.state, homepageDealProductIds: dealProductIds };
+      if (Array.isArray(dealProductIds)) {
+        const cleanedDeals = dealProductIds.filter((id) => typeof id === 'string' && !id.startsWith('vp-'));
+        const finalDeals = cleanedDeals.length > 0 ? cleanedDeals : ['ad-prod-001', 'ad-prod-002', 'ad-prod-003', 'ad-prod-004'];
+        this.state = { ...this.state, homepageDealProductIds: finalDeals };
         try {
-          localStorage.setItem(STORAGE_KEYS.HOMEPAGE_DEALS, JSON.stringify(dealProductIds));
+          localStorage.setItem(STORAGE_KEYS.HOMEPAGE_DEALS, JSON.stringify(finalDeals));
         } catch {}
       }
       this.notify();
@@ -648,14 +653,20 @@ class CentralStoreService {
   }
 
   public async saveHomepageBanners(banners: HomepageBanner[], dealProductIds = this.state.homepageDealProductIds): Promise<boolean> {
+    const cleanedDeals = Array.isArray(dealProductIds)
+      ? dealProductIds.filter((id) => typeof id === 'string' && !id.startsWith('vp-'))
+      : this.state.homepageDealProductIds;
+
     // 1. Immediately persist locally so admin edits are never reverted or lost
-    this.state = { ...this.state, homepageBanners: banners, homepageDealProductIds: dealProductIds };
+    this.state = { ...this.state, homepageBanners: banners, homepageDealProductIds: cleanedDeals };
     try {
       localStorage.setItem(STORAGE_KEYS.HOMEPAGE, JSON.stringify(banners));
-      localStorage.setItem(STORAGE_KEYS.HOMEPAGE_DEALS, JSON.stringify(dealProductIds));
+      localStorage.setItem(STORAGE_KEYS.HOMEPAGE_DEALS, JSON.stringify(cleanedDeals));
     } catch (error) {
       console.error('Could not save homepage banners locally:', error);
     }
+    window.dispatchEvent(new CustomEvent('alldisplay_deals_updated', { detail: { dealProductIds: cleanedDeals } }));
+    window.dispatchEvent(new CustomEvent('alldisplay_data_updated'));
     this.notify();
 
     // 2. Sync to cloud API if connected
@@ -664,7 +675,7 @@ class CentralStoreService {
         await this.apiRequest('/api/homepage-banners', {
           method: 'PUT',
           headers: { 'X-Admin-Request': '1' },
-          body: JSON.stringify({ banners, dealProductIds }),
+          body: JSON.stringify({ banners, dealProductIds: cleanedDeals }),
         });
         this.state = { ...this.state, catalogSyncStatus: 'connected', catalogSyncError: null };
       } catch (error) {
@@ -672,6 +683,10 @@ class CentralStoreService {
       }
     }
     return true;
+  }
+
+  public async saveHomepageDealProductIds(dealProductIds: string[]): Promise<boolean> {
+    return this.saveHomepageBanners(this.state.homepageBanners, dealProductIds);
   }
 
   public async saveCategories(categories: AdminCategory[]): Promise<boolean> {
