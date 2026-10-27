@@ -368,12 +368,13 @@ export const Header: React.FC<HeaderProps> = ({
           {/* 3. Right Utility Actions */}
           <div className="flex items-center gap-2 sm:gap-4 shrink-0">
             {/* Account Profile / Sign In */}
-            <div className="relative">
+            <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={handleAccountClick}
                 className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-slate-700 transition-colors hover:bg-slate-100 text-xs font-semibold cursor-pointer"
                 aria-label={user ? `Account: ${user.name}` : 'Sign In'}
+                title={user ? `Signed in as ${user.name} (${user.email}). Click to view profile & orders.` : 'Sign In or Create Account'}
               >
                 {user ? (
                   <div className="w-6 h-6 rounded-full bg-orange-600 text-white flex items-center justify-center text-xs font-bold">
@@ -386,6 +387,18 @@ export const Header: React.FC<HeaderProps> = ({
                   {user ? user.name.split(' ')[0] : 'Sign In'}
                 </span>
               </button>
+
+              {user && (
+                <button
+                  type="button"
+                  onClick={() => logout()}
+                  title="Sign Out"
+                  className="hidden lg:flex items-center justify-center p-1.5 rounded-full text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                  aria-label="Sign Out"
+                >
+                  <AppIcon name="logout" className="text-sm" />
+                </button>
+              )}
             </div>
 
             {/* Wishlist Link with Live Counter Heart */}
@@ -559,6 +572,15 @@ export const Header: React.FC<HeaderProps> = ({
                 <button onClick={() => { handleAccountClick(); setMobileMenuOpen(false); }} className="text-left py-2 hover:text-orange-600">
                   {user ? `My Account (${user.name})` : 'Sign In'}
                 </button>
+                {user && (
+                  <button
+                    onClick={() => { logout(); setMobileMenuOpen(false); }}
+                    className="text-left py-2 text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <AppIcon name="logout" className="text-sm" />
+                    <span>Sign Out ({user.name})</span>
+                  </button>
+                )}
                 <button onClick={() => navigateTo('custom-quote')} className="text-left py-2 hover:text-orange-600">Custom Bulk Quotes</button>
                 <button onClick={() => navigateToSection('contact-us')} className="text-left py-2 hover:text-orange-600">Contact &amp; Sowcarpet Depot</button>
               </div>

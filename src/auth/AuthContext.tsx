@@ -69,6 +69,11 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
   const [user, setUser] = useState<AuthUser | null>(() => {
     if (typeof window === 'undefined') return null;
     try {
+      const token = localStorage.getItem(CUSTOMER_TOKEN_KEY);
+      if (!token) {
+        localStorage.removeItem(CUSTOMER_USER_KEY);
+        return null;
+      }
       const stored = localStorage.getItem(CUSTOMER_USER_KEY);
       return stored ? JSON.parse(stored) : null;
     } catch {
@@ -81,7 +86,6 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
 
   useEffect(() => {
     let active = true;
-    const token = typeof window !== 'undefined' ? localStorage.getItem(CUSTOMER_TOKEN_KEY) : null;
 
     authRequest<{ user: AuthUser | null }>('/api/auth/session')
       .then(({ user: sessionUser }) => {
@@ -92,17 +96,23 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
             localStorage.setItem(CUSTOMER_USER_KEY, JSON.stringify(sessionUser));
           } catch {}
           void storeManager.saveRegisteredCustomer(sessionUser);
-        } else if (!token) {
+        } else {
+          // If the server confirms there is NO active session, clean up stale user immediately
           setUser(null);
           try {
             localStorage.removeItem(CUSTOMER_USER_KEY);
+            localStorage.removeItem(CUSTOMER_TOKEN_KEY);
           } catch {}
         }
       })
-      .catch((requestError: unknown) => {
-        if (active && !user) {
-          setError(requestError instanceof Error ? requestError.message : 'Could not verify your session.');
-        }
+      .catch(() => {
+        if (!active) return;
+        // Invalidate stale cached credentials if session check fails
+        setUser(null);
+        try {
+          localStorage.removeItem(CUSTOMER_USER_KEY);
+          localStorage.removeItem(CUSTOMER_TOKEN_KEY);
+        } catch {}
       })
       .finally(() => {
         if (active) setIsLoading(false);
