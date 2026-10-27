@@ -104,7 +104,7 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
         gstin: gstin.trim(),
         attachmentName: uploadedFile,
       });
-      const message = `Hi Vinayak Packaging Chennai, I submitted custom factory quote request *${quote.quoteNo}*.\n\nStore: ${quote.storeName}\nContact: ${quote.customerName} (+91 ${quote.whatsapp})\nLocation: ${quote.city}\nStore format: ${quote.storeType} (${quote.area})\nFixtures: ${quote.fixtures?.join(', ')}\nFinish: ${quote.finish}\nTimeline: ${quote.timeline}\n${quote.gstin ? `GSTIN: ${quote.gstin}\n` : ''}${customNotes ? `Notes: ${customNotes}\n` : ''}${uploadedFile ? `I will attach ${uploadedFile} in this chat.\n` : ''}\nPlease share itemized CAD BOQ and wholesale pricing.`;
+      const message = `Hi All Display Chennai, I submitted custom factory quote request *${quote.quoteNo}*.\n\nStore: ${quote.storeName}\nContact: ${quote.customerName} (+91 ${quote.whatsapp})\nLocation: ${quote.city}\nStore format: ${quote.storeType} (${quote.area})\nFixtures: ${quote.fixtures?.join(', ')}\nFinish: ${quote.finish}\nTimeline: ${quote.timeline}\n${quote.gstin ? `GSTIN: ${quote.gstin}\n` : ''}${customNotes ? `Notes: ${customNotes}\n` : ''}${uploadedFile ? `I will attach ${uploadedFile} in this chat.\n` : ''}\nPlease share itemized CAD BOQ and wholesale pricing.`;
       if (whatsappWindow) whatsappWindow.location.href = getWhatsAppLink(message);
       else setSubmissionError(`Quote ${quote.quoteNo} is saved, but your browser blocked the WhatsApp window.`);
       setSubmittedFeedback(true);
@@ -525,7 +525,7 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
             {/* 4-Stage Workflow */}
             <div className="bg-surface-container-lowest rounded-xl p-5 shadow-sm border border-surface-container flex flex-col gap-4">
               <span className="text-xs uppercase font-bold tracking-wider text-secondary">
-                Vinayak Packaging Direct Workflow
+                All Display Direct Workflow
               </span>
               <div className="flex flex-col gap-3">
                 {[

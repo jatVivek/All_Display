@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { AppIcon } from '../components/AppIcon';
 import { ActiveView, Product } from '../types';
 import { storeManager } from '../services/storeManager';
@@ -44,6 +44,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   const [products, setProducts] = useState<Product[]>(() => storeManager.getProducts());
   const [categories, setCategories] = useState(() => storeManager.getCategories());
   const [wishlistIds, setWishlistIds] = useState<string[]>(() => storeManager.getWishlist());
+  const [settings, setSettings] = useState(() => storeManager.getSettings());
 
   // Listen to catalog & wishlist updates
   useEffect(() => {
@@ -51,18 +52,23 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       setProducts(storeManager.getProducts());
       setCategories(storeManager.getCategories());
       setWishlistIds(storeManager.getWishlist());
+      setSettings(storeManager.getSettings());
     };
     window.addEventListener('alldisplay_catalog_updated', handleUpdate);
     window.addEventListener('alldisplay_data_updated', handleUpdate);
     window.addEventListener('vinayak_wishlist_updated', handleUpdate);
+    window.addEventListener('vinayak_settings_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
     return () => {
       window.removeEventListener('alldisplay_catalog_updated', handleUpdate);
       window.removeEventListener('alldisplay_data_updated', handleUpdate);
       window.removeEventListener('vinayak_wishlist_updated', handleUpdate);
+      window.removeEventListener('vinayak_settings_updated', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
     };
   }, []);
+
+  const brandName = settings.brandName || settings.storeName || 'All Display';
 
   // Read URL query params on mount for requirement
   const [selectedRequirements, setSelectedRequirements] = useState<string[]>(() => {
@@ -81,7 +87,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   const [priceRange, setPriceRange] = useState(10500);
   const [stockStatusFilter, setStockStatusFilter] = useState<'all' | 'in_stock' | 'on_sale'>('all');
   const [sortBy, setSortBy] = useState('default');
-  const [itemsPerPage, setItemsPerPage] = useState(12);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
   const [gridColumns, setGridColumns] = useState<4 | 3 | 1>(4);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
@@ -92,7 +100,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     }
   }, [initialCategoryName]);
 
-  // Dynamic Category counts
+  // Issue #5: Dynamic Category counts with 0-count categories excluded
   const categoryFacets = useMemo(() => {
     const map = new Map<string, number>();
     products.forEach(p => {
@@ -101,11 +109,21 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       }
     });
 
-    const list = Array.from(map.entries()).map(([name, count]) => ({ name, count }));
+    const list = Array.from(map.entries())
+      .map(([name, count]) => ({ name, count }))
+      .filter((c) => c.count > 0);
     return list.filter((c) =>
       c.name.toLowerCase().includes(categorySearch.toLowerCase().trim())
     );
   }, [products, categorySearch]);
+
+  // Issue #6: Filter requirement options to only those with products
+  const activeRequirementOptions = useMemo(() => {
+    return REQUIREMENT_OPTIONS.map((req) => {
+      const count = products.filter((p) => p.requirements?.includes(req.id)).length;
+      return { ...req, count };
+    }).filter((req) => req.count > 0);
+  }, [products]);
 
   const handleQtyChange = (productId: string, delta: number) => {
     setQuantities((prev) => {
@@ -178,6 +196,33 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
   const displayedProducts = filteredProducts.slice(0, itemsPerPage);
 
+  // Issue #24: Automatic infinite scrolling in chunks of 10 with animated loader
+  useEffect(() => {
+    if (filteredProducts.length <= itemsPerPage) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isLoadingMore) {
+          setIsLoadingMore(true);
+          setTimeout(() => {
+            setItemsPerPage((prev) => prev + 10);
+            setIsLoadingMore(false);
+          }, 350);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const target = loadMoreSentinelRef.current;
+    if (target) {
+      observer.observe(target);
+    }
+
+    return () => {
+      if (target) observer.unobserve(target);
+      observer.disconnect();
+    };
+  }, [filteredProducts.length, itemsPerPage, isLoadingMore]);
+
   const resetAllFilters = () => {
     setSelectedCategory('All Categories');
     setSelectedRequirements([]);
@@ -248,7 +293,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             </p>
             <div className="pt-1 flex flex-wrap items-center justify-center md:justify-start gap-3">
               <a
-                href={getWhatsAppLink('Hi Vinayak Packaging, I would like to inquire about wholesale rates and dispatch.')}
+                href={getWhatsAppLink(`Hi ${brandName}, I would like to inquire about wholesale rates and dispatch.`)}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs px-5 py-2.5 rounded-full shadow-xs transition-colors"
@@ -279,48 +324,53 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           <aside className="lg:col-span-3 bg-white rounded-3xl p-6 border border-slate-100 shadow-xs flex flex-col gap-6">
             
             {/* SHOP BY REQUIREMENT (Multi-select) */}
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
-                  <AppIcon name="hub" className="text-orange-500 text-sm" />
-                  Shop by Requirement
-                </h3>
-                {selectedRequirements.length > 0 && (
-                  <button
-                    onClick={() => setSelectedRequirements([])}
-                    className="text-[11px] text-orange-600 font-bold hover:underline cursor-pointer"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-2">
-                {REQUIREMENT_OPTIONS.map((req) => {
-                  const isChecked = selectedRequirements.includes(req.id);
-                  return (
-                    <label
-                      key={req.id}
-                      className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer text-xs font-medium ${
-                        isChecked
-                          ? 'bg-orange-50/80 border-orange-300 text-orange-950 font-semibold'
-                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                      }`}
+            {activeRequirementOptions.length > 0 && (
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                    <AppIcon name="hub" className="text-orange-500 text-sm" />
+                    Shop by Requirement
+                  </h3>
+                  {selectedRequirements.length > 0 && (
+                    <button
+                      onClick={() => setSelectedRequirements([])}
+                      className="text-[11px] text-orange-600 font-bold hover:underline cursor-pointer"
                     >
-                      <span className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={() => toggleRequirement(req.id)}
-                          className="accent-orange-600 rounded"
-                        />
-                        <span>{req.label}</span>
-                      </span>
-                    </label>
-                  );
-                })}
+                      Clear
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  {activeRequirementOptions.map((req) => {
+                    const isChecked = selectedRequirements.includes(req.id);
+                    return (
+                      <label
+                        key={req.id}
+                        className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer text-xs font-medium ${
+                          isChecked
+                            ? 'bg-orange-50/80 border-orange-300 text-orange-950 font-semibold'
+                            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => toggleRequirement(req.id)}
+                            className="accent-orange-600 rounded"
+                          />
+                          <span>{req.label}</span>
+                        </span>
+                        <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold">
+                          {req.count}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Filter by Categories with Search */}
             <div className="flex flex-col gap-3 pt-2 border-t border-slate-100">
@@ -514,7 +564,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 Need customized branding, laser engraving, or bulk export cartons?
               </p>
               <a
-                href={getWhatsAppLink('Hi Vinayak Packaging, I need custom branding and wholesale export assistance.')}
+                href={getWhatsAppLink(`Hi ${brandName}, I need custom branding and wholesale export assistance.`)}
                 target="_blank"
                 rel="noreferrer"
                 className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1 mt-1"
@@ -549,15 +599,15 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                   <option value="rating">Average rating</option>
                 </select>
 
-                {/* Show Items Count Dropdown */}
+                {/* Show Items Count Dropdown in chunks of 10 */}
                 <select
                   value={itemsPerPage}
                   onChange={(e) => setItemsPerPage(Number(e.target.value))}
                   className="hidden sm:block bg-white border border-slate-200 text-xs text-slate-800 font-medium px-3 py-1.5 rounded-full focus:outline-none focus:border-orange-500 cursor-pointer shadow-2xs"
                 >
-                  <option value={12}>Show 12</option>
-                  <option value={24}>Show 24</option>
-                  <option value={48}>Show 48</option>
+                  <option value={10}>Show 10</option>
+                  <option value={20}>Show 20</option>
+                  <option value={30}>Show 30</option>
                 </select>
 
                 {/* Grid View Toggles */}
@@ -768,16 +818,30 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               </div>
             )}
 
-            {/* Pagination / Load More */}
+            {/* Issue #24: Automatic infinite scrolling in chunks of 10 with animated loader */}
             {filteredProducts.length > itemsPerPage && (
-              <div className="flex justify-center pt-6">
-                <button
-                  type="button"
-                  onClick={() => setItemsPerPage((prev) => prev + 12)}
-                  className="bg-white border border-slate-200 hover:border-orange-500 text-slate-800 text-xs font-bold px-6 py-2.5 rounded-full shadow-xs transition-colors cursor-pointer"
-                >
-                  Load More Products ({filteredProducts.length - itemsPerPage} remaining)
-                </button>
+              <div ref={loadMoreSentinelRef} className="flex flex-col items-center justify-center pt-8 pb-4 gap-2">
+                {isLoadingMore ? (
+                  <div className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-xs font-bold animate-pulse shadow-2xs">
+                    <AppIcon name="progress_activity" className="animate-spin text-base" />
+                    <span>Loading 10 more products…</span>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsLoadingMore(true);
+                      setTimeout(() => {
+                        setItemsPerPage((prev) => prev + 10);
+                        setIsLoadingMore(false);
+                      }, 300);
+                    }}
+                    className="bg-white border border-slate-200 hover:border-orange-500 text-slate-800 text-xs font-bold px-6 py-2.5 rounded-full shadow-xs transition-colors cursor-pointer flex items-center gap-2"
+                  >
+                    <span>Load More Products ({filteredProducts.length - itemsPerPage} remaining)</span>
+                    <AppIcon name="expand_more" className="text-sm" />
+                  </button>
+                )}
               </div>
             )}
 

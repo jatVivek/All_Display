@@ -163,10 +163,10 @@ export const ContactView: React.FC<ContactViewProps> = ({
                   For any order-related support or catalogue requests, please contact our support desk:
                 </p>
                 <a
-                  href="mailto:contact@www.vinayakpack.com"
+                  href={`mailto:${settings.supportEmail || 'contact@alldisplay.com'}`}
                   className="text-xs sm:text-sm font-bold text-orange-600 hover:underline break-all"
                 >
-                  contact@www.vinayakpack.com
+                  {settings.supportEmail || 'contact@alldisplay.com'}
                 </a>
               </div>
             </div>
@@ -192,7 +192,7 @@ export const ContactView: React.FC<ContactViewProps> = ({
                     <span>+91 94622 47004</span>
                   </a>
                   <a
-                    href={getWhatsAppLink('Hi Vinayak Packaging Sowcarpet, I would like to visit or place an order.')}
+                    href={getWhatsAppLink('Hi All Display Sowcarpet, I would like to visit or place an order.')}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-full transition-colors"
@@ -237,7 +237,7 @@ export const ContactView: React.FC<ContactViewProps> = ({
             </a>
           </div>
           <iframe
-            title="Vinayak Packaging Sowcarpet Chennai Location"
+            title="All Display Sowcarpet Chennai Location"
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3886.107575294025!2d80.276412!3d13.092358!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a5265fd860c4cf9%3A0x6b4ef8d31a5474ad!2sPerumal%20Mudali%20St%2C%20Sowcarpet%2C%20George%20Town%2C%20Chennai%2C%20Tamil%20Nadu%20600001!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
             className="w-full h-80 border-0"
             loading="lazy"

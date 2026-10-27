@@ -29,12 +29,12 @@ export const FloatingWhatsApp: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="w-10 h-10 rounded-full bg-orange-600 text-white font-bold flex items-center justify-center text-sm">
-                  VP
+                  AD
                 </div>
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-900"></span>
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-sm leading-tight">Vinayak Packaging Desk</span>
+                <span className="font-bold text-sm leading-tight">All Display Desk</span>
                 <span className="text-xs text-orange-400">Sowcarpet Depot • Chennai</span>
                 <span className="text-[10px] text-white/60">Typically replies in &lt; 5 mins</span>
               </div>
@@ -55,7 +55,7 @@ export const FloatingWhatsApp: React.FC = () => {
 
             <div className="flex flex-col gap-2 pt-1">
               <a
-                href={getWhatsAppLink('Hi Vinayak Packaging, I am looking for jewellery display stands & packaging supplies.')}
+                href={getWhatsAppLink('Hi All Display, I am looking for jewellery display stands & packaging supplies.')}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 px-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors shadow-2xs"
@@ -65,7 +65,7 @@ export const FloatingWhatsApp: React.FC = () => {
               </a>
 
               <a
-                href={getWhatsAppLink('Hi Vinayak Packaging, I need a bulk wholesale quote for my store.', true)}
+                href={getWhatsAppLink('Hi All Display, I need a bulk wholesale quote for my store.', true)}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 py-2 px-3 rounded-xl font-semibold flex items-center justify-center gap-1.5 transition-colors"

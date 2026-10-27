@@ -78,24 +78,26 @@ export interface AdminSettings {
   supportPhone?: string;
   showroomAddress?: string;
   siteUrl?: string;
+  requirementImages?: Record<string, string>;
 }
 
 export interface AdminCategory {
   id: string;
   name: string;
   description: string;
+  image?: string;
 }
 
 const INITIAL_CATEGORIES: AdminCategory[] = [
-  { id: 'cat-1', name: 'Display Bust', description: 'Velvet and leatherette portrait busts for necklaces and bridal sets.' },
-  { id: 'cat-2', name: 'Display Cards', description: 'Earring cards, necklace tags, barcode cards and jewelry packaging.' },
-  { id: 'cat-3', name: 'Display Stand', description: 'Tiered wooden & metal stands for earrings, chains and pendants.' },
-  { id: 'cat-4', name: 'Display Tray', description: 'Stackable velvet trays, ring pads, and flat counter showcase inserts.' },
-  { id: 'cat-5', name: 'Bangle & Bracelet Display Stand', description: 'Single and multi-tier cylinders for bangles, watches, and bracelets.' },
-  { id: 'cat-6', name: 'Storage Box', description: 'Velvet gift boxes, organizer chests, and acrylic storage boxes.' },
-  { id: 'cat-7', name: 'Mannequin Stand', description: 'Full form mannequin busts, sculpted heads, and torso models.' },
-  { id: 'cat-8', name: 'Packaging Tools', description: 'Tape dispensers, clear wonder tapes, barcode sticker rolls, and sealers.' },
-  { id: 'cat-9', name: 'Jewellery Display Cloth', description: 'Seamless suede and velvet counter fabrics for showcase flatlays.' },
+  { id: 'cat-1', name: 'Display Bust', description: 'Velvet and leatherette portrait busts for necklaces and bridal sets.', image: '/assets/vinayak/cat_bust.png' },
+  { id: 'cat-2', name: 'Display Cards', description: 'Earring cards, necklace tags, barcode cards and jewelry packaging.', image: '/assets/vinayak/cat_card.png' },
+  { id: 'cat-3', name: 'Display Stand', description: 'Tiered wooden & metal stands for earrings, chains and pendants.', image: '/assets/vinayak/cat_stand.png' },
+  { id: 'cat-4', name: 'Display Tray', description: 'Stackable velvet trays, ring pads, and flat counter showcase inserts.', image: '/assets/vinayak/cat_tray.png' },
+  { id: 'cat-5', name: 'Bangle & Bracelet Display Stand', description: 'Single and multi-tier cylinders for bangles, watches, and bracelets.', image: '/assets/vinayak/cat_stand.png' },
+  { id: 'cat-6', name: 'Storage Box', description: 'Velvet gift boxes, organizer chests, and acrylic storage boxes.', image: '/assets/vinayak/cat_box.png' },
+  { id: 'cat-7', name: 'Mannequin Stand', description: 'Full form mannequin busts, sculpted heads, and torso models.', image: '/assets/vinayak/cat_mannequin.png' },
+  { id: 'cat-8', name: 'Packaging Tools', description: 'Tape dispensers, clear wonder tapes, barcode sticker rolls, and sealers.', image: '/assets/vinayak/cat_bag.png' },
+  { id: 'cat-9', name: 'Jewellery Display Cloth', description: 'Seamless suede and velvet counter fabrics for showcase flatlays.', image: '/assets/vinayak/prod_suede_velvet.png' },
 ];
 
 const INITIAL_HOMEPAGE_BANNERS: HomepageBanner[] = [
@@ -140,33 +142,33 @@ const isLegacyStarterBanner = (banners: HomepageBanner[]) =>
   (banners[0].title.includes('Heavy-Duty Display Racks') || banners[0].title.includes('Heavy-duty racks'));
 
 const STORAGE_KEYS = {
-  PRODUCTS: 'vinayak_store_products_v2',
-  ORDERS: 'vinayak_store_orders_v2',
-  QUOTES: 'vinayak_store_quotes_v2',
-  SETTINGS: 'vinayak_store_settings_v2',
-  HOMEPAGE: 'vinayak_store_homepage_v2',
-  HOMEPAGE_DEALS: 'vinayak_store_homepage_deals_v2',
-  CATEGORIES: 'vinayak_store_categories_v2',
-  WISHLIST: 'vinayak_store_wishlist_v2',
+  PRODUCTS: 'alldisplay_store_products_v3',
+  ORDERS: 'alldisplay_store_orders_v3',
+  QUOTES: 'alldisplay_store_quotes_v3',
+  SETTINGS: 'alldisplay_store_settings_v3',
+  HOMEPAGE: 'alldisplay_store_homepage_v3',
+  HOMEPAGE_DEALS: 'alldisplay_store_homepage_deals_v3',
+  CATEGORIES: 'alldisplay_store_categories_v3',
+  WISHLIST: 'alldisplay_store_wishlist_v3',
 };
 
 const DEFAULT_SETTINGS: AdminSettings = {
   whatsappNumber: '919462247004',
   alternateWhatsapp: '919462247004',
-  upiId: 'vinayakpackaging@icici',
+  upiId: 'alldisplay@icici',
   bankName: 'HDFC Bank - Sowcarpet Branch, Chennai',
   accountNo: '50200049210081',
   ifscCode: 'HDFC0000231',
   minOrderValue: 500,
   shippingNotes: 'Global shipping available. Safe doorstep delivery across India from Chennai warehouse.',
-  storeName: 'Vinayak Packaging',
-  brandName: 'Vinayak Packaging',
+  storeName: 'All Display',
+  brandName: 'All Display',
   businessAddress: '29, Perumal Mudali St, Sowcarpet, George Town, Chennai, Tamil Nadu 600001',
   showroomAddress: '29, Perumal Mudali St, Sowcarpet, George Town, Chennai, Tamil Nadu 600001',
   brandTagline: 'Jewellery Display, Trays & Packaging Solutions',
   logoUrl: '/assets/vinayak/logo.png',
   headerNotice: 'Direct Factory Wholesale • Sowcarpet Depot, Chennai • Same-Day Dispatch Across India',
-  supportEmail: 'contact@www.vinayakpack.com',
+  supportEmail: 'contact@alldisplay.com',
   supportPhone: '+91 94622 47004',
   siteUrl: 'https://all-display.vercel.app',
 };
@@ -205,13 +207,13 @@ class CentralStoreService {
     window.addEventListener('storage', this.handleStorageChange);
     void this.refreshCatalog();
     window.setInterval(() => {
-      if (this.apiConfigured) {
+      if (this.apiConfigured && this.state.catalogSyncStatus === 'connected') {
         void this.loadSharedCatalog();
         void this.loadSharedSettings();
         void this.loadSharedHomepageBanners();
         if (this.adminAuthenticated) void this.loadOperationalData();
       }
-    }, 10000);
+    }, 15000);
   }
 
   private handleStorageChange = (event: StorageEvent) => {
@@ -299,7 +301,12 @@ class CentralStoreService {
   private loadSettings(): AdminSettings {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-      if (stored !== null) return JSON.parse(stored);
+      if (stored !== null) {
+        const parsed = JSON.parse(stored);
+        if (parsed.storeName === 'Vinayak Packaging') parsed.storeName = 'All Display';
+        if (parsed.brandName === 'Vinayak Packaging') parsed.brandName = 'All Display';
+        return parsed;
+      }
     } catch {}
     return DEFAULT_SETTINGS;
   }
@@ -327,14 +334,20 @@ class CentralStoreService {
   private async loadSharedCatalog() {
     try {
       const catalog = await this.apiRequest<{ products: Product[]; categories: AdminCategory[] }>('/api/catalog');
-      this.state = {
-        ...this.state,
-        products: catalog.products,
-        categories: catalog.categories,
-        catalogSyncStatus: 'connected',
-        catalogSyncError: null,
-      };
-      this.notify();
+      if (catalog && (catalog.products?.length > 0 || catalog.categories?.length > 0)) {
+        this.state = {
+          ...this.state,
+          products: catalog.products,
+          categories: catalog.categories,
+          catalogSyncStatus: 'connected',
+          catalogSyncError: null,
+        };
+        try {
+          localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(catalog.products));
+          localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(catalog.categories));
+        } catch {}
+        this.notify();
+      }
     } catch (error) {
       if (this.apiConfigured) {
         this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to load the shared catalog.');
@@ -345,12 +358,14 @@ class CentralStoreService {
   private async loadSharedSettings() {
     try {
       const { settings } = await this.apiRequest<{ settings: AdminSettings | null }>('/api/settings');
-      if (settings) {
-        const brand = settings.brandName || settings.storeName || 'Vinayak Packaging';
+      if (settings && Object.keys(settings).length > 0) {
+        const brand = settings.brandName || settings.storeName || this.state.settings.brandName || 'All Display';
         const normalized: AdminSettings = {
+          ...this.state.settings,
           ...settings,
           storeName: brand,
           brandName: brand,
+          logoUrl: settings.logoUrl || this.state.settings.logoUrl,
         };
         this.state = { ...this.state, settings: normalized };
         try {
@@ -369,14 +384,16 @@ class CentralStoreService {
         banners: HomepageBanner[] | null;
         dealProductIds: string[] | null;
       }>('/api/homepage-banners');
-      if (banners) {
-        const homepageBanners = isLegacyStarterBanner(banners) ? INITIAL_HOMEPAGE_BANNERS : banners;
+      if (banners && banners.length > 0) {
+        const homepageBanners = isLegacyStarterBanner(banners)
+          ? (this.state.homepageBanners.length > 0 ? this.state.homepageBanners : INITIAL_HOMEPAGE_BANNERS)
+          : banners;
         this.state = { ...this.state, homepageBanners };
         try {
           localStorage.setItem(STORAGE_KEYS.HOMEPAGE, JSON.stringify(homepageBanners));
         } catch {}
       }
-      if (dealProductIds) {
+      if (dealProductIds && dealProductIds.length > 0) {
         this.state = { ...this.state, homepageDealProductIds: dealProductIds };
         try {
           localStorage.setItem(STORAGE_KEYS.HOMEPAGE_DEALS, JSON.stringify(dealProductIds));
@@ -609,6 +626,17 @@ class CentralStoreService {
   }
 
   public async saveHomepageBanners(banners: HomepageBanner[], dealProductIds = this.state.homepageDealProductIds): Promise<boolean> {
+    // 1. Immediately persist locally so admin edits are never reverted or lost
+    this.state = { ...this.state, homepageBanners: banners, homepageDealProductIds: dealProductIds };
+    try {
+      localStorage.setItem(STORAGE_KEYS.HOMEPAGE, JSON.stringify(banners));
+      localStorage.setItem(STORAGE_KEYS.HOMEPAGE_DEALS, JSON.stringify(dealProductIds));
+    } catch (error) {
+      console.error('Could not save homepage banners locally:', error);
+    }
+    this.notify();
+
+    // 2. Sync to cloud API if connected
     if (this.apiConfigured) {
       try {
         await this.apiRequest('/api/homepage-banners', {
@@ -616,20 +644,11 @@ class CentralStoreService {
           headers: { 'X-Admin-Request': '1' },
           body: JSON.stringify({ banners, dealProductIds }),
         });
+        this.state = { ...this.state, catalogSyncStatus: 'connected', catalogSyncError: null };
       } catch (error) {
-        this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to save homepage banners.');
-        return false;
+        console.warn('Could not sync homepage banners to cloud server, preserved locally:', error);
       }
     }
-    this.state = { ...this.state, homepageBanners: banners, homepageDealProductIds: dealProductIds };
-    try {
-      localStorage.setItem(STORAGE_KEYS.HOMEPAGE, JSON.stringify(banners));
-      localStorage.setItem(STORAGE_KEYS.HOMEPAGE_DEALS, JSON.stringify(dealProductIds));
-    } catch (error) {
-      console.error('Could not save homepage banners locally:', error);
-      return false;
-    }
-    this.notify();
     return true;
   }
 
@@ -786,25 +805,14 @@ class CentralStoreService {
   }
 
   public async saveSettings(settings: AdminSettings): Promise<boolean> {
-    const brand = settings.brandName || settings.storeName || 'Vinayak Packaging';
+    const brand = settings.brandName || settings.storeName || 'All Display';
     const normalizedSettings: AdminSettings = {
       ...settings,
       storeName: brand,
       brandName: brand,
     };
 
-    if (this.apiConfigured) {
-      try {
-        await this.apiRequest('/api/settings', {
-          method: 'PUT',
-          headers: { 'X-Admin-Request': '1' },
-          body: JSON.stringify({ settings: normalizedSettings }),
-        });
-      } catch (error) {
-        this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to save shared business settings.');
-        return false;
-      }
-    }
+    // 1. Immediately persist locally so admin changes are never lost or reverted
     this.state = { ...this.state, settings: normalizedSettings };
     try {
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(normalizedSettings));
@@ -812,7 +820,29 @@ class CentralStoreService {
     window.dispatchEvent(new CustomEvent('vinayak_settings_updated', { detail: { settings: normalizedSettings } }));
     window.dispatchEvent(new CustomEvent('alldisplay_data_updated', { detail: { settings: normalizedSettings } }));
     this.notify();
+
+    // 2. Sync to cloud API if connected
+    if (this.apiConfigured) {
+      try {
+        await this.apiRequest('/api/settings', {
+          method: 'PUT',
+          headers: { 'X-Admin-Request': '1' },
+          body: JSON.stringify({ settings: normalizedSettings }),
+        });
+        this.state = { ...this.state, catalogSyncStatus: 'connected', catalogSyncError: null };
+      } catch (error) {
+        console.warn('Could not sync settings to cloud server, preserved locally:', error);
+      }
+    }
     return true;
+  }
+
+  public async changePassword(currentPassword: string, newPassword: string): Promise<{ success: boolean; message?: string }> {
+    return this.apiRequest('/api/auth/change-password', {
+      method: 'POST',
+      headers: { 'X-Auth-Request': '1' },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
   }
 
   public async getDatabaseInfo(): Promise<{

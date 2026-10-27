@@ -17,12 +17,22 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 }) => {
   const { user, logout } = useAuth();
   useScrollLock(isOpen && Boolean(user));
-  const [activeTab, setActiveTab] = useState<'orders' | 'profile' | 'address'>('orders');
-  const [savedPhone, setSavedPhone] = useState(() => localStorage.getItem('vinayak_user_phone') || '');
-  const [savedAddress, setSavedAddress] = useState(() => localStorage.getItem('vinayak_user_address') || '');
-  const [savedPincode, setSavedPincode] = useState(() => localStorage.getItem('vinayak_user_pincode') || '');
-  const [savedStore, setSavedStore] = useState(() => localStorage.getItem('vinayak_user_store') || '');
+  const [activeTab, setActiveTab] = useState<'orders' | 'address' | 'security'>('orders');
+  const [savedPhone, setSavedPhone] = useState(() => localStorage.getItem('alldisplay_user_phone') || localStorage.getItem('vinayak_user_phone') || '');
+  const [savedAddress, setSavedAddress] = useState(() => localStorage.getItem('alldisplay_user_address') || localStorage.getItem('vinayak_user_address') || '');
+  const [savedPincode, setSavedPincode] = useState(() => localStorage.getItem('alldisplay_user_pincode') || localStorage.getItem('vinayak_user_pincode') || '');
+  const [savedStore, setSavedStore] = useState(() => localStorage.getItem('alldisplay_user_store') || localStorage.getItem('vinayak_user_store') || '');
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Security / Reset Password state (Issue #32)
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   if (!isOpen || !user) return null;
 
@@ -34,12 +44,52 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem('vinayak_user_phone', savedPhone);
-    localStorage.setItem('vinayak_user_address', savedAddress);
-    localStorage.setItem('vinayak_user_pincode', savedPincode);
-    localStorage.setItem('vinayak_user_store', savedStore);
+    localStorage.setItem('alldisplay_user_phone', savedPhone);
+    localStorage.setItem('alldisplay_user_address', savedAddress);
+    localStorage.setItem('alldisplay_user_pincode', savedPincode);
+    localStorage.setItem('alldisplay_user_store', savedStore);
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2500);
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+    setPasswordSuccess(null);
+
+    if (newPassword.length < 6) {
+      setPasswordError('New password must be at least 6 characters long.');
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      setPasswordError('New password must contain at least one uppercase letter (A-Z).');
+      return;
+    }
+    if (!/[a-z]/.test(newPassword)) {
+      setPasswordError('New password must contain at least one lowercase letter (a-z).');
+      return;
+    }
+    if (!/[^A-Za-z0-9]/.test(newPassword)) {
+      setPasswordError('New password must contain at least one special character (e.g. !@#$%^&*).');
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError('New password and confirm password do not match.');
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      await storeManager.changePassword(currentPassword, newPassword);
+      setPasswordSuccess('Password updated successfully!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : 'Could not update password. Please check your current password.');
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   return (
@@ -89,10 +139,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex border-b border-slate-100 px-6 bg-white gap-6 text-xs font-bold">
+        <div className="flex border-b border-slate-100 px-6 bg-white gap-6 text-xs font-bold overflow-x-auto scrollbar-none">
           <button
             onClick={() => setActiveTab('orders')}
-            className={`py-3.5 border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+            className={`py-3.5 border-b-2 transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
               activeTab === 'orders'
                 ? 'border-orange-600 text-orange-600'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -103,7 +153,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('address')}
-            className={`py-3.5 border-b-2 transition-all cursor-pointer flex items-center gap-2 ${
+            className={`py-3.5 border-b-2 transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
               activeTab === 'address'
                 ? 'border-orange-600 text-orange-600'
                 : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -111,6 +161,17 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           >
             <AppIcon name="location_on" className="text-base" />
             <span>Saved Shipping Address</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('security')}
+            className={`py-3.5 border-b-2 transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
+              activeTab === 'security'
+                ? 'border-orange-600 text-orange-600'
+                : 'border-transparent text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <AppIcon name="lock" className="text-base" />
+            <span>Reset Password</span>
           </button>
         </div>
 
@@ -128,58 +189,55 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     Orders submitted via your account and WhatsApp desk will appear here with live tracking status.
                   </p>
                   <button
-                    onClick={() => {
-                      onClose();
-                      onNavigateToShop();
-                    }}
-                    className="mt-2 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-colors cursor-pointer"
+                    onClick={onNavigateToShop}
+                    className="mt-2 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs px-5 py-2.5 rounded-full transition-colors cursor-pointer"
                   >
                     Start Shopping
                   </button>
                 </div>
               ) : (
-                userOrders.map((ord) => (
+                userOrders.map((order) => (
                   <div
-                    key={ord.id}
-                    className="border border-slate-200 rounded-2xl p-4 sm:p-5 flex flex-col gap-3 hover:border-slate-300 transition-all bg-white"
+                    key={order.id}
+                    className="p-4 rounded-2xl border border-slate-200 bg-slate-50/50 flex flex-col gap-3"
                   >
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm text-slate-900">{ord.orderNo}</span>
-                        <span className="text-xs text-slate-400">•</span>
-                        <span className="text-xs text-slate-500">{ord.date}</span>
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-200/80">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs font-bold text-slate-900">{order.orderNo}</span>
+                          <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 text-[10px] font-bold">
+                            {order.status}
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-slate-500">{order.date}</span>
                       </div>
-                      <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${
-                        ord.status === 'New (Awaiting WhatsApp)' ? 'bg-amber-100 text-amber-800' :
-                        ord.status === 'Payment pending' ? 'bg-orange-100 text-orange-800' :
-                        ord.status === 'Packed' ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'
-                      }`}>
-                        {ord.status}
-                      </span>
+                      <div className="text-right">
+                        <span className="text-sm font-extrabold text-slate-900">
+                          ₹{order.total.toLocaleString('en-IN')}
+                        </span>
+                        <p className="text-[10px] text-slate-500">{order.items.length} items</p>
+                      </div>
                     </div>
 
-                    <div className="flex flex-col gap-1 text-xs text-slate-600">
-                      <p className="font-medium text-slate-800">
-                        Destination: <span className="font-normal">{ord.destination} (Pincode: {ord.pincode})</span>
-                      </p>
-                      <p>
-                        Items: {ord.items.map((i) => `${i.title} × ${i.quantity}`).join(', ')}
-                      </p>
-                      {ord.trackingNo && (
-                        <p className="text-emerald-700 font-mono font-semibold">
-                          📦 Tracking LR: {ord.trackingNo}
-                        </p>
-                      )}
+                    <div className="flex flex-col gap-1 text-xs text-slate-700">
+                      {order.items.map((item, idx) => (
+                        <div key={idx} className="flex justify-between py-0.5">
+                          <span>
+                            {item.quantity}x {item.title} ({item.finish})
+                          </span>
+                          <span className="font-mono text-slate-500">
+                            ₹{(item.unitPrice * item.quantity).toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                      ))}
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                      <span className="text-xs text-slate-500">
-                        {ord.items.length} {ord.items.length === 1 ? 'item' : 'items'}
-                      </span>
-                      <span className="font-mono font-extrabold text-base text-slate-900">
-                        ₹{ord.total.toLocaleString('en-IN')}
-                      </span>
-                    </div>
+                    {order.trackingNo && (
+                      <div className="p-2.5 rounded-xl bg-white border border-slate-200 flex items-center justify-between text-xs">
+                        <span className="text-slate-500">Transport Docket / Tracking:</span>
+                        <span className="font-mono font-bold text-orange-600">{order.trackingNo}</span>
+                      </div>
+                    )}
                   </div>
                 ))
               )}
@@ -187,16 +245,16 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           )}
 
           {activeTab === 'address' && (
-            <form onSubmit={handleSaveProfile} className="flex flex-col gap-4 max-w-lg mx-auto">
+            <form onSubmit={handleSaveProfile} className="flex flex-col gap-4 max-w-lg">
               {saveSuccess && (
                 <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
                   <AppIcon name="check_circle" className="text-base text-emerald-600" />
-                  <span>Shipping profile saved successfully!</span>
+                  <span>Shipping preferences updated!</span>
                 </div>
               )}
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-800">Store / Business Name</label>
+                <label className="text-xs font-semibold text-slate-800">Business / Store Trade Name</label>
                 <input
                   type="text"
                   value={savedStore}
@@ -245,6 +303,92 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                   className="bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs px-6 py-3 rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
                   Save Address &amp; Details
+                </button>
+              </div>
+            </form>
+          )}
+
+          {activeTab === 'security' && (
+            <form onSubmit={handleResetPassword} className="flex flex-col gap-4 max-w-lg">
+              {passwordSuccess && (
+                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
+                  <AppIcon name="check_circle" className="text-base text-emerald-600" />
+                  <span>{passwordSuccess}</span>
+                </div>
+              )}
+
+              {passwordError && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
+                  <AppIcon name="error" className="text-base text-red-600" />
+                  <span>{passwordError}</span>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-800">Current Password</label>
+                <div className="relative flex items-center">
+                  <input
+                    type={showCurrentPassword ? 'text' : 'password'}
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="Enter current password"
+                    className="p-3 pr-10 w-full rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    className="absolute right-3 text-slate-400 hover:text-slate-700 cursor-pointer p-1"
+                  >
+                    <AppIcon name={showCurrentPassword ? 'visibility_off' : 'visibility'} className="text-base" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-800">
+                  New Password <span className="text-[10px] text-slate-500 font-normal">(min 6 chars, uppercase, lowercase, special char)</span>
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type={showNewPassword ? 'text' : 'password'}
+                    required
+                    minLength={6}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Enter new password"
+                    className="p-3 pr-10 w-full rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 text-slate-400 hover:text-slate-700 cursor-pointer p-1"
+                  >
+                    <AppIcon name={showNewPassword ? 'visibility_off' : 'visibility'} className="text-base" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-800">Confirm New Password</label>
+                <input
+                  type={showNewPassword ? 'text' : 'password'}
+                  required
+                  minLength={6}
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  placeholder="Re-enter new password"
+                  className="p-3 w-full rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={isChangingPassword}
+                  className="bg-orange-600 hover:bg-orange-700 disabled:opacity-60 text-white font-bold text-xs px-6 py-3 rounded-xl shadow-xs transition-colors cursor-pointer"
+                >
+                  {isChangingPassword ? 'Updating Password…' : 'Update Password'}
                 </button>
               </div>
             </form>

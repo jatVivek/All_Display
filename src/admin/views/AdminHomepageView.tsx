@@ -9,24 +9,20 @@ interface AdminHomepageViewProps {
   showToast: (msg: string) => void;
 }
 
-const createBanner = (): HomepageBanner => {
-  const firstCategory = storeManager.getCategories()[0];
-  const firstProduct = storeManager.getProducts()[0];
-  return {
-    id: `banner-${Date.now()}`,
-    eyebrow: 'Vinayak Packaging Exclusive',
-    title: 'Jewellery Displays & Trays',
-    subtitle: 'Direct Sowcarpet Depot Dispatches',
-    description: 'High-end velvet presentation busts, counter trays, and boutique display solutions.',
-    image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=1600&q=80',
-    linkType: firstCategory ? 'category' : 'product',
-    linkId: firstCategory?.id ?? firstProduct?.id ?? '',
-  };
-};
+// Issue #28: Clean blank template without static hardcoded dummy data
+const createBanner = (): HomepageBanner => ({
+  id: `banner-${Date.now()}`,
+  eyebrow: '',
+  title: '',
+  subtitle: '',
+  description: '',
+  image: '',
+  linkType: 'none',
+  linkId: '',
+});
 
 export const AdminHomepageView: React.FC<AdminHomepageViewProps> = ({ showToast }) => {
   const [banners, setBanners] = useState(() => storeManager.getHomepageBanners());
-  const [dealProductIds, setDealProductIds] = useState(() => storeManager.getHomepageDealProductIds());
   const [products, setProducts] = useState(() => storeManager.getProducts());
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingBannerId, setUploadingBannerId] = useState<string | null>(null);
@@ -54,6 +50,10 @@ export const AdminHomepageView: React.FC<AdminHomepageViewProps> = ({ showToast 
   };
 
   const handleLinkTypeChange = (banner: HomepageBanner, linkType: HomepageBanner['linkType']) => {
+    if (linkType === 'none') {
+      updateBanner(banner.id, { linkType: 'none', linkId: '' });
+      return;
+    }
     const options = linkType === 'category' ? categories : products;
     updateBanner(banner.id, { linkType, linkId: options[0]?.id ?? '' });
   };
@@ -111,19 +111,21 @@ export const AdminHomepageView: React.FC<AdminHomepageViewProps> = ({ showToast 
     }
   };
 
+  // Issue #26 & #30: Relaxed saving validation (link is optional)
   const handleSave = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (banners.some((banner) => !banner.title.trim() || !banner.image.trim() || !banner.linkId)) {
-      showToast('Every banner needs a headline, image, and category or product link.');
+    if (banners.some((banner) => !banner.title.trim() || !banner.image.trim())) {
+      showToast('Every banner needs a headline title and desktop image URL.');
       return;
     }
     setIsSaving(true);
     try {
-      if (!await storeManager.saveHomepageBanners(banners, dealProductIds)) {
+      const currentDeals = storeManager.getHomepageDealProductIds();
+      if (!await storeManager.saveHomepageBanners(banners, currentDeals)) {
         showToast(storeManager.getState().catalogSyncError || 'Could not save homepage banners.');
         return;
       }
-      showToast('Homepage banners saved successfully.');
+      showToast('Homepage banners saved and synced successfully!');
     } finally {
       setIsSaving(false);
     }
@@ -135,10 +137,10 @@ export const AdminHomepageView: React.FC<AdminHomepageViewProps> = ({ showToast 
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <AppIcon name="view_carousel" className="text-orange-600 text-[24px]" />
-            <h1 className="text-2xl font-bold text-slate-900">Homepage Banners &amp; Deals</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Homepage Hero Banners</h1>
           </div>
           <p className="text-xs text-slate-500">
-            Customize storefront hero promotional banners with standardized uniform cropping and select Deal of the Day items.
+            Customize storefront hero promotional banners with standardized uniform cropping.
           </p>
         </div>
         <button
@@ -152,46 +154,16 @@ export const AdminHomepageView: React.FC<AdminHomepageViewProps> = ({ showToast 
       </div>
 
       <form onSubmit={handleSave} className="flex flex-col gap-5">
-        <section className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col gap-4">
-          <div>
-            <h2 className="text-base font-bold text-slate-900">Featured Deals of the Day</h2>
-            <p className="mt-1 text-xs text-slate-500">Select the products to feature in the storefront's daily deals and top selling showcases.</p>
-          </div>
-          {products.length === 0 ? (
-            <p className="text-xs text-slate-400">Add products to the catalog before choosing deal products.</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5">
-              {products.map((product) => (
-                <label key={product.id} className="flex items-center gap-3 rounded-xl border border-slate-200 p-3 cursor-pointer hover:bg-slate-50 transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={dealProductIds.includes(product.id)}
-                    onChange={(event) => setDealProductIds((current) => (
-                      event.target.checked
-                        ? [...current, product.id]
-                        : current.filter((id) => id !== product.id)
-                    ))}
-                    className="h-4 w-4 accent-orange-600 cursor-pointer"
-                  />
-                  <img src={product.image} alt="" className="h-12 w-12 rounded-lg object-cover bg-slate-100 shrink-0 border border-slate-200" />
-                  <span className="min-w-0">
-                    <span className="block truncate text-xs font-semibold text-slate-900">{product.title}</span>
-                    <span className="block text-[10px] text-slate-500 font-mono">{product.code} • ₹{product.price}</span>
-                  </span>
-                </label>
-              ))}
-            </div>
-          )}
-        </section>
-
         {banners.length === 0 && (
           <div className="bg-white rounded-2xl p-8 border border-dashed border-slate-200 text-center text-sm text-slate-500">
-            No banners yet. Add a banner to display it on the storefront.
+            No banners yet. Click &ldquo;Add Banner&rdquo; to create one.
           </div>
         )}
 
         {banners.map((banner, index) => {
+          const isLinked = banner.linkType && banner.linkType !== 'none';
           const linkOptions = banner.linkType === 'category' ? categories : products;
+
           return (
             <section key={banner.id} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col gap-5">
               <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -214,48 +186,52 @@ export const AdminHomepageView: React.FC<AdminHomepageViewProps> = ({ showToast 
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className="flex flex-col gap-1.5 text-xs font-semibold text-slate-800">
-                  Small Eyebrow Tag
+                  Small Eyebrow Tag (Optional)
                   <input
                     type="text"
-                    value={banner.eyebrow}
+                    value={banner.eyebrow || ''}
                     onChange={(event) => updateBanner(banner.id, { eyebrow: event.target.value })}
                     maxLength={160}
+                    placeholder="e.g. Special Offer or New Collection"
                     className="p-3 rounded-xl bg-slate-50 border border-slate-200 font-normal text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
                   />
                 </label>
                 <label className="flex flex-col gap-1.5 text-xs font-semibold text-slate-800">
-                  Headline Title
+                  Headline Title *
                   <input
                     type="text"
                     value={banner.title}
                     onChange={(event) => updateBanner(banner.id, { title: event.target.value })}
                     maxLength={200}
                     required
+                    placeholder="e.g. Premium Jewellery Displays"
                     className="p-3 rounded-xl bg-slate-50 border border-slate-200 font-normal text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
                   />
                 </label>
                 <label className="flex flex-col gap-1.5 text-xs font-semibold text-slate-800 md:col-span-2">
-                  Subtitle
+                  Subtitle (Optional)
                   <input
                     type="text"
-                    value={banner.subtitle}
+                    value={banner.subtitle || ''}
                     onChange={(event) => updateBanner(banner.id, { subtitle: event.target.value })}
                     maxLength={240}
+                    placeholder="e.g. Direct Factory Wholesale Supply"
                     className="p-3 rounded-xl bg-slate-50 border border-slate-200 font-normal text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
                   />
                 </label>
                 <label className="flex flex-col gap-1.5 text-xs font-semibold text-slate-800 md:col-span-2">
-                  Description
+                  Description (Optional)
                   <textarea
                     rows={2}
-                    value={banner.description}
+                    value={banner.description || ''}
                     onChange={(event) => updateBanner(banner.id, { description: event.target.value })}
                     maxLength={1000}
+                    placeholder="Detailed promotional text..."
                     className="p-3 rounded-xl bg-slate-50 border border-slate-200 font-normal text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all resize-none"
                   />
                 </label>
                 <label className="flex flex-col gap-1.5 text-xs font-semibold text-slate-800 md:col-span-2">
-                  Banner Image URL (Desktop)
+                  Banner Image URL (Desktop) *
                   <input
                     type="url"
                     value={banner.image}
@@ -374,33 +350,41 @@ export const AdminHomepageView: React.FC<AdminHomepageViewProps> = ({ showToast 
                   </p>
                 </div>
 
+                {/* Issue #30: Link Type and Destination are Optional */}
                 <label className="flex flex-col gap-1.5 text-xs font-semibold text-slate-800">
-                  Link Type
+                  Link Type (Optional)
                   <select
-                    value={banner.linkType}
+                    value={banner.linkType || 'none'}
                     onChange={(event) => handleLinkTypeChange(banner, event.target.value as HomepageBanner['linkType'])}
                     className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
                   >
+                    <option value="none">None (Display Only)</option>
                     <option value="category">Category</option>
                     <option value="product">Product</option>
                   </select>
                 </label>
-                <label className="flex flex-col gap-1.5 text-xs font-semibold text-slate-800">
-                  Target Destination
-                  <select
-                    value={banner.linkId}
-                    onChange={(event) => updateBanner(banner.id, { linkId: event.target.value })}
-                    required
-                    className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
-                  >
-                    <option value="">Select {banner.linkType}</option>
-                    {linkOptions.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {'name' in option ? option.name : `${option.title} (${option.code})`}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+
+                {isLinked ? (
+                  <label className="flex flex-col gap-1.5 text-xs font-semibold text-slate-800">
+                    Target Destination
+                    <select
+                      value={banner.linkId || ''}
+                      onChange={(event) => updateBanner(banner.id, { linkId: event.target.value })}
+                      className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
+                    >
+                      <option value="">Select {banner.linkType}</option>
+                      {linkOptions.map((option) => (
+                        <option key={option.id} value={option.id}>
+                          {'name' in option ? option.name : `${option.title} (${option.code})`}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : (
+                  <div className="flex flex-col justify-center text-xs text-slate-500 pt-5">
+                    <span>Banner button will explore the general shop catalog.</span>
+                  </div>
+                )}
               </div>
             </section>
           );

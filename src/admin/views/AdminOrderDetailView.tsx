@@ -65,7 +65,7 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
 
   // WhatsApp Templates
   const handleWhatsAppReply = () => {
-    const text = `Hi ${order.customerName} (${order.storeName}), thanks for confirming your order *${order.orderNo}* with Vinayak Packaging Sowcarpet, Chennai.\n\n` +
+    const text = `Hi ${order.customerName} (${order.storeName}), thanks for confirming your order *${order.orderNo}* with All Display Sowcarpet, Chennai.\n\n` +
       `Order Summary:\n` +
       order.items.map(i => `• ${i.title} (${i.finish}): ${i.quantity} ${i.unitLabel} @ ₹${i.unitPrice.toLocaleString('en-IN')}`).join('\n') +
       `\n\nGrand Total: ₹${order.total.toLocaleString('en-IN')}\n\n` +
@@ -91,7 +91,7 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
     const text = `Hi ${order.customerName} (${order.storeName}), great news! Your order *${order.orderNo}* has been packed and dispatched.\n\n` +
       `📦 Courier / Tracking No: *${trackingNo || 'To be confirmed'}*\n` +
       `Destination: ${order.destination} (${order.pincode})\n\n` +
-      `Thank you for shopping with Vinayak Packaging!`;
+      `Thank you for shopping with All Display!`;
 
     window.open(getContactWhatsAppLink(order.whatsapp, text), '_blank');
     showToast('Dispatch notice sent via WhatsApp.');

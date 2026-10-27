@@ -24,11 +24,11 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
       {/* Brand & Breadcrumb */}
       <div className="flex items-center gap-4">
         <div className="w-10 h-10 rounded-xl bg-orange-600 text-white flex items-center justify-center font-bold text-base shadow-xs">
-          VP
+          AD
         </div>
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-base tracking-tight text-slate-900">Vinayak Packaging Admin</span>
+            <span className="font-bold text-base tracking-tight text-slate-900">All Display Admin</span>
             <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
               syncStatus === 'connected'
                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'

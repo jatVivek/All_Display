@@ -35,6 +35,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [showAccountMenu, setShowAccountMenu] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [wishlistCount, setWishlistCount] = useState(() => storeManager.getWishlist().length);
   const [settings, setSettings] = useState(() => storeManager.getSettings());
   const searchContainerRef = useRef<HTMLDivElement>(null);
@@ -42,6 +43,24 @@ export const Header: React.FC<HeaderProps> = ({
 
   const categories = storeManager.getCategories();
   const products = storeManager.getProducts();
+
+  // Filter categories to only those with at least 1 active product
+  const activeCategories = React.useMemo(() => {
+    return categories.filter((c) =>
+      products.some((p) => (p.category && p.category.toLowerCase() === c.name.toLowerCase()) || p.category === c.id)
+    );
+  }, [categories, products]);
+
+  // Debounce search query to show loading state
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      setIsSearching(true);
+      const timer = setTimeout(() => setIsSearching(false), 200);
+      return () => clearTimeout(timer);
+    } else {
+      setIsSearching(false);
+    }
+  }, [searchQuery]);
 
   // Listen to store updates for wishlist & settings
   useEffect(() => {
@@ -65,6 +84,19 @@ export const Header: React.FC<HeaderProps> = ({
       unsubscribe();
     };
   }, []);
+
+  // Issue #18: Debounced search loader state
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setIsSearching(false);
+      return;
+    }
+    setIsSearching(true);
+    const timer = setTimeout(() => {
+      setIsSearching(false);
+    }, 220);
+    return () => clearTimeout(timer);
+  }, [searchQuery, selectedCategory]);
 
   // Click outside search suggestions
   useEffect(() => {
@@ -129,7 +161,7 @@ export const Header: React.FC<HeaderProps> = ({
     else openAuthDialog();
   };
 
-  const brandName = settings.brandName || settings.storeName || 'Vinayak Packaging';
+  const brandName = settings.brandName || settings.storeName || 'All Display';
   const brandTagline = settings.brandTagline || 'Jewellery Display, Trays & Packaging Solutions';
   const headerNotice = settings.headerNotice || 'Direct Factory Wholesale • Sowcarpet Depot, Chennai • Same-Day Dispatch Across India';
   const phone = settings.supportPhone || '+91 94622 47004';
@@ -157,7 +189,7 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="text-slate-300">|</span>
               <div className="flex items-center gap-2">
                 <a
-                  href={getWhatsAppLink('Hi Vinayak Packaging, I would like to inquire about wholesale rates.')}
+                  href={getWhatsAppLink(`Hi ${brandName}, I would like to inquire about wholesale rates.`)}
                   target="_blank"
                   rel="noreferrer"
                   className="w-5 h-5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center transition-colors"
@@ -189,49 +221,53 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Main Header Row */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-3 sm:gap-6">
-          {/* 1. Brand Logo (Dynamic through Admin) */}
-          <div className="flex items-center gap-3 shrink-0">
+          {/* 1. Brand Logo (Dynamic through Admin, wrap protected against long text) */}
+          <div className="flex items-center gap-2.5 shrink-0 min-w-0 max-w-[190px] sm:max-w-[280px]">
             <button
               onClick={() => navigateTo('home')}
-              className="flex items-center gap-2.5 text-left group cursor-pointer"
+              className="flex items-center gap-2.5 text-left group cursor-pointer min-w-0 w-full"
             >
               {settings.logoUrl ? (
                 <img
                   src={settings.logoUrl}
                   alt={brandName}
-                  className="h-10 sm:h-11 w-auto object-contain rounded-lg"
+                  className="h-9 sm:h-11 w-auto max-w-[80px] sm:max-w-[100px] object-contain rounded-lg shrink-0"
                   onError={(e) => {
                     (e.target as HTMLElement).style.display = 'none';
+                    const parent = (e.target as HTMLElement).parentElement;
+                    const fallback = parent?.querySelector('.logo-fallback');
+                    if (fallback) fallback.classList.remove('hidden');
                   }}
                 />
-              ) : (
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-xs p-1.5 shrink-0">
-                  <span className="font-extrabold text-sm sm:text-base tracking-wider">VP</span>
-                </div>
-              )}
-              <div className="flex flex-col">
-                <span className="font-extrabold text-base sm:text-lg tracking-tight text-slate-900 group-hover:text-orange-600 transition-colors uppercase leading-tight">
+              ) : null}
+              <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-xs p-1.5 shrink-0 logo-fallback ${settings.logoUrl ? 'hidden' : ''}`}>
+                <span className="font-extrabold text-xs sm:text-sm tracking-wider">
+                  {brandName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase() || 'AD'}
+                </span>
+              </div>
+              <div className="flex flex-col min-w-0 overflow-hidden">
+                <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900 group-hover:text-orange-600 transition-colors uppercase leading-tight truncate">
                   {brandName}
                 </span>
-                <span className="text-[9px] uppercase tracking-wider text-slate-500 font-semibold truncate max-w-[190px] sm:max-w-xs">
+                <span className="text-[9px] uppercase tracking-wider text-slate-500 font-semibold truncate">
                   {brandTagline}
                 </span>
               </div>
             </button>
           </div>
 
-          {/* 2. Integrated Search Bar with Live Suggestions Dropdown */}
+          {/* 2. Integrated Search Bar with Live Suggestions Dropdown & Loader */}
           <div ref={searchContainerRef} className="hidden md:flex flex-1 max-w-2xl relative">
             <form onSubmit={handleSearchSubmit} className="w-full">
               <div className="flex items-center w-full bg-slate-50 hover:bg-slate-100/80 focus-within:bg-white rounded-full border border-slate-200 focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-100 transition-all p-1">
-                {/* Category Dropdown */}
+                {/* Category Dropdown (Excludes empty categories) */}
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="bg-transparent text-xs text-slate-700 font-medium pl-3 pr-2 py-1.5 border-r border-slate-200 focus:outline-none cursor-pointer shrink-0"
+                  className="bg-transparent text-xs text-slate-700 font-medium pl-3 pr-2 py-1.5 border-r border-slate-200 focus:outline-none cursor-pointer shrink-0 max-w-[130px] truncate"
                 >
                   <option value="All categories">All categories</option>
-                  {categories.map((c) => (
+                  {activeCategories.map((c) => (
                     <option key={c.id} value={c.name}>{c.name}</option>
                   ))}
                 </select>
@@ -264,7 +300,11 @@ export const Header: React.FC<HeaderProps> = ({
                   className="w-8 h-8 rounded-full bg-orange-600 hover:bg-orange-700 text-white flex items-center justify-center transition-colors shrink-0 cursor-pointer shadow-xs"
                   aria-label="Submit search"
                 >
-                  <AppIcon name="search" className="text-sm" />
+                  {isSearching ? (
+                    <AppIcon name="progress_activity" className="text-sm animate-spin" />
+                  ) : (
+                    <AppIcon name="search" className="text-sm" />
+                  )}
                 </button>
               </div>
             </form>
@@ -277,7 +317,13 @@ export const Header: React.FC<HeaderProps> = ({
                   <span>{matchingSuggestions.length} found</span>
                 </div>
 
-                {matchingSuggestions.length === 0 ? (
+                {/* Live Suggestions or Search Loader */}
+                {isSearching ? (
+                  <div className="p-8 flex items-center justify-center gap-2.5 text-xs font-semibold text-slate-500">
+                    <AppIcon name="progress_activity" className="text-lg text-orange-600 animate-spin" />
+                    <span>Searching products catalog...</span>
+                  </div>
+                ) : matchingSuggestions.length === 0 ? (
                   <div className="p-6 text-center text-xs text-slate-500">
                     No products matched "{searchQuery}". Try searching for "velvet", "stand", "cards", or "tray".
                   </div>
@@ -331,11 +377,6 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* 3. Right Utility Actions */}
           <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-            {/* Currency Pill */}
-            <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">
-              <span>₹ INR</span>
-            </div>
-
             {/* Account Profile / Sign In */}
             <div className="relative">
               <button
@@ -436,7 +477,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>Daily Deals</span>
                 <span className="bg-rose-500 text-white text-[8px] font-black px-1.5 py-0.2 rounded-full uppercase">HOT</span>
               </button>
-              {categories.slice(0, 5).map((cat) => (
+              {activeCategories.slice(0, 6).map((cat) => (
                 <button
                   key={cat.id}
                   type="button"
@@ -481,7 +522,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-lg bg-orange-600 text-white flex items-center justify-center font-bold text-xs">
-                    VP
+                    {brandName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase() || 'AD'}
                   </div>
                   <span className="font-bold text-sm text-slate-900">{brandName}</span>
                 </div>

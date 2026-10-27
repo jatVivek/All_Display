@@ -863,7 +863,7 @@ export const PROJECT_REELS: ProjectReel[] = [
       capacity: 'Full Bridal Suite',
       finishType: 'Peacock Teal Velvet'
     },
-    clientQuote: 'Vinayak Packaging displays transformed our glass showcase into a high-end luxury counter.'
+    clientQuote: 'All Display displays transformed our glass showcase into a high-end luxury counter.'
   }
 ];
 

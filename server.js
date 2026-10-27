@@ -26,7 +26,7 @@ const scrypt = promisify(scryptCallback);
 const rootDirectory = path.dirname(fileURLToPath(import.meta.url));
 const uploadDirectory = process.env.VERCEL ? '/tmp/uploads' : path.join(rootDirectory, 'public', 'uploads');
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '12345678912345678';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin123456';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'b5bc5ae7de4729b601e432c196e061e4bdb13f514ee5aa991160d10e2ce207b4';
 
 // Live Database Configuration (URI Connection String & Cloud Environment Variables)
@@ -498,6 +498,9 @@ app.post('/api/auth/signup', requireAuthRequest, requireDatabase, authLimit, asy
   if (password.length < 6 || password.length > 128) {
     return response.status(400).json({ error: 'Password must be between 6 and 128 characters.' });
   }
+  if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])/.test(password)) {
+    return response.status(400).json({ error: 'Password must contain at least one uppercase letter, one lowercase letter, and one special character.' });
+  }
 
   try {
     const id = randomBytes(16).toString('hex');
@@ -583,6 +586,36 @@ app.post('/api/auth/logout', requireAuthRequest, requireCustomer, async (request
     response.status(204).end();
   } catch (error) {
     next(error);
+  }
+});
+
+app.post('/api/auth/change-password', requireAuthRequest, requireCustomer, authLimit, async (request, response, next) => {
+  const currentPassword = typeof request.body?.currentPassword === 'string' ? request.body.currentPassword : '';
+  const newPassword = typeof request.body?.newPassword === 'string' ? request.body.newPassword : '';
+  if (!currentPassword || !newPassword || newPassword.length < 6) {
+    return response.status(400).json({ error: 'New password must be at least 6 characters.' });
+  }
+  if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9])/.test(newPassword)) {
+    return response.status(400).json({ error: 'New password must contain at least one uppercase letter, one lowercase letter, and one special character.' });
+  }
+  try {
+    if (pool) {
+      const [rows] = await pool.query('SELECT password_hash FROM users WHERE id = ? LIMIT 1', [request.customer.id]);
+      if (!rows.length || !await verifyPassword(currentPassword, rows[0].password_hash)) {
+        return response.status(401).json({ error: 'Current password is incorrect.' });
+      }
+      const newHash = await hashPassword(newPassword);
+      await pool.query('UPDATE users SET password_hash = ? WHERE id = ?', [newHash, request.customer.id]);
+    } else {
+      const user = memoryStore.users.find((u) => u.id === request.customer.id);
+      if (!user || !await verifyPassword(currentPassword, user.password_hash)) {
+        return response.status(401).json({ error: 'Current password is incorrect.' });
+      }
+      user.password_hash = await hashPassword(newPassword);
+    }
+    response.json({ success: true, message: 'Password updated successfully!' });
+  } catch (err) {
+    next(err);
   }
 });
 
@@ -867,17 +900,17 @@ app.put('/api/homepage-banners', requireSameOrigin, requireAdmin, async (request
     typeof banner === 'object' &&
     !Array.isArray(banner) &&
     typeof banner.id === 'string' && banner.id.length > 0 && banner.id.length <= 191 &&
-    typeof banner.eyebrow === 'string' && banner.eyebrow.length <= 160 &&
-    typeof banner.title === 'string' && banner.title.length > 0 && banner.title.length <= 200 &&
-    typeof banner.subtitle === 'string' && banner.subtitle.length <= 240 &&
-    typeof banner.description === 'string' && banner.description.length <= 1000 &&
-    typeof banner.image === 'string' && banner.image.length > 0 && banner.image.length <= 2000 &&
-    (banner.mobileImage === undefined || (typeof banner.mobileImage === 'string' && banner.mobileImage.length <= 2000)) &&
-    ['category', 'product'].includes(banner.linkType) &&
-    typeof banner.linkId === 'string' && banner.linkId.length > 0 && banner.linkId.length <= 191
+    (banner.eyebrow === undefined || typeof banner.eyebrow === 'string') &&
+    typeof banner.title === 'string' && banner.title.length > 0 && banner.title.length <= 250 &&
+    (banner.subtitle === undefined || typeof banner.subtitle === 'string') &&
+    (banner.description === undefined || typeof banner.description === 'string') &&
+    typeof banner.image === 'string' && banner.image.length > 0 &&
+    (banner.mobileImage === undefined || typeof banner.mobileImage === 'string') &&
+    (!banner.linkType || ['category', 'product', 'none'].includes(banner.linkType)) &&
+    (banner.linkId === undefined || banner.linkId === null || typeof banner.linkId === 'string')
   );
   if (!validBanners) {
-    return response.status(400).json({ error: 'Every banner must include valid text, image, and category or product link fields.' });
+    return response.status(400).json({ error: 'Every banner must include a title and an image.' });
   }
 
   if (!pool) {
@@ -900,42 +933,24 @@ app.put('/api/homepage-banners', requireSameOrigin, requireAdmin, async (request
 app.put('/api/settings', requireSameOrigin, requireAdmin, async (request, response, next) => {
   const settings = request.body?.settings;
   if (settings && typeof settings === 'object') {
-    const brand = settings.brandName || settings.storeName || 'Vinayak Packaging';
+    const brand = settings.brandName || settings.storeName || 'All Display';
     settings.storeName = brand;
     settings.brandName = brand;
     if (!settings.siteUrl) {
       settings.siteUrl = 'https://all-display.vercel.app/';
     }
   }
-  const textFields = [
-    'whatsappNumber',
-    'alternateWhatsapp',
-    'upiId',
-    'bankName',
-    'accountNo',
-    'ifscCode',
-    'shippingNotes',
-    'storeName',
-    'businessAddress',
-  ];
-  const validTextFields = settings &&
-    typeof settings === 'object' &&
-    !Array.isArray(settings) &&
-    textFields.every((field) => typeof settings[field] === 'string' && settings[field].length <= 1000);
+  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
+    return response.status(400).json({ error: 'Invalid settings format.' });
+  }
   const whatsappDigits = typeof settings?.whatsappNumber === 'string'
     ? settings.whatsappNumber.replace(/\D/g, '')
     : '';
   const alternateWhatsappDigits = typeof settings?.alternateWhatsapp === 'string'
     ? settings.alternateWhatsapp.replace(/\D/g, '')
     : '';
-  if (!validTextFields ||
-      whatsappDigits.length < 10 ||
-      whatsappDigits.length > 15 ||
-      (alternateWhatsappDigits.length > 0 &&
-        (alternateWhatsappDigits.length < 10 || alternateWhatsappDigits.length > 15)) ||
-      !Number.isFinite(settings.minOrderValue) ||
-      settings.minOrderValue < 0) {
-    return response.status(400).json({ error: 'Business settings contain invalid values.' });
+  if (whatsappDigits && (whatsappDigits.length < 10 || whatsappDigits.length > 15)) {
+    return response.status(400).json({ error: 'Enter a valid 10-digit WhatsApp number.' });
   }
 
   if (!pool) {
@@ -1248,14 +1263,14 @@ if (existsSync(buildDirectory)) {
   app.get('*', (_request, response) => response.sendFile(path.join(buildDirectory, 'index.html')));
 } else if (!production) {
   app.get('/', (_request, response) => {
-    response.status(200).send('Vinayak Packaging API is running. Start Vite on port 3000 for the storefront.');
+    response.status(200).send('All Display API is running. Start Vite on port 3000 for the storefront.');
   });
 }
 
 const isMainScript = Boolean(process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]));
 if (!process.env.VERCEL && isMainScript) {
   app.listen(port, () => {
-    console.log(`Vinayak Packaging API listening on port ${port}`);
+    console.log(`All Display API listening on port ${port}`);
   });
 }
 

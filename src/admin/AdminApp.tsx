@@ -10,6 +10,7 @@ import { AdminProductsView } from './views/AdminProductsView';
 import { AdminProductEditorModal } from './views/AdminProductEditorModal';
 import { AdminCategoriesView } from './views/AdminCategoriesView';
 import { AdminHomepageView } from './views/AdminHomepageView';
+import { AdminDealsView } from './views/AdminDealsView';
 import { AdminCustomersView } from './views/AdminCustomersView';
 import { AdminMediaView } from './views/AdminMediaView';
 import { AdminSettingsView } from './views/AdminSettingsView';
@@ -30,6 +31,7 @@ export type AdminTab =
   | 'products' 
   | 'categories'
   | 'homepage' 
+  | 'deals'
   | 'customers' 
   | 'media' 
   | 'settings' 
@@ -123,7 +125,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
       const adminRole = await storeManager.signInAdmin(passwordInput);
       setRole(adminRole);
       setIsAuthenticated(true);
-      showToast('Signed in to Vinayak Packaging Admin.');
+      showToast('Signed in to All Display Admin.');
     } catch (error) {
       setLoginError(error instanceof Error ? error.message : 'Unable to sign in.');
     }
@@ -155,10 +157,10 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
         <div className="bg-white max-w-md w-full rounded-3xl shadow-2xl overflow-hidden border border-slate-200 p-8 flex flex-col items-center animate-in fade-in duration-300">
           <div className="w-14 h-14 rounded-2xl bg-orange-600 text-white flex items-center justify-center font-extrabold text-2xl mb-4 shadow-md">
-            VP
+            AD
           </div>
           <h1 className="text-2xl font-extrabold text-slate-900 text-center mb-1">
-            Vinayak Packaging Admin
+            All Display Admin
           </h1>
           <p className="text-xs text-slate-500 text-center mb-6">
             Sign in with your authorized admin password
@@ -184,7 +186,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
                 autoComplete="current-password"
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
-                placeholder="Server-configured admin password"
+                placeholder="Default: Admin123456"
                 className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-900 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all"
               />
               {loginError && (
@@ -221,9 +223,9 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans select-none">
       <AdminProgress active={syncStatus === 'connecting'} label="Connecting to shared store data" />
-      {/* Toast Notification */}
+      {/* Toast Notification - Issue #22: z-[9999] so never covered by modals */}
       {toast && (
-        <div className="fixed top-5 right-5 z-50 bg-[#1a1c20] text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-semibold animate-in fade-in slide-in-from-top-2 duration-200 border border-[#ffdf98]/30">
+        <div className="fixed top-5 right-5 z-[9999] bg-[#1a1c20] text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-semibold animate-in fade-in slide-in-from-top-2 duration-200 border border-[#ffdf98]/30">
           <span className="w-2 h-2 rounded-full bg-[#25D366] animate-ping"></span>
           <span>{toast}</span>
         </div>
@@ -296,8 +298,8 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
                   <button
                     onClick={() => {
                       setShowTour(false);
-                      localStorage.setItem('vinayak_admin_tour_seen', 'true');
-                      showToast('Tour completed! Welcome to Vinayak Packaging Admin.');
+                      localStorage.setItem('alldisplay_admin_tour_seen', 'true');
+                      showToast('Tour completed! Welcome to All Display Admin.');
                     }}
                     className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer shadow-xs"
                   >
@@ -371,6 +373,9 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
             )}
             {activeTab === 'homepage' && (
               <AdminHomepageView showToast={showToast} />
+            )}
+            {activeTab === 'deals' && (
+              <AdminDealsView showToast={showToast} />
             )}
             {activeTab === 'customers' && (
               <AdminCustomersView />

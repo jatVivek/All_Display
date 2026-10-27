@@ -232,7 +232,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
               </button>
 
               <a
-                href={getWhatsAppLink('Hi Vinayak Packaging Admin, checking today wholesale dispatch status.')}
+                href={getWhatsAppLink('Hi All Display Admin, checking today wholesale dispatch status.')}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white p-3 rounded-xl text-xs font-semibold flex items-center justify-between transition-colors shadow-xs"

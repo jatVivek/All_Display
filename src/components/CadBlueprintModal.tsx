@@ -111,7 +111,7 @@ export const CadBlueprintModal: React.FC<CadBlueprintModalProps> = ({
 
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <a
-              href={getWhatsAppLink('Hi Vinayak Packaging Engineering, please email me the DWG and Revit CAD bundle for Triple Pipe Rack AD-TPR-739.')}
+              href={getWhatsAppLink('Hi All Display Engineering, please email me the DWG and Revit CAD bundle for Triple Pipe Rack AD-TPR-739.')}
               target="_blank"
               rel="noreferrer"
               className="flex-1 bg-[#25D366] hover:bg-[#128C7E] text-white py-3 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-md"

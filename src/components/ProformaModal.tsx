@@ -38,7 +38,7 @@ export const ProformaModal: React.FC<ProformaModalProps> = ({
     .map((item) => `• ${item.title} (${item.sku}): ${item.quantity} ${item.unitLabel} @ ₹${item.unitPrice.toLocaleString('en-IN')}`)
     .join('\n');
 
-  const draftMessage = `Hi Vinayak Packaging Team, I want to confirm Order #${orderReference} for ${consignee.storeName || 'our store'} (${consignee.ownerName || 'contact not provided'}, ${consignee.destination || 'destination not provided'} - ${consignee.pincode || 'pincode not provided'}, ${consignee.whatsapp || 'phone not provided'}).\n\n` +
+  const draftMessage = `Hi All Display Team, I want to confirm Order #${orderReference} for ${consignee.storeName || 'our store'} (${consignee.ownerName || 'contact not provided'}, ${consignee.destination || 'destination not provided'} - ${consignee.pincode || 'pincode not provided'}, ${consignee.whatsapp || 'phone not provided'}).\n\n` +
     `Manifest:\n${manifestText}\n\n` +
     `Financial Summary:\n` +
     `- Subtotal: ₹${rawSubtotal.toLocaleString('en-IN')}\n` +
@@ -47,7 +47,7 @@ export const ProformaModal: React.FC<ProformaModalProps> = ({
     `- Total Commercial Payable: ₹${grandTotal.toLocaleString('en-IN')}\n\n` +
     (consignee.launchDate ? `Requested timeline: ${consignee.launchDate}\n` : '') +
     (consignee.notes ? `Delivery Notes: ${consignee.notes}\n\n` : '') +
-    `Please share courier / transport dispatch details and Vinayak Packaging UPI / bank details for payment.`;
+    `Please share courier / transport dispatch details and All Display UPI / bank details for payment.`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(draftMessage).then(() => {
@@ -126,7 +126,7 @@ export const ProformaModal: React.FC<ProformaModalProps> = ({
             <AppIcon name="chat" className="text-[#775a00] text-[24px]" />
             <div className="flex flex-col">
               <span className="text-xs font-bold text-[#1c1c18]">
-                Ready to transmit directly to Vinayak Packaging Desk:
+                Ready to transmit directly to All Display Desk:
               </span>
               <span className="text-[11px] text-[#45474b]">
                 WhatsApp order desk

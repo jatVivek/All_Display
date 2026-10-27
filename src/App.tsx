@@ -19,7 +19,7 @@ import { CustomQuoteView } from './views/CustomQuoteView';
 import { ContactView } from './views/ContactView';
 import { DealsView } from './views/DealsView';
 import { storeManager } from './services/storeManager';
-import { AuthDialog } from './auth/AuthDialog';
+import { useAuth } from './auth/AuthContext';
 import { WishlistModal } from './components/WishlistModal';
 import { AccountModal } from './components/AccountModal';
 
@@ -65,12 +65,15 @@ const getRouteFromLocation = () => {
 };
 
 export default function App() {
+  const { user, openAuthDialog } = useAuth();
   const [activeView, setActiveView] = useState<ActiveView>(() => (
     window.location.hash === '#admin' ? 'admin' : getRouteFromLocation().view
   ));
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
-      const savedCart = localStorage.getItem('alldisplay_cart');
+      localStorage.removeItem('vinayak_cart');
+      localStorage.removeItem('alldisplay_cart');
+      const savedCart = localStorage.getItem('alldisplay_cart_v3');
       const parsedCart: unknown = savedCart ? JSON.parse(savedCart) : [];
       return Array.isArray(parsedCart) ? parsedCart as CartItem[] : [];
     } catch {
@@ -227,7 +230,7 @@ export default function App() {
       const match = storeManager.getProducts().find((p) => p.code.toLowerCase() === slug || p.id.toLowerCase() === slug);
       if (match) setSelectedProduct(match);
     }
-  }, []);
+  }, [activeView]);
 
   useEffect(() => {
     if (activeView === 'account') {
@@ -241,7 +244,7 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('alldisplay_cart', JSON.stringify(cart));
+      localStorage.setItem('alldisplay_cart_v3', JSON.stringify(cart));
     } catch (error) {
       console.error('Could not save the cart locally:', error);
     }
@@ -418,6 +421,7 @@ export default function App() {
             cart={cart}
             onUpdateQty={handleUpdateQty}
             onRemoveItem={handleRemoveFromCart}
+            onClearCart={() => setCart([])}
             onOpenProforma={(details) => {
               setConsignee(details);
               setIsProformaOpen(true);
@@ -453,7 +457,13 @@ export default function App() {
       <Footer
         setActiveView={navigateToView}
         onOpenWishlist={() => setIsWishlistOpen(true)}
-        onOpenAccount={() => setIsAccountOpen(true)}
+        onOpenAccount={() => {
+          if (user) {
+            setIsAccountOpen(true);
+          } else {
+            openAuthDialog();
+          }
+        }}
       />
 
       {/* Wishlist Modal Drawer */}
@@ -475,6 +485,10 @@ export default function App() {
       <AccountModal
         isOpen={isAccountOpen}
         onClose={() => setIsAccountOpen(false)}
+        onNavigateToShop={() => {
+          setIsAccountOpen(false);
+          navigateToView('shop');
+        }}
       />
 
       {/* Floating WhatsApp Specialist Drawer */}

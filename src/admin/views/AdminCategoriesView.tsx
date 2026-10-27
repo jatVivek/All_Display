@@ -1,6 +1,7 @@
 import { AppIcon } from '../../components/AppIcon';
 import React, { useState, useEffect } from 'react';
 import { storeManager, AdminCategory } from '../../services/storeManager';
+import { compressImage } from '../../utils/imageCompressor';
 
 interface AdminCategoriesViewProps {
   role: 'Owner' | 'Staff';
@@ -12,6 +13,8 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
   const [editingCat, setEditingCat] = useState<AdminCategory | 'new' | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [image, setImage] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     const handleUpdate = () => {
@@ -33,11 +36,30 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
     if (cat) {
       setEditingCat(cat);
       setName(cat.name);
-      setDescription(cat.description);
+      setDescription(cat.description || '');
+      setImage(cat.image || '');
     } else {
       setEditingCat('new');
       setName('');
       setDescription('');
+      setImage('');
+    }
+  };
+
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      // Issue #20: Compress client-side to prevent freeze and bandwidth bloat
+      const compressed = await compressImage(file, { maxWidth: 800, maxHeight: 800, quality: 0.85 });
+      setImage(compressed);
+      showToast('Category image loaded & optimized.');
+    } catch {
+      showToast('Could not optimize image. Please select another file.');
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
     }
   };
 
@@ -51,8 +73,9 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
     if (editingCat === 'new') {
       const newCat: AdminCategory = {
         id: `cat-${Date.now()}`,
-        name,
-        description
+        name: name.trim(),
+        description: description.trim(),
+        image: image.trim() || undefined,
       };
       const updated = [...categories, newCat];
       if (!await storeManager.saveCategories(updated)) {
@@ -60,9 +83,14 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
         return;
       }
       setCategories(updated);
-      showToast('New category created successfully!');
+      showToast('New category created successfully with image!');
     } else if (editingCat && typeof editingCat === 'object') {
-      const updated = categories.map(c => c.id === editingCat.id ? { ...c, name, description } : c);
+      const updated = categories.map(c => c.id === editingCat.id ? {
+        ...c,
+        name: name.trim(),
+        description: description.trim(),
+        image: image.trim() || undefined
+      } : c);
       if (!await storeManager.saveCategories(updated)) {
         showToast('Category could not be saved to the shared catalog.');
         return;
@@ -98,17 +126,17 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
             <h1 className="text-2xl font-bold text-slate-900">Categories Management</h1>
           </div>
           <p className="text-xs text-slate-500">
-            Create and organize product categories for the storefront navigation, filter bar, and carousel.
+            Create, edit, and organize product categories with custom thumbnail images displayed on storefront.
           </p>
         </div>
 
         {role === 'Owner' && (
           <button
             onClick={() => handleOpenEdit()}
-            className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer shadow-xs"
+            className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer shadow-xs transition-colors"
           >
             <AppIcon name="add" className="text-[18px]" />
-            <span>Add New Category</span>
+            <span>Add Category</span>
           </button>
         )}
       </div>
@@ -116,42 +144,59 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
       {/* Categories Table */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50 text-[11px] font-bold text-slate-600 uppercase tracking-wider border-b border-slate-200">
-                <th className="p-4 pl-6">Category Name</th>
-                <th className="p-4">Description</th>
-                <th className="p-4">Assigned Products</th>
-                <th className="p-4 pr-6 text-right">Actions</th>
+          <table className="w-full text-left text-xs">
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 uppercase tracking-wider font-bold">
+              <tr>
+                <th className="py-3 px-4 w-16">Image</th>
+                <th className="py-3 px-4">Category Name</th>
+                <th className="py-3 px-4">Description</th>
+                <th className="py-3 px-4 text-center">Active Products</th>
+                <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
+            <tbody className="divide-y divide-slate-100">
               {categories.map((cat) => {
-                const count = products.filter(p => p.category === cat.name).length;
+                const count = products.filter(p => p.category.toLowerCase() === cat.name.toLowerCase()).length;
                 return (
-                  <tr key={cat.id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="p-4 pl-6 font-bold text-slate-900 flex items-center gap-2">
-                      <AppIcon name="folder" className="text-[18px] text-orange-600" />
-                      <span>{cat.name}</span>
+                  <tr key={cat.id} className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-3 px-4">
+                      {cat.image ? (
+                        <img
+                          src={cat.image}
+                          alt={cat.name}
+                          className="w-10 h-10 rounded-lg object-cover border border-slate-200 bg-white"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-orange-50 border border-orange-200 text-orange-600 flex items-center justify-center font-bold text-xs">
+                          {cat.name.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
                     </td>
-                    <td className="p-4 text-slate-600">{cat.description}</td>
-                    <td className="p-4">
-                      <span className="bg-slate-100 text-slate-800 font-bold px-2.5 py-1 rounded-full text-[11px]">
+                    <td className="py-3 px-4 font-bold text-slate-900">
+                      {cat.name}
+                    </td>
+                    <td className="py-3 px-4 text-slate-600 max-w-md truncate">
+                      {cat.description || 'No description provided'}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <span className={`px-2.5 py-0.5 rounded-full font-bold text-[10px] ${
+                        count > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'
+                      }`}>
                         {count} Products
                       </span>
                     </td>
-                    <td className="p-4 pr-6 text-right">
+                    <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleOpenEdit(cat)}
-                          className="bg-slate-100 hover:bg-slate-200 text-slate-800 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                          className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
                         >
                           Edit
                         </button>
                         {role === 'Owner' && (
                           <button
                             onClick={() => handleDelete(cat.id, cat.name)}
-                            className="bg-red-50 hover:bg-red-100 text-red-700 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                            className="bg-red-50 hover:bg-red-100 text-red-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
                           >
                             Delete
                           </button>
@@ -168,9 +213,9 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
 
       {/* Edit / Add Modal */}
       {editingCat !== null && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 touch-none overscroll-none">
-          <div className="bg-white max-w-md w-full rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150 overscroll-contain">
-            <div className="bg-slate-900 text-white p-4 px-6 flex items-center justify-between">
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 touch-none overscroll-none">
+          <div className="bg-white max-w-lg w-full rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150 overscroll-contain max-h-[90vh] overflow-y-auto">
+            <div className="bg-slate-900 text-white p-4 px-6 flex items-center justify-between sticky top-0 z-10">
               <h2 className="font-bold text-base">
                 {editingCat === 'new' ? 'Add New Category' : 'Edit Category'}
               </h2>
@@ -181,7 +226,7 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
 
             <form onSubmit={handleSave} className="p-6 flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-800">Category Name</label>
+                <label className="text-xs font-semibold text-slate-800">Category Name *</label>
                 <input
                   type="text"
                   required
@@ -190,6 +235,45 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
                   placeholder="e.g. Jewellery Display Busts & Trays"
                   className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
                 />
+              </div>
+
+              {/* Issue #12 & #25: Category Image Upload & Local Selection */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-semibold text-slate-800">Category Image (File or URL)</label>
+                
+                {image && (
+                  <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 mb-2">
+                    <img src={image} alt="Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setImage('')}
+                      className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/70 text-white flex items-center justify-center text-xs hover:bg-red-600 transition-colors cursor-pointer"
+                      title="Remove image"
+                    >
+                      <AppIcon name="close" className="text-sm" />
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <label className="px-3.5 py-2 rounded-xl bg-orange-50 border border-orange-200 text-orange-700 hover:bg-orange-100 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors shrink-0">
+                    <AppIcon name={isUploading ? 'progress_activity' : 'cloud_upload'} className={`text-base ${isUploading ? 'animate-spin' : ''}`} />
+                    <span>{isUploading ? 'Compressing…' : 'Upload Local Image'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageFileChange}
+                      className="sr-only"
+                    />
+                  </label>
+                  <input
+                    type="url"
+                    value={image}
+                    onChange={(e) => setImage(e.target.value)}
+                    placeholder="Or paste image URL (https://...)"
+                    className="p-2.5 flex-1 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white font-mono"
+                  />
+                </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -213,7 +297,8 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
                 </button>
                 <button
                   type="submit"
-                  className="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer shadow-xs"
+                  disabled={isUploading}
+                  className="bg-orange-600 hover:bg-orange-700 disabled:opacity-60 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer shadow-xs"
                 >
                   Save Category
                 </button>

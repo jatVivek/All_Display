@@ -1,6 +1,7 @@
 import { AppIcon } from '../../components/AppIcon';
 import React, { useState } from 'react';
 import { storeManager, AdminSettings } from '../../services/storeManager';
+import { compressImage } from '../../utils/imageCompressor';
 
 interface AdminSettingsViewProps {
   role: 'Owner' | 'Staff';
@@ -65,24 +66,54 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
 
     setIsUploadingLogo(true);
     try {
-      const formData = new FormData();
-      formData.append('image', file);
-      const response = await fetch('/api/admin/uploads', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'X-Admin-Request': '1' },
-        body: formData,
-      });
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.error || `Logo upload failed (${response.status}).`);
+      // Issue #2 & #20: Compress client-side and save immediately
+      const compressedLogo = await compressImage(file, { maxWidth: 800, maxHeight: 400, quality: 0.9 });
+      
+      let finalUrl = compressedLogo;
+      try {
+        const formData = new FormData();
+        formData.append('image', file);
+        const response = await fetch('/api/admin/uploads', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'X-Admin-Request': '1' },
+          body: formData,
+        });
+        if (response.ok) {
+          const result = await response.json();
+          if (result.url) {
+            finalUrl = result.url;
+          }
+        }
+      } catch {
+        // Fallback to compressed logo data URL
       }
-      handleChange('logoUrl', result.url);
-      showToast('Brand logo uploaded successfully!');
+
+      handleChange('logoUrl', finalUrl);
+      const updatedSettings = { ...settings, logoUrl: finalUrl };
+      await storeManager.saveSettings(updatedSettings);
+      showToast('Brand logo updated and synced across storefront!');
     } catch (error) {
       showToast(error instanceof Error ? error.message : 'Logo upload failed.');
     } finally {
       setIsUploadingLogo(false);
+    }
+  };
+
+  const handleUploadRequirementImage = async (key: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressImage(file, { maxWidth: 800, maxHeight: 600, quality: 0.88 });
+      const currentReqs = { ...(settings.requirementImages || {}) };
+      currentReqs[key] = compressed;
+      handleChange('requirementImages', currentReqs);
+      await storeManager.saveSettings({ ...settings, requirementImages: currentReqs });
+      showToast('Requirement card image updated and saved!');
+    } catch {
+      showToast('Could not process image.');
+    } finally {
+      e.target.value = '';
     }
   };
 
@@ -100,7 +131,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
   };
 
   const handleReset = async () => {
-    if (window.confirm('Restore default Vinayak Packaging settings and catalog? Submitted orders and quote requests will be kept.')) {
+    if (window.confirm('Restore default All Display settings and catalog? Submitted orders and quote requests will be kept.')) {
       if (!await storeManager.resetAllData()) {
         showToast('Reset failed to sync the shared catalog. Check the database sync error.');
       } else {
@@ -150,7 +181,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
                 required
                 value={settings.brandName || ''}
                 onChange={(e) => handleChange('brandName', e.target.value)}
-                placeholder="Vinayak Packaging"
+                placeholder="All Display"
                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
               />
             </div>
@@ -244,6 +275,66 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
             />
             <span className="text-[10px] text-slate-500">Displays at the very top banner bar of all storefront pages.</span>
           </div>
+
+          {/* Issue #12: Shop by Requirement Images Configuration */}
+          <div className="flex flex-col gap-3 pt-3 border-t border-slate-100">
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                <AppIcon name="hub" className="text-orange-600 text-sm" />
+                Shop By Requirement Card Images
+              </h3>
+              <p className="text-[10px] text-slate-500 mt-0.5">
+                Upload or change images for each requirement segment on the homepage.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[
+                { key: 'online-sellers', label: 'Online Sellers', defaultImg: '/assets/vinayak/req_online_sellers.png' },
+                { key: 'instagram-shop', label: 'Instagram Shop', defaultImg: '/assets/vinayak/req_instagram_shop.png' },
+                { key: 'new-jewellery', label: 'New Jewellery Sellers', defaultImg: '/assets/vinayak/req_new_jewellery.png' },
+                { key: 'retail-shops', label: 'Retail Shops', defaultImg: '/assets/vinayak/req_retail_shops.png' },
+              ].map((item) => {
+                const currentImg = settings.requirementImages?.[item.key] || item.defaultImg;
+                return (
+                  <div key={item.key} className="p-3 bg-white rounded-xl border border-slate-200 flex items-center gap-3">
+                    <img
+                      src={currentImg}
+                      alt={item.label}
+                      className="w-14 h-14 rounded-lg object-cover border border-slate-200 bg-slate-100 shrink-0"
+                    />
+                    <div className="flex flex-col gap-1 min-w-0 flex-1">
+                      <span className="text-xs font-bold text-slate-900 truncate">{item.label}</span>
+                      <label className="w-fit text-[11px] font-semibold text-orange-600 hover:text-orange-700 hover:underline cursor-pointer">
+                        <span>Upload Image</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleUploadRequirementImage(item.key, e)}
+                          className="sr-only"
+                        />
+                      </label>
+                      {settings.requirementImages?.[item.key] && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const updated = { ...(settings.requirementImages || {}) };
+                            delete updated[item.key];
+                            handleChange('requirementImages', updated);
+                            await storeManager.saveSettings({ ...settings, requirementImages: updated });
+                            showToast(`Reset ${item.label} image to default.`);
+                          }}
+                          className="w-fit text-[10px] text-rose-500 hover:text-rose-700 cursor-pointer"
+                        >
+                          Reset to default
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         {/* SECTION 2: WHATSAPP & SUPPORT */}
@@ -282,7 +373,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
                 type="email"
                 value={settings.supportEmail || ''}
                 onChange={(e) => handleChange('supportEmail', e.target.value)}
-                placeholder="contact@www.vinayakpack.com"
+                placeholder="contact@alldisplay.com"
                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
               />
             </div>
@@ -316,7 +407,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
               type="text"
               value={settings.upiId || ''}
               onChange={(e) => handleChange('upiId', e.target.value)}
-              placeholder="vinayakpack@okhdfcbank"
+              placeholder="alldisplay@okhdfcbank"
               className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
             />
           </div>

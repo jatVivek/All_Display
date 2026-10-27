@@ -1,14 +1,16 @@
 import { AppIcon } from '../components/AppIcon';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ActiveView, CartItem, ConsigneeDetails } from '../types';
 import { storeManager } from '../services/storeManager';
 import { getWhatsAppLink } from '../utils/whatsapp';
+import { useAuth } from '../auth/AuthContext';
 
 interface OrderListViewProps {
   onNavigate: (view: ActiveView) => void;
   cart: CartItem[];
   onUpdateQty: (id: string, qty: number) => void;
   onRemoveItem: (id: string) => void;
+  onClearCart?: () => void;
   onOpenProforma: (consignee: ConsigneeDetails) => void;
 }
 
@@ -17,20 +19,46 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
   cart,
   onUpdateQty,
   onRemoveItem,
+  onClearCart,
   onOpenProforma
 }) => {
-  // Consignee state
-  const [storeName, setStoreName] = useState('');
-  const [proprietor, setProprietor] = useState('');
-  const [whatsapp, setWhatsapp] = useState('');
-  const [destination, setDestination] = useState('');
-  const [pincode, setPincode] = useState('');
+  const { user, openAuthDialog } = useAuth();
+  const [settings, setSettings] = useState(() => storeManager.getSettings());
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setSettings(storeManager.getSettings());
+    };
+    window.addEventListener('vinayak_settings_updated', handleUpdate);
+    window.addEventListener('alldisplay_data_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('vinayak_settings_updated', handleUpdate);
+      window.removeEventListener('alldisplay_data_updated', handleUpdate);
+    };
+  }, []);
+
+  const brandName = settings.brandName || settings.storeName || 'All Display';
+
+  // Consignee state - auto-fill from user profile if available
+  const [storeName, setStoreName] = useState(() => localStorage.getItem('vinayak_user_store') || '');
+  const [proprietor, setProprietor] = useState(() => user?.name || '');
+  const [whatsapp, setWhatsapp] = useState(() => user?.phone || localStorage.getItem('vinayak_user_phone') || '');
+  const [destination, setDestination] = useState(() => localStorage.getItem('vinayak_user_address') || '');
+  const [pincode, setPincode] = useState(() => localStorage.getItem('vinayak_user_pincode') || '');
   const [launchTimeline, setLaunchTimeline] = useState<'7days' | '15days' | 'nextmonth'>('7days');
   const [notes, setNotes] = useState('');
   const [copiedNotification, setCopiedNotification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [submissionNotice, setSubmissionNotice] = useState<string | null>(null);
+
+  // Sync profile when user logs in
+  useEffect(() => {
+    if (user) {
+      if (!proprietor) setProprietor(user.name);
+      if (!whatsapp && user.phone) setWhatsapp(user.phone);
+    }
+  }, [user]);
 
   // Calculations
   const grossSubtotal = cart.reduce((acc, item) => acc + item.unitPrice * item.quantity, 0);
@@ -45,11 +73,19 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
 
   const buildWhatsAppText = (orderNo: string) => {
     const lines = cart.map(item => `- ${item.sku} ${item.title} (${item.finish}, ${item.sizeOrSpec}): ${item.quantity} ${item.unitLabel} @ ₹${item.unitPrice.toLocaleString('en-IN')} = ₹${(item.unitPrice * item.quantity).toLocaleString('en-IN')}`).join('\n');
-    return `Hi Vinayak Packaging Team, I want to confirm order *${orderNo}* for ${storeName} (${proprietor}, ${destination} - ${pincode}, Ph: ${whatsapp}).\n\nItems:\n${lines}\n\nGross Subtotal: ₹${grossSubtotal.toLocaleString('en-IN')}\nVolume Discount: -₹${discountAmount.toLocaleString('en-IN')}\n18% GST: ₹${gstAmount.toLocaleString('en-IN')}\nEstimated Total: ₹${totalPayable.toLocaleString('en-IN')}\nTimeline: ${launchTimeline === '7days' ? 'Within 7 Days' : launchTimeline === '15days' ? '15 Days' : 'Next Month'}\nNotes: ${notes || 'None'}\n\nPlease share dispatch details.`;
+    return `Hi ${brandName} Team, I want to confirm order *${orderNo}* for ${storeName} (${proprietor}, ${destination} - ${pincode}, Ph: ${whatsapp}).\n\nItems:\n${lines}\n\nGross Subtotal: ₹${grossSubtotal.toLocaleString('en-IN')}\nVolume Discount: -₹${discountAmount.toLocaleString('en-IN')}\n18% GST: ₹${gstAmount.toLocaleString('en-IN')}\nEstimated Total: ₹${totalPayable.toLocaleString('en-IN')}\nTimeline: ${launchTimeline === '7days' ? 'Within 7 Days' : launchTimeline === '15days' ? '15 Days' : 'Next Month'}\nNotes: ${notes || 'None'}\n\nPlease share dispatch details.`;
   };
 
   const handleWhatsAppSend = async () => {
     if (isSubmitting || cart.length === 0) return;
+
+    // Issue #16: Mandatory authentication before placing order
+    if (!user) {
+      setSubmissionError('Please sign in or create an account to complete your order. Your cart items are saved.');
+      openAuthDialog();
+      return;
+    }
+
     const phoneDigits = whatsapp.replace(/\D/g, '').replace(/^91(?=\d{10}$)/, '');
     if (!storeName.trim() || !proprietor.trim() || !destination.trim() || !pincode.trim() || phoneDigits.length !== 10) {
       setSubmissionError('Enter the store name, contact person, 10-digit WhatsApp number, destination, and pincode before submitting.');
@@ -79,10 +115,14 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
         })),
         notes: `${notes.trim()}${notes.trim() ? '\n' : ''}Requested timeline: ${launchTimeline === '7days' ? 'Within 7 Days' : launchTimeline === '15days' ? '15 Days' : 'Next Month'}`,
       });
-      const orderText = `Hi Vinayak Packaging Team, I want to confirm order *${order.orderNo}* for ${order.storeName} (${order.customerName}, ${order.destination} - ${order.pincode}, Ph: ${order.whatsapp}).\n\nItems:\n${order.items.map((item) => `- ${item.sku} ${item.title} (${item.finish}): ${item.quantity} ${item.unitLabel} @ ₹${item.unitPrice.toLocaleString('en-IN')}`).join('\n')}\n\nGross Subtotal: ₹${order.subtotal.toLocaleString('en-IN')}\nVolume Discount: -₹${order.discount.toLocaleString('en-IN')}\n18% GST: ₹${order.gst.toLocaleString('en-IN')}\nEstimated Total: ₹${order.total.toLocaleString('en-IN')}\n\n${order.notes}\n\nPlease share dispatch details.`;
+      const orderText = `Hi ${brandName} Team, I want to confirm order *${order.orderNo}* for ${order.storeName} (${order.customerName}, ${order.destination} - ${order.pincode}, Ph: ${order.whatsapp}).\n\nItems:\n${order.items.map((item) => `- ${item.sku} ${item.title} (${item.finish}): ${item.quantity} ${item.unitLabel} @ ₹${item.unitPrice.toLocaleString('en-IN')}`).join('\n')}\n\nGross Subtotal: ₹${order.subtotal.toLocaleString('en-IN')}\nVolume Discount: -₹${order.discount.toLocaleString('en-IN')}\n18% GST: ₹${order.gst.toLocaleString('en-IN')}\nEstimated Total: ₹${order.total.toLocaleString('en-IN')}\n\n${order.notes}\n\nPlease share dispatch details.`;
       if (whatsappWindow) whatsappWindow.location.href = getWhatsAppLink(orderText);
       else setSubmissionError(`Order ${order.orderNo} is saved, but your browser blocked the WhatsApp window.`);
-      setSubmissionNotice(`Order ${order.orderNo} was saved to the admin Orders list.`);
+      setSubmissionNotice(`Order ${order.orderNo} was placed and saved successfully.`);
+      
+      // Issue #1: Clear cart upon successful order
+      if (onClearCart) onClearCart();
+
       window.setTimeout(() => setSubmissionNotice(null), 6000);
     } catch (error) {
       whatsappWindow?.close();
@@ -142,7 +182,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                     </span>
                   </div>
                   <p className="text-[11px] text-outline-variant">
-                    Sowcarpet Central Depot Direct Dispatch • Vinayak Packaging Wholesale Pricing
+                    Sowcarpet Central Depot Direct Dispatch • {brandName} Wholesale Pricing
                   </p>
                 </div>
               </div>
@@ -154,6 +194,15 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                   </span>
                   <span className="text-[10px] text-outline-variant font-mono">Active MOQ Guaranteed</span>
                 </div>
+                {cart.length > 0 && onClearCart && (
+                  <button
+                    onClick={onClearCart}
+                    className="px-3 py-1.5 rounded-lg border border-red-400/40 text-red-300 hover:bg-red-900/30 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                  >
+                    <AppIcon name="delete_outline" className="text-sm" />
+                    <span>Clear Cart</span>
+                  </button>
+                )}
                 <button
                   onClick={() => onNavigate('racks-floor-stands')}
                   className="p-2 rounded-lg bg-surface-container-highest/20 hover:bg-surface-container-highest/40 text-on-primary transition-colors"
@@ -289,7 +338,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                 <div className="rounded-xl bg-surface-container-high p-4 flex flex-col gap-2 border border-surface-container">
                   <div className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-wider">
                     <AppIcon name="verified" className="text-secondary text-[20px]" />
-                    <span>Vinayak Packaging Transparent Terms</span>
+                    <span>{brandName} Transparent Terms</span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                     <div className="flex items-start gap-2">
@@ -491,6 +540,22 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
 
                 {/* Action Buttons */}
                 <div className="flex flex-col gap-2.5 pt-2">
+                  {!user && cart.length > 0 && (
+                    <div className="p-3 rounded-xl bg-orange-50 border border-orange-200 text-xs text-orange-900 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <AppIcon name="lock" className="text-orange-600 text-base shrink-0" />
+                        <span className="font-medium">Sign in required to save and confirm orders. Your cart items will remain safe.</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={openAuthDialog}
+                        className="px-3 py-1 rounded-lg bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition-colors shrink-0 cursor-pointer"
+                      >
+                        Sign In / Register
+                      </button>
+                    </div>
+                  )}
+
                   <button
                     onClick={handleWhatsAppSend}
                     disabled={cart.length === 0 || isSubmitting}

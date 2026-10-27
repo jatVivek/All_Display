@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Product, ProductVariation, ProductVariationOption } from '../../types';
 import { storeManager } from '../../services/storeManager';
 import { useScrollLock } from '../../hooks/useScrollLock';
+import { compressImage } from '../../utils/imageCompressor';
 
 interface AdminProductEditorModalProps {
   product: Product | 'new';
@@ -26,8 +27,9 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
 }) => {
   useScrollLock(Boolean(product));
   const isNew = product === 'new';
+  const [modalError, setModalError] = useState<string | null>(null);
   const [title, setTitle] = useState(isNew ? '' : product.title);
-  const [code, setCode] = useState(isNew ? 'VP-NEW-001' : product.code);
+  const [code, setCode] = useState(isNew ? 'AD-NEW-001' : product.code);
   const [category, setCategory] = useState(isNew ? (storeManager.getCategories()[0]?.name ?? 'Display Bust') : product.category);
   const [price, setPrice] = useState(isNew ? 450 : product.price);
   const [originalPrice, setOriginalPrice] = useState(isNew ? 550 : (product.originalPrice || Math.round(product.price * 1.25)));
@@ -140,6 +142,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
       setImages((current) => [...current, value]);
       setNewImgInput('');
     } catch {
+      setModalError('Enter a valid image URL.');
       onError('Enter a valid image URL.');
     }
   };
@@ -150,26 +153,50 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
     if (!files.length) return;
 
     setIsUploadingImage(true);
+    setModalError(null);
     try {
-      const uploadedUrls: string[] = [];
+      const processedUrls: string[] = [];
       for (const file of files) {
-        const formData = new FormData();
-        formData.append('image', file);
-        const response = await fetch('/api/admin/uploads', {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: { 'X-Admin-Request': '1' },
-          body: formData,
-        });
-        const result = await response.json();
-        if (!response.ok) {
-          throw new Error(result.error || `Image upload failed (${response.status}).`);
+        // Compress client-side first (Issue #20)
+        let compressedDataUrl: string;
+        try {
+          compressedDataUrl = await compressImage(file, { maxWidth: 1600, maxHeight: 1600, quality: 0.88 });
+        } catch {
+          compressedDataUrl = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(file);
+          });
         }
-        uploadedUrls.push(result.url);
+
+        // Try server upload if available
+        try {
+          const formData = new FormData();
+          formData.append('image', file);
+          const response = await fetch('/api/admin/uploads', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'X-Admin-Request': '1' },
+            body: formData,
+          });
+          if (response.ok) {
+            const result = await response.json();
+            if (result.url) {
+              processedUrls.push(result.url);
+              continue;
+            }
+          }
+        } catch {
+          // Server upload failed or in local standalone mode, use compressed data URL fallback
+        }
+
+        processedUrls.push(compressedDataUrl);
       }
-      setImages((current) => [...current, ...uploadedUrls]);
+      setImages((current) => [...current, ...processedUrls]);
     } catch (error) {
-      onError(error instanceof Error ? error.message : 'Image upload failed.');
+      const msg = error instanceof Error ? error.message : 'Image processing failed.';
+      setModalError(msg);
+      onError(msg);
     } finally {
       setIsUploadingImage(false);
     }
@@ -183,21 +210,50 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
     const file = event.target.files?.[0];
     event.target.value = '';
     if (!file) return;
+
+    setModalError(null);
     setIsUploadingVideo(true);
     try {
-      const formData = new FormData();
-      formData.append('video', file);
-      const response = await fetch('/api/admin/video-uploads', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'X-Admin-Request': '1' },
-        body: formData,
+      if (file.size > 4.2 * 1024 * 1024) {
+        // Exceeds Vercel serverless request body limit
+        setModalError('Video file exceeds 4.2 MB (Vercel serverless limit). Please compress the video or enter an external hosted video URL.');
+        setIsUploadingVideo(false);
+        return;
+      }
+
+      // Try server video upload
+      try {
+        const formData = new FormData();
+        formData.append('video', file);
+        const response = await fetch('/api/admin/video-uploads', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'X-Admin-Request': '1' },
+          body: formData,
+        });
+        if (response.ok) {
+          const result = await response.json();
+          if (result.url) {
+            setVideoUrl(result.url);
+            return;
+          }
+        }
+      } catch {
+        // Fallback to data URL for small local videos
+      }
+
+      // Fallback to data URL for local videos
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error('Failed to read video file.'));
+        reader.readAsDataURL(file);
       });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || `Video upload failed (${response.status}).`);
-      setVideoUrl(result.url);
+      setVideoUrl(dataUrl);
     } catch (error) {
-      onError(error instanceof Error ? error.message : 'Video upload failed.');
+      const msg = error instanceof Error ? error.message : 'Video upload failed. You can paste a hosted video URL.';
+      setModalError(msg);
+      onError(msg);
     } finally {
       setIsUploadingVideo(false);
     }
@@ -205,7 +261,9 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setModalError(null);
     if (images.length === 0) {
+      setModalError('Add at least one product photo before saving.');
       onError('Add at least one product photo before saving.');
       return;
     }
@@ -269,12 +327,14 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
     if (saved) {
       onSave();
     } else {
-      onError('Product could not be saved to the shared catalog. Check the database sync error and try again.');
+      const err = 'Product could not be saved to the shared catalog. Check the database sync error and try again.';
+      setModalError(err);
+      onError(err);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 touch-none overscroll-none">
+    <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 touch-none overscroll-none">
       <div className="bg-white max-w-3xl w-full rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] overscroll-contain">
         {/* Header */}
         <div className="bg-slate-900 text-white p-4 px-6 flex items-center justify-between shrink-0">
@@ -291,6 +351,18 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5 overflow-y-auto overscroll-contain" data-scrollable="true">
+          {/* Issue #22: Error visible directly inside modal */}
+          {modalError && (
+            <div role="alert" className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs font-semibold text-red-700 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AppIcon name="error" className="text-base text-red-600" />
+                <span>{modalError}</span>
+              </div>
+              <button type="button" onClick={() => setModalError(null)} className="text-red-500 hover:text-red-800 p-1 cursor-pointer">
+                <AppIcon name="close" className="text-sm" />
+              </button>
+            </div>
+          )}
           
           {/* Title & SKU */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -3,6 +3,7 @@ import { AppIcon } from './AppIcon';
 import { ActiveView } from '../types';
 import { getWhatsAppLink } from '../utils/whatsapp';
 import { storeManager } from '../services/storeManager';
+import { useAuth } from '../auth/AuthContext';
 
 interface FooterProps {
   setActiveView: (view: ActiveView) => void;
@@ -11,6 +12,7 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ setActiveView, onOpenWishlist, onOpenAccount }) => {
+  const { user, openAuthDialog } = useAuth();
   const [settings, setSettings] = useState(() => storeManager.getSettings());
 
   useEffect(() => {
@@ -25,54 +27,53 @@ export const Footer: React.FC<FooterProps> = ({ setActiveView, onOpenWishlist, o
     };
   }, []);
 
-  const brandName = settings.brandName || settings.storeName || 'Vinayak Packaging';
+  const brandName = settings.brandName || settings.storeName || 'All Display';
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleAccountClick = () => {
+    if (user) {
+      if (onOpenAccount) onOpenAccount();
+      else setActiveView('account');
+    } else {
+      openAuthDialog();
+    }
   };
 
   return (
     <footer className="w-full bg-slate-50 border-t border-slate-100 pt-14 pb-8 text-slate-600">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-10">
         
-        {/* Top 3 Columns Grid */}
+        {/* Top Columns Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start text-center md:text-left">
           
-          {/* 1. Payment Options & Brand Assurance */}
+          {/* 1. Brand Identity & Assurance */}
           <div className="flex flex-col items-center md:items-start gap-3">
             <div className="flex items-center gap-2 mb-1">
               {settings.logoUrl ? (
                 <img
                   src={settings.logoUrl}
                   alt={brandName}
-                  className="h-7 w-auto object-contain max-w-[120px]"
+                  className="h-8 w-auto object-contain max-w-[140px]"
                 />
               ) : (
-                <div className="w-7 h-7 rounded-lg bg-orange-600 text-white flex items-center justify-center font-bold text-xs">
-                  VP
+                <div className="w-8 h-8 rounded-lg bg-orange-600 text-white flex items-center justify-center font-bold text-xs">
+                  AD
                 </div>
               )}
-              <span className="font-extrabold text-slate-900 tracking-tight text-sm">
+              <span className="font-extrabold text-slate-900 tracking-tight text-base">
                 {brandName}
               </span>
             </div>
-            <h4 className="text-xs font-bold text-slate-900 tracking-tight uppercase">
-              Payment Options
-            </h4>
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-1">
-              {['Paytm', 'PhonePe', 'Google Pay', 'BHIM UPI'].map((gateway, idx) => (
-                <div
-                  key={idx}
-                  className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-2xs text-[11px] font-bold text-slate-700 flex items-center gap-1.5"
-                >
-                  <AppIcon name="payments" className="text-orange-500 text-xs" />
-                  <span>{gateway}</span>
-                </div>
-              ))}
-            </div>
-            <p className="text-[11px] text-slate-600 mt-1 max-w-xs">
-              100% secure encrypted checkout via UPI, NetBanking, Debit &amp; Credit Cards. Direct factory dispatch.
+            <p className="text-xs text-slate-600 max-w-sm leading-relaxed">
+              Premium jewellery display stands, velvet trays, acrylic organizers, and customized luxury packaging solutions. Direct wholesale supply across India.
             </p>
+            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 pt-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Direct Factory Wholesale • Same-Day Dispatch</span>
+            </div>
           </div>
 
           {/* 2. Quick Links */}
@@ -112,7 +113,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveView, onOpenWishlist, o
               <span>•</span>
               <button
                 type="button"
-                onClick={() => onOpenAccount ? onOpenAccount() : setActiveView('account')}
+                onClick={handleAccountClick}
                 className="hover:text-orange-600 transition-colors cursor-pointer font-semibold text-slate-700"
               >
                 My Account
@@ -192,20 +193,22 @@ export const Footer: React.FC<FooterProps> = ({ setActiveView, onOpenWishlist, o
 
         </div>
 
-        {/* Bottom Copyright & Back to Top */}
+        {/* Bottom Copyright, Powered by Rusa Tech & Back to Top */}
         <div className="pt-6 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600">
           <p className="text-center sm:text-left">
-            Copyright © 2025 <strong className="text-slate-800">{brandName}</strong>. All rights reserved.
+            Copyright © {new Date().getFullYear()} <strong className="text-slate-800">{brandName}</strong>. All rights reserved.
           </p>
           
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setActiveView('admin' as any)}
-              className="text-slate-600 hover:text-orange-600 text-[11px] font-semibold flex items-center gap-1"
+          <div className="flex items-center gap-6">
+            <a
+              href="https://wa.me/916269254726?text=Hi%20Rusa%20Tech"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-slate-700 hover:text-orange-600 transition-colors flex items-center gap-1.5"
             >
-              <AppIcon name="lock" className="text-xs" />
-              <span>Admin Portal</span>
-            </button>
+              <span>Powered by</span>
+              <span className="text-orange-600 font-extrabold hover:underline">Rusa Tech</span>
+            </a>
 
             {/* Scroll to Top Circle Button */}
             <button

@@ -25,6 +25,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [wishlistIds, setWishlistIds] = useState<string[]>(() => storeManager.getWishlist());
+  const [settings, setSettings] = useState(() => storeManager.getSettings());
+  const [categories, setCategories] = useState(() => storeManager.getCategories());
 
   const categoryScrollRef = useRef<HTMLDivElement>(null);
 
@@ -34,18 +36,24 @@ export const HomeView: React.FC<HomeViewProps> = ({
       setHomepageBanners(storeManager.getHomepageBanners());
       setDealProductIds(storeManager.getHomepageDealProductIds());
       setWishlistIds(storeManager.getWishlist());
+      setSettings(storeManager.getSettings());
+      setCategories(storeManager.getCategories());
     };
     window.addEventListener('alldisplay_catalog_updated', handleUpdate);
     window.addEventListener('alldisplay_data_updated', handleUpdate);
     window.addEventListener('vinayak_wishlist_updated', handleUpdate);
+    window.addEventListener('vinayak_settings_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
     return () => {
       window.removeEventListener('alldisplay_catalog_updated', handleUpdate);
       window.removeEventListener('alldisplay_data_updated', handleUpdate);
       window.removeEventListener('vinayak_wishlist_updated', handleUpdate);
+      window.removeEventListener('vinayak_settings_updated', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
     };
   }, []);
+
+  const brandName = settings.brandName || settings.storeName || 'All Display';
 
   // Auto-rotate uniform multi-banner carousel every 5.5s unless hovered
   useEffect(() => {
@@ -63,48 +71,67 @@ export const HomeView: React.FC<HomeViewProps> = ({
     }
   };
 
-  // Popular Categories
-  const popularCategoriesList = [
-    { title: 'Display Bust', icon: '/assets/vinayak/cat_bust.png', count: '45+ Items', category: 'Display Bust' },
-    { title: 'Display Cards', icon: '/assets/vinayak/cat_card.png', count: '85+ Items', category: 'Display Cards' },
-    { title: 'Display Stand', icon: '/assets/vinayak/cat_stand.png', count: '64+ Items', category: 'Display Stand' },
-    { title: 'Display Tray', icon: '/assets/vinayak/cat_tray.png', count: '32+ Items', category: 'Display Tray' },
-    { title: 'Storage Box', icon: '/assets/vinayak/cat_box.png', count: '28+ Items', category: 'Storage Box' },
-    { title: 'Mannequin Stand', icon: '/assets/vinayak/cat_mannequin.png', count: '18+ Items', category: 'Mannequin Stand' },
-    { title: 'Packaging Tools', icon: '/assets/vinayak/cat_bag.png', count: '52+ Items', category: 'Packaging Tools' },
-  ];
+  // Default category images fallback map
+  const defaultCategoryIcons: Record<string, string> = {
+    'Display Bust': '/assets/vinayak/cat_bust.png',
+    'Display Cards': '/assets/vinayak/cat_card.png',
+    'Display Stand': '/assets/vinayak/cat_stand.png',
+    'Display Tray': '/assets/vinayak/cat_tray.png',
+    'Storage Box': '/assets/vinayak/cat_box.png',
+    'Mannequin Stand': '/assets/vinayak/cat_mannequin.png',
+    'Packaging Tools': '/assets/vinayak/cat_bag.png',
+  };
 
-  // Requirements Cards
-  const requirementCards = [
+  // Issue #5: Filter categories to only those with at least 1 product
+  const activeCategoriesList = categories
+    .map((cat) => {
+      const count = products.filter((p) => p.category.toLowerCase() === cat.name.toLowerCase()).length;
+      return {
+        title: cat.name,
+        category: cat.name,
+        icon: cat.image || defaultCategoryIcons[cat.name] || '/assets/vinayak/cat_stand.png',
+        count: `${count} Item${count === 1 ? '' : 's'}`,
+        itemCount: count,
+      };
+    })
+    .filter((cat) => cat.itemCount > 0);
+
+  // Requirements Cards (Configurable via Admin, Issue #12)
+  const allRequirementCards = [
     {
       title: 'Online Sellers',
       subtitle: 'Photo-ready bust displays & necklace stands for high-converting social photos.',
       tag: 'Online Sellers',
       requirementKey: 'online-sellers',
-      image: '/assets/vinayak/req_online_sellers.png',
+      image: settings.requirementImages?.['online-sellers'] || '/assets/vinayak/req_online_sellers.png',
     },
     {
       title: 'Instagram Shop',
       subtitle: 'Double tier bangle rods & earring organizers designed for live sales.',
       tag: 'Instagram Shop',
       requirementKey: 'instagram-shop',
-      image: '/assets/vinayak/req_instagram_shop.png',
+      image: settings.requirementImages?.['instagram-shop'] || '/assets/vinayak/req_instagram_shop.png',
     },
     {
       title: 'New Jewellery Sellers',
       subtitle: 'Starter display dishes, branded packaging cards, and portable trays.',
       tag: 'New Jewellery',
       requirementKey: 'new-jewellery',
-      image: '/assets/vinayak/req_new_jewellery.png',
+      image: settings.requirementImages?.['new-jewellery'] || '/assets/vinayak/req_new_jewellery.png',
     },
     {
       title: 'Retail Shops',
       subtitle: 'Complete graduated velvet showroom bust suites & locking counter trays.',
       tag: 'Retail Shops',
       requirementKey: 'retail-shops',
-      image: '/assets/vinayak/req_retail_shops.png',
+      image: settings.requirementImages?.['retail-shops'] || '/assets/vinayak/req_retail_shops.png',
     }
   ];
+
+  // Issue #6: Filter requirements to only those with at least 1 product
+  const activeRequirementCards = allRequirementCards.filter((req) =>
+    products.some((prod) => prod.requirements?.includes(req.requirementKey))
+  );
 
   // Top Selling Products
   const topSellingList = dealProductIds.length > 0
@@ -115,80 +142,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   return (
     <div className="w-full bg-white text-slate-900 pb-16">
-      
-      {/* 1. HORIZONTAL POPULAR CATEGORIES CAROUSEL (Compact on Mobile) */}
-      <section className="border-b border-slate-100 bg-slate-50/50 py-3.5 sm:py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-2.5 sm:mb-4">
-            <div>
-              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-orange-600">
-                Explore Our Range
-              </span>
-              <h2 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight">
-                Most Popular Categories
-              </h2>
-            </div>
-            
-            {/* Scroll Navigation Arrows */}
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => scrollCategories('left')}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-100 transition-colors shadow-2xs cursor-pointer"
-                aria-label="Scroll left"
-              >
-                <AppIcon name="chevron_left" className="text-sm sm:text-base" />
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollCategories('right')}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-100 transition-colors shadow-2xs cursor-pointer"
-                aria-label="Scroll right"
-              >
-                <AppIcon name="chevron_right" className="text-sm sm:text-base" />
-              </button>
-            </div>
-          </div>
-
-          <div
-            ref={categoryScrollRef}
-            className="flex items-center gap-3 sm:gap-6 overflow-x-auto pb-1.5 scrollbar-none scroll-smooth"
-          >
-            {popularCategoriesList.map((cat, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => setActiveView('shop', `/shop?category=${encodeURIComponent(cat.category)}`)}
-                className="flex flex-col items-center gap-1.5 group shrink-0 min-w-[75px] sm:min-w-[110px] cursor-pointer"
-              >
-                <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full p-1 bg-white border border-slate-200 group-hover:border-orange-500 group-hover:shadow-md transition-all duration-300 flex items-center justify-center overflow-hidden">
-                  <img
-                    src={cat.icon}
-                    alt={cat.title}
-                    className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-300"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=150&q=80';
-                    }}
-                  />
-                </div>
-                <span className="text-[11px] sm:text-xs font-semibold text-slate-800 group-hover:text-orange-600 transition-colors text-center line-clamp-1">
-                  {cat.title}
-                </span>
-                <span className="text-[9px] sm:text-[10px] text-slate-500 -mt-1 font-medium">
-                  {cat.count}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-6 sm:gap-10 lg:gap-14 pt-4 sm:pt-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-6 sm:gap-10 pt-4 sm:pt-6">
         
-        {/* 2. UNIFORM MULTI-DEVICE HERO BANNER (Optimized for Mobile & Desktop) */}
+        {/* 1. UNIFORM MULTI-DEVICE HERO BANNER (Optimized for Mobile & Desktop - Positioned First) */}
         {homepageBanners.length > 0 && activeBanner && (
           <section
-            className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-orange-50 via-amber-50/40 to-slate-50 border border-orange-100/70 p-4 sm:p-8 lg:p-10 shadow-xs group min-h-[300px] sm:min-h-[360px] lg:min-h-[400px] flex flex-col justify-between"
+            className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-orange-50 via-amber-50/40 to-slate-50 border border-orange-100/70 p-4 sm:p-8 lg:p-10 shadow-xs group min-h-[320px] sm:min-h-[360px] lg:min-h-[400px] flex flex-col justify-between"
             onMouseEnter={() => setIsPaused(true)}
             onMouseLeave={() => setIsPaused(false)}
           >
@@ -221,7 +180,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   </button>
 
                   <a
-                    href={getWhatsAppLink('Hi Vinayak Packaging, I would like to inquire about wholesale prices.')}
+                    href={getWhatsAppLink(`Hi ${brandName}, I would like to inquire about wholesale prices.`)}
                     target="_blank"
                     rel="noreferrer"
                     className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-xs sm:text-sm px-4 sm:px-5 py-2.5 sm:py-3 rounded-full transition-colors cursor-pointer truncate"
@@ -231,7 +190,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   </a>
                 </div>
 
-                {/* Trust Points - Hidden on smallest mobile viewports to prevent scrolling bloat */}
+                {/* Trust Points */}
                 <div className="hidden sm:flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600 pt-1">
                   <span className="flex items-center gap-1.5">
                     <AppIcon name="check_circle" className="text-emerald-500 text-sm" />
@@ -244,7 +203,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </div>
               </div>
 
-              {/* Uniform Banner Image Frame (Strict Aspect Ratio & Fixed Heights across slides) */}
+              {/* Uniform Banner Image Frame (Universal Sizing & Aspect Ratio) */}
               <div className="lg:col-span-5 relative w-full">
                 <div className="relative w-full h-44 sm:h-56 lg:h-72 rounded-2xl overflow-hidden bg-white shadow-md border border-slate-100">
                   <picture>
@@ -315,61 +274,130 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </section>
         )}
 
-        {/* 3. TAILORED FOR YOUR BUSINESS / SHOP BY REQUIREMENT (Space Optimized: 2 Columns on Mobile) */}
-        <section className="flex flex-col gap-3.5 sm:gap-6">
-          <div className="flex flex-col items-center text-center gap-1">
-            <span className="bg-orange-50 text-orange-600 border border-orange-200/60 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
-              Tailored For Your Business
-            </span>
-            <h2 className="text-lg sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-              Shop By Requirement
-            </h2>
-            <p className="text-xs text-slate-500 max-w-lg hidden sm:block">
-              Specialized packaging and display fixtures curated for your specific sales channel.
-            </p>
-          </div>
-
-          {/* 2-Col on Mobile saves 1,300px of scrolling */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-6">
-            {requirementCards.map((req, idx) => (
-              <div
-                key={idx}
-                onClick={() => setActiveView('shop', `/shop?requirement=${req.requirementKey}`)}
-                className="group relative rounded-2xl sm:rounded-3xl overflow-hidden bg-white border border-slate-100 hover:border-orange-300 shadow-2xs hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col"
-              >
-                {/* Image Frame with Floating Tag */}
-                <div className="relative aspect-[4/3] sm:aspect-[4/3] bg-slate-100 overflow-hidden">
-                  <img
-                    src={req.image}
-                    alt={req.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=400&q=80';
-                    }}
-                  />
-                  {/* Floating Tag */}
-                  <div className="absolute bottom-2 left-2 right-2 flex justify-center">
-                    <span className="bg-white/95 backdrop-blur-md text-slate-900 text-[10px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1 rounded-full shadow-xs border border-white/60 group-hover:bg-orange-600 group-hover:text-white transition-colors truncate">
-                      {req.tag}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-2.5 sm:p-4 flex flex-col gap-1 flex-1">
-                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-orange-600 transition-colors line-clamp-1">
-                    {req.title}
-                  </h3>
-                  <p className="text-[11px] sm:text-xs text-slate-500 line-clamp-1 sm:line-clamp-2 leading-relaxed">
-                    {req.subtitle}
-                  </p>
-                  <div className="mt-auto pt-1 sm:pt-2 flex items-center text-[11px] sm:text-xs font-semibold text-orange-600">
-                    <span className="truncate">View Items →</span>
-                  </div>
-                </div>
+        {/* 2. POPULAR CATEGORIES CAROUSEL (Positioned Below Banner - Only active categories) */}
+        {activeCategoriesList.length > 0 && (
+          <section className="rounded-2xl sm:rounded-3xl border border-slate-100 bg-slate-50/60 p-4 sm:p-6 shadow-2xs">
+            <div className="flex items-center justify-between mb-2.5 sm:mb-4">
+              <div>
+                <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-orange-600">
+                  Explore Our Range
+                </span>
+                <h2 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight">
+                  Most Popular Categories
+                </h2>
               </div>
-            ))}
-          </div>
-        </section>
+              
+              {/* Scroll Navigation Arrows */}
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => scrollCategories('left')}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-100 transition-colors shadow-2xs cursor-pointer"
+                  aria-label="Scroll left"
+                >
+                  <AppIcon name="chevron_left" className="text-sm sm:text-base" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollCategories('right')}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-100 transition-colors shadow-2xs cursor-pointer"
+                  aria-label="Scroll right"
+                >
+                  <AppIcon name="chevron_right" className="text-sm sm:text-base" />
+                </button>
+              </div>
+            </div>
+
+            <div
+              ref={categoryScrollRef}
+              className="flex items-center gap-3 sm:gap-6 overflow-x-auto pb-1.5 scrollbar-none scroll-smooth"
+            >
+              {activeCategoriesList.map((cat, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setActiveView('shop', `/shop?category=${encodeURIComponent(cat.category)}`)}
+                  className="flex flex-col items-center gap-1.5 group shrink-0 min-w-[75px] sm:min-w-[110px] cursor-pointer"
+                >
+                  <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full p-1 bg-white border border-slate-200 group-hover:border-orange-500 group-hover:shadow-md transition-all duration-300 flex items-center justify-center overflow-hidden">
+                    <img
+                      src={cat.icon}
+                      alt={cat.title}
+                      className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-300"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=150&q=80';
+                      }}
+                    />
+                  </div>
+                  <span className="text-[11px] sm:text-xs font-semibold text-slate-800 group-hover:text-orange-600 transition-colors text-center line-clamp-1">
+                    {cat.title}
+                  </span>
+                  <span className="text-[9px] sm:text-[10px] text-slate-500 -mt-1 font-medium">
+                    {cat.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 3. TAILORED FOR YOUR BUSINESS / SHOP BY REQUIREMENT (Only active requirements) */}
+        {activeRequirementCards.length > 0 && (
+          <section className="flex flex-col gap-3.5 sm:gap-6">
+            <div className="flex flex-col items-center text-center gap-1">
+              <span className="bg-orange-50 text-orange-600 border border-orange-200/60 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                Tailored For Your Business
+              </span>
+              <h2 className="text-lg sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                Shop By Requirement
+              </h2>
+              <p className="text-xs text-slate-500 max-w-lg hidden sm:block">
+                Specialized packaging and display fixtures curated for your specific sales channel.
+              </p>
+            </div>
+
+            {/* 2-Col on Mobile saves space */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-6">
+              {activeRequirementCards.map((req, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => setActiveView('shop', `/shop?requirement=${req.requirementKey}`)}
+                  className="group relative rounded-2xl sm:rounded-3xl overflow-hidden bg-white border border-slate-100 hover:border-orange-300 shadow-2xs hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col"
+                >
+                  {/* Image Frame with Floating Tag */}
+                  <div className="relative aspect-[4/3] sm:aspect-[4/3] bg-slate-100 overflow-hidden">
+                    <img
+                      src={req.image}
+                      alt={req.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=400&q=80';
+                      }}
+                    />
+                    {/* Floating Tag */}
+                    <div className="absolute bottom-2 left-2 right-2 flex justify-center">
+                      <span className="bg-white/95 backdrop-blur-md text-slate-900 text-[10px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1 rounded-full shadow-xs border border-white/60 group-hover:bg-orange-600 group-hover:text-white transition-colors truncate">
+                        {req.tag}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 sm:p-4 flex flex-col gap-1 flex-1">
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-orange-600 transition-colors line-clamp-1">
+                      {req.title}
+                    </h3>
+                    <p className="text-[11px] sm:text-xs text-slate-500 line-clamp-1 sm:line-clamp-2 leading-relaxed">
+                      {req.subtitle}
+                    </p>
+                    <div className="mt-auto pt-1 sm:pt-2 flex items-center text-[11px] sm:text-xs font-semibold text-orange-600">
+                      <span className="truncate">View Items →</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* 4. TOP SELLING PRODUCTS & DEAL OF THE DAY */}
         <section className="flex flex-col gap-4 sm:gap-6">
@@ -600,13 +628,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <section id="about-us" className="scroll-mt-24 bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-slate-100 shadow-xs grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
           <div className="lg:col-span-7 flex flex-col gap-2.5 sm:gap-3">
             <span className="w-fit bg-orange-50 text-orange-600 border border-orange-200/60 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
-              About Vinayak Packaging
+              About {brandName}
             </span>
             <h2 className="text-lg sm:text-2xl font-extrabold text-slate-900 tracking-tight leading-snug">
               Trusted by 5,000+ Jewellers, Designers &amp; Boutique Brands
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Based in Sowcarpet, Chennai, Vinayak Packaging is a premier manufacturer and wholesaler of luxury jewellery display systems, velvet busts, packaging boxes, tags, and packing machinery.
+              Based in Sowcarpet, Chennai, {brandName} is a premier manufacturer and wholesaler of luxury jewellery display systems, velvet busts, packaging boxes, tags, and packing machinery.
             </p>
             <div className="flex flex-wrap items-center gap-2.5 pt-1">
               <button
@@ -617,7 +645,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 Browse Catalog
               </button>
               <a
-                href={getWhatsAppLink('Hi Vinayak Packaging, I have a requirement for custom jewellery packaging.')}
+                href={getWhatsAppLink(`Hi ${brandName}, I have a requirement for custom jewellery packaging.`)}
                 target="_blank"
                 rel="noreferrer"
                 className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-4 py-2 sm:px-5 sm:py-2.5 rounded-full transition-colors flex items-center gap-1.5 cursor-pointer"
@@ -633,11 +661,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
               Showroom &amp; Warehouse
             </h4>
             <p className="text-xs text-slate-600 leading-relaxed">
-              29, Perumal Mudali St, Sowcarpet, George Town, Chennai, Tamil Nadu 600001
+              {settings.showroomAddress || '29, Perumal Mudali St, Sowcarpet, George Town, Chennai, Tamil Nadu 600001'}
             </p>
             <p className="text-xs text-slate-600">
-              <strong className="text-slate-800">Phone:</strong> +91 94622 47004<br />
-              <strong className="text-slate-800">Email:</strong> contact@www.vinayakpack.com
+              <strong className="text-slate-800">Phone:</strong> {settings.supportPhone || '+91 94622 47004'}<br />
+              <strong className="text-slate-800">Email:</strong> {settings.supportEmail || 'contact@alldisplay.com'}
             </p>
           </div>
         </section>

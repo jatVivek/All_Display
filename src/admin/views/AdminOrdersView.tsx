@@ -63,7 +63,7 @@ export const AdminOrdersView: React.FC<AdminOrdersViewProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `VinayakPackaging_Orders_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `AllDisplay_Orders_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     showToast('Orders exported successfully as CSV!');
   };

@@ -36,6 +36,22 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
     return allProducts[0] || INITIAL_PRODUCTS[0];
   }, [initialProduct, allProducts]);
 
+  const [settings, setSettings] = useState(() => storeManager.getSettings());
+
+  useEffect(() => {
+    const handleSettingsUpdate = () => {
+      setSettings(storeManager.getSettings());
+    };
+    window.addEventListener('vinayak_settings_updated', handleSettingsUpdate);
+    window.addEventListener('alldisplay_data_updated', handleSettingsUpdate);
+    return () => {
+      window.removeEventListener('vinayak_settings_updated', handleSettingsUpdate);
+      window.removeEventListener('alldisplay_data_updated', handleSettingsUpdate);
+    };
+  }, []);
+
+  const brandName = settings.brandName || settings.storeName || 'All Display';
+
   // Gallery image selection
   const gallery = useMemo(() => {
     const list: string[] = [];
@@ -191,14 +207,14 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
 
   // WhatsApp Inquiry link
   const whatsappUrl = useMemo(() => {
-    const msg = `Hi Vinayak Packaging, I'm interested in wholesale inquiry for:
+    const msg = `Hi ${brandName}, I'm interested in wholesale inquiry for:
 *${currentProduct.title}* (Code: ${currentProduct.code})
 - Specs/Variations: ${selectedVariationsSummary || 'Standard'}
 - Quantity: ${quantity} ${currentProduct.unit}
 - Calculated Price: ₹${totalPrice.toLocaleString('en-IN')} (₹${effectiveUnitPrice}/unit)
 Please confirm stock availability and freight to my location.`;
     return getWhatsAppLink(msg);
-  }, [currentProduct, selectedVariationsSummary, quantity, totalPrice, effectiveUnitPrice]);
+  }, [brandName, currentProduct, selectedVariationsSummary, quantity, totalPrice, effectiveUnitPrice]);
 
   // Related products from the same category or overall
   const relatedProducts = useMemo(() => {
@@ -582,6 +598,55 @@ Please confirm stock availability and freight to my location.`;
                 </div>
               </div>
             </div>
+
+            {/* Issue #13: Product Demonstration Video */}
+            {currentProduct.videoUrl && (
+              <div className="mt-4 pt-6 border-t border-slate-100 flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  <AppIcon name="videocam" className="text-orange-500 text-lg" />
+                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                    Product Demonstration Video
+                  </h3>
+                </div>
+                <div className="w-full rounded-2xl overflow-hidden bg-black shadow-md aspect-video border border-slate-200">
+                  {(() => {
+                    const url = currentProduct.videoUrl;
+                    const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                    if (ytMatch) {
+                      return (
+                        <iframe
+                          src={`https://www.youtube.com/embed/${ytMatch[1]}`}
+                          title="Product Video"
+                          className="w-full h-full border-0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      );
+                    }
+                    const vimeoMatch = url.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|video\/|)(\d+)/);
+                    if (vimeoMatch) {
+                      return (
+                        <iframe
+                          src={`https://player.vimeo.com/video/${vimeoMatch[3]}`}
+                          title="Product Video"
+                          className="w-full h-full border-0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      );
+                    }
+                    return (
+                      <video
+                        src={currentProduct.videoUrl}
+                        controls
+                        playsInline
+                        className="w-full h-full object-contain"
+                      />
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
 
           </div>
         </div>

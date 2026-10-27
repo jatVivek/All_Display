@@ -66,7 +66,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
             <div className="lg:col-span-8 flex flex-col gap-2">
               <h1 className="font-serif text-3xl lg:text-4xl font-bold text-primary tracking-tight leading-tight">
-                Over 500+ Clothing Stores &amp; Boutiques Built With Vinayak Packaging Fixtures
+                Over 500+ Clothing Stores &amp; Boutiques Built With All Display Fixtures
               </h1>
               <p className="text-sm md:text-base text-on-surface-variant max-w-3xl leading-relaxed">
                 Watch verified turnkey shop installation reels, triple-pipe rack load walkthroughs, and heavy-gauge electroplated channel systems filmed directly on site across Jubilee Hills, Banjara Hills, George Town, Vijayawada, and Bangalore.
@@ -96,7 +96,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
               </span>
             </div>
             <a 
-              href={getWhatsAppLink('Hi Vinayak Packaging, I want to verify fixture stock via video call.')}
+              href={getWhatsAppLink('Hi All Display, I want to verify fixture stock via video call.')}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 bg-primary hover:bg-[#2A2D34] text-on-primary px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors shadow-sm"
@@ -220,7 +220,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                     <span className="text-[10px] uppercase font-bold text-outline ml-1">{project.finishLabel}</span>
                   </div>
                   <a 
-                    href={getWhatsAppLink(`Hi Vinayak Packaging, I saw the ${project.title} setup. Please quote for a similar setup.`)}
+                    href={getWhatsAppLink(`Hi All Display, I saw the ${project.title} setup. Please quote for a similar setup.`)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-primary hover:text-secondary font-bold text-xs transition-colors"
@@ -307,7 +307,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             </div>
 
             <a 
-              href={getWhatsAppLink('Hi Vinayak Packaging, I have a store floor plan for estimation. Can you help me calculate racks and budget?')}
+              href={getWhatsAppLink('Hi All Display, I have a store floor plan for estimation. Can you help me calculate racks and budget?')}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white py-3 px-4 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-md transition-all"

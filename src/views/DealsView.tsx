@@ -335,7 +335,7 @@ export const DealsView: React.FC<DealsViewProps> = ({
 
                 <a
                   href={getWhatsAppLink(
-                    `Hi Vinayak Packaging, I would like to order the Deal of the Day: ${spotlightDeal.title} (SKU: ${spotlightDeal.code || spotlightDeal.id}) at ₹${spotlightDeal.price}. Please share invoice details.`
+                    `Hi All Display, I would like to order the Deal of the Day: ${spotlightDeal.title} (SKU: ${spotlightDeal.code || spotlightDeal.id}) at ₹${spotlightDeal.price}. Please share invoice details.`
                   )}
                   target="_blank"
                   rel="noreferrer"
@@ -545,7 +545,7 @@ export const DealsView: React.FC<DealsViewProps> = ({
           </div>
 
           <a
-            href={getWhatsAppLink('Hi Vinayak Packaging, I would like to inquire about bulk carton wholesale discounts and custom logo engraving.')}
+            href={getWhatsAppLink('Hi All Display, I would like to inquire about bulk carton wholesale discounts and custom logo engraving.')}
             target="_blank"
             rel="noreferrer"
             className="bg-white text-orange-600 hover:bg-orange-50 font-black text-xs sm:text-sm px-6 py-3.5 rounded-2xl shadow-lg transition-all shrink-0 flex items-center gap-2 cursor-pointer"

@@ -78,8 +78,8 @@ export interface HomepageBanner {
   description: string;
   image: string;
   mobileImage?: string;
-  linkType: 'category' | 'product';
-  linkId: string;
+  linkType?: 'category' | 'product' | 'none';
+  linkId?: string;
 }
 
 export interface CartItem {
