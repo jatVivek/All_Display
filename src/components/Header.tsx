@@ -222,15 +222,15 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Main Header Row */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-3 sm:gap-6">
           {/* 1. Brand Logo (Dynamic through Admin, wrap protected against long text) */}
-          <div className="flex items-center gap-2.5 shrink-0 min-w-0 max-w-[190px] sm:max-w-[280px]">
+          <div className="flex items-center gap-2.5 shrink-0 min-w-0 max-w-[220px] sm:max-w-[320px]">
             <button
               onClick={() => navigateTo('home')}
-              className="flex items-center gap-2.5 text-left group cursor-pointer min-w-0 w-full"
+              className="flex items-center gap-2.5 text-left group cursor-pointer min-w-0 w-full py-1"
             >
               <img
                 src={settings.logoUrl || '/assets/logo.png'}
                 alt={brandName}
-                className="h-9 sm:h-11 w-auto max-w-[90px] sm:max-w-[120px] object-contain rounded-lg shrink-0"
+                className="h-10 sm:h-12 w-auto max-w-[100px] sm:max-w-[140px] object-contain shrink-0"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = '/assets/logo.png';
                 }}

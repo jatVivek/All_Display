@@ -55,7 +55,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveView, onOpenWishlist, o
               <img
                 src={settings.logoUrl || '/assets/logo.png'}
                 alt={brandName}
-                className="h-8 w-auto object-contain max-w-[140px]"
+                className="h-10 w-auto object-contain max-w-[160px]"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = '/assets/logo.png';
                 }}
