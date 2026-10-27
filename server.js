@@ -265,6 +265,40 @@ function saveDiskSettings() {
 }
 loadDiskSettings();
 
+const ordersDiskCachePath = path.join(uploadDirectory, 'orders_cache.json');
+function loadDiskOrders() {
+  try {
+    if (existsSync(ordersDiskCachePath)) {
+      const raw = readFileSync(ordersDiskCachePath, 'utf-8');
+      const data = JSON.parse(raw);
+      if (Array.isArray(data)) memoryStore.orders = data;
+    }
+  } catch {}
+}
+function saveDiskOrders() {
+  try {
+    writeFileSync(ordersDiskCachePath, JSON.stringify(memoryStore.orders));
+  } catch {}
+}
+loadDiskOrders();
+
+const quotesDiskCachePath = path.join(uploadDirectory, 'quotes_cache.json');
+function loadDiskQuotes() {
+  try {
+    if (existsSync(quotesDiskCachePath)) {
+      const raw = readFileSync(quotesDiskCachePath, 'utf-8');
+      const data = JSON.parse(raw);
+      if (Array.isArray(data)) memoryStore.quotes = data;
+    }
+  } catch {}
+}
+function saveDiskQuotes() {
+  try {
+    writeFileSync(quotesDiskCachePath, JSON.stringify(memoryStore.quotes));
+  } catch {}
+}
+loadDiskQuotes();
+
 const imageExtensions = new Map([
   ['image/jpeg', '.jpg'],
   ['image/png', '.png'],
@@ -1328,6 +1362,7 @@ app.post('/api/orders', limitPublicSubmissions, async (request, response, next) 
     };
     if (!pool) {
       memoryStore.orders.unshift(savedOrder);
+      saveDiskOrders();
       return response.status(201).json({ order: savedOrder });
     }
     await pool.query('INSERT INTO customer_orders (id, data) VALUES (?, ?)', [id, JSON.stringify(savedOrder)]);
@@ -1339,6 +1374,7 @@ app.post('/api/orders', limitPublicSubmissions, async (request, response, next) 
 
 app.get('/api/admin/orders', requireAdmin, async (_request, response, next) => {
   if (!pool) {
+    loadDiskOrders();
     return response.json({ orders: memoryStore.orders });
   }
   try {
@@ -1357,6 +1393,7 @@ app.put('/api/admin/orders', requireSameOrigin, requireAdmin, async (request, re
   }
   if (!pool) {
     memoryStore.orders = orders;
+    saveDiskOrders();
     return response.json({ saved: true });
   }
   try {
@@ -1400,6 +1437,7 @@ app.post('/api/quotes', limitPublicSubmissions, async (request, response, next) 
     };
     if (!pool) {
       memoryStore.quotes.unshift(savedQuote);
+      saveDiskQuotes();
       return response.status(201).json({ quote: savedQuote });
     }
     await pool.query('INSERT INTO customer_quotes (id, data) VALUES (?, ?)', [id, JSON.stringify(savedQuote)]);
@@ -1411,6 +1449,7 @@ app.post('/api/quotes', limitPublicSubmissions, async (request, response, next) 
 
 app.get('/api/admin/quotes', requireAdmin, async (_request, response, next) => {
   if (!pool) {
+    loadDiskQuotes();
     return response.json({ quotes: memoryStore.quotes });
   }
   try {
@@ -1429,6 +1468,7 @@ app.put('/api/admin/quotes', requireSameOrigin, requireAdmin, async (request, re
   }
   if (!pool) {
     memoryStore.quotes = quotes;
+    saveDiskQuotes();
     return response.json({ saved: true });
   }
   try {
