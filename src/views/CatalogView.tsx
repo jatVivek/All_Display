@@ -190,7 +190,20 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       if (sortBy === 'price_asc') return a.price - b.price;
       if (sortBy === 'price_desc') return b.price - a.price;
       if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
-      return 0;
+      if (sortBy === 'newest') {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : (a.id.startsWith('prod-') ? Number(a.id.replace('prod-', '')) || 0 : 0);
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : (b.id.startsWith('prod-') ? Number(b.id.replace('prod-', '')) || 0 : 0);
+        return timeB - timeA;
+      }
+      // 'default': Newly added stuffs visible first, preserving configured order
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : (a.id.startsWith('prod-') ? Number(a.id.replace('prod-', '')) || 0 : 0);
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : (b.id.startsWith('prod-') ? Number(b.id.replace('prod-', '')) || 0 : 0);
+      if (timeA > 0 || timeB > 0) {
+        if (timeA !== timeB) return timeB - timeA;
+      }
+      const orderA = typeof a.sortOrder === 'number' ? a.sortOrder : 999999;
+      const orderB = typeof b.sortOrder === 'number' ? b.sortOrder : 999999;
+      return orderA - orderB;
     });
   }, [products, selectedCategory, selectedRequirements, selectedMaterials, priceRange, stockStatusFilter, sortBy]);
 
@@ -593,7 +606,8 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                   onChange={(e) => setSortBy(e.target.value)}
                   className="bg-white border border-slate-200 text-xs text-slate-800 font-medium px-3 py-1.5 rounded-full focus:outline-none focus:border-orange-500 cursor-pointer shadow-2xs"
                 >
-                  <option value="default">Default sorting</option>
+                  <option value="default">Default sorting (Newest first)</option>
+                  <option value="newest">Newest arrivals</option>
                   <option value="price_asc">Price: low to high</option>
                   <option value="price_desc">Price: high to low</option>
                   <option value="rating">Average rating</option>
@@ -695,6 +709,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
                         {/* Badges */}
                         <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
+                          {(product.createdAt || product.id.startsWith('prod-')) && (
+                            <span className="bg-emerald-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-xs flex items-center gap-1">
+                              <span>✨</span>
+                              <span>NEW</span>
+                            </span>
+                          )}
                           {discountPercent > 0 && (
                             <span className="bg-orange-600 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-xs">
                               {discountPercent}% OFF

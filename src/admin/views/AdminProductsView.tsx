@@ -157,7 +157,14 @@ export const AdminProductsView: React.FC<AdminProductsViewProps> = ({
                         className="w-10 h-10 rounded-xl object-cover border border-slate-200 bg-slate-50 shrink-0"
                       />
                       <div className="flex flex-col min-w-0">
-                        <span className="font-bold text-slate-900 truncate max-w-xs">{prod.title}</span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-slate-900 truncate max-w-xs">{prod.title}</span>
+                          {(prod.createdAt || prod.id.startsWith('prod-')) && (
+                            <span className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.2 rounded shrink-0">
+                              NEW
+                            </span>
+                          )}
+                        </div>
                         <span className="font-mono text-[10px] text-slate-500">{prod.code}</span>
                       </div>
                     </td>

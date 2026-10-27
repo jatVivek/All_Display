@@ -86,6 +86,8 @@ export interface AdminCategory {
   name: string;
   description: string;
   image?: string;
+  createdAt?: string;
+  sortOrder?: number;
 }
 
 const INITIAL_CATEGORIES: AdminCategory[] = [
@@ -244,12 +246,42 @@ class CentralStoreService {
     this.notify();
   };
 
+  public sortNewestProductsFirst(list: Product[]): Product[] {
+    return [...list].sort((a, b) => {
+      const orderA = typeof a.sortOrder === 'number' ? a.sortOrder : 999999;
+      const orderB = typeof b.sortOrder === 'number' ? b.sortOrder : 999999;
+      if (orderA !== orderB) return orderA - orderB;
+
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : (a.id.startsWith('prod-') ? Number(a.id.replace('prod-', '')) || 0 : 0);
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : (b.id.startsWith('prod-') ? Number(b.id.replace('prod-', '')) || 0 : 0);
+      if (timeA > 0 || timeB > 0) {
+        if (timeA !== timeB) return timeB - timeA;
+      }
+      return 0;
+    });
+  }
+
+  public sortNewestCategoriesFirst(list: AdminCategory[]): AdminCategory[] {
+    return [...list].sort((a, b) => {
+      const orderA = typeof a.sortOrder === 'number' ? a.sortOrder : 999999;
+      const orderB = typeof b.sortOrder === 'number' ? b.sortOrder : 999999;
+      if (orderA !== orderB) return orderA - orderB;
+
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : (a.id.startsWith('cat-') ? Number(a.id.replace('cat-', '')) || 0 : 0);
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : (b.id.startsWith('cat-') ? Number(b.id.replace('cat-', '')) || 0 : 0);
+      if (timeA > 0 || timeB > 0) {
+        if (timeA !== timeB) return timeB - timeA;
+      }
+      return 0;
+    });
+  }
+
   private loadProducts(): Product[] {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
       if (stored !== null) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length >= 100) return parsed;
+        if (Array.isArray(parsed) && parsed.length >= 100) return this.sortNewestProductsFirst(parsed);
       }
     } catch {}
     return INITIAL_PRODUCTS;
@@ -258,7 +290,10 @@ class CentralStoreService {
   private loadCategories(): AdminCategory[] {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.CATEGORIES);
-      if (stored !== null) return JSON.parse(stored);
+      if (stored !== null) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return this.sortNewestCategoriesFirst(parsed);
+      }
     } catch {}
     return INITIAL_CATEGORIES;
   }
@@ -344,16 +379,18 @@ class CentralStoreService {
     try {
       const catalog = await this.apiRequest<{ products: Product[]; categories: AdminCategory[] }>('/api/catalog');
       if (catalog && Array.isArray(catalog.products) && catalog.products.length >= 100) {
+        const sortedProducts = this.sortNewestProductsFirst(catalog.products);
+        const sortedCategories = this.sortNewestCategoriesFirst(catalog.categories);
         this.state = {
           ...this.state,
-          products: catalog.products,
-          categories: catalog.categories,
+          products: sortedProducts,
+          categories: sortedCategories,
           catalogSyncStatus: 'connected',
           catalogSyncError: null,
         };
         try {
-          localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(catalog.products));
-          localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(catalog.categories));
+          localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(sortedProducts));
+          localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(sortedCategories));
         } catch {}
         this.notify();
       } else if (catalog && (!catalog.products || catalog.products.length < 100)) {
@@ -622,9 +659,15 @@ class CentralStoreService {
   }
 
   public async saveProducts(products: Product[]): Promise<boolean> {
-    this.state = { ...this.state, products };
+    const sorted = this.sortNewestProductsFirst(products);
+    const indexed = sorted.map((p, index) => ({
+      ...p,
+      sortOrder: index,
+      createdAt: p.createdAt || (p.id.startsWith('prod-') ? new Date(Number(p.id.replace('prod-', '')) || Date.now()).toISOString() : undefined)
+    }));
+    this.state = { ...this.state, products: indexed };
     try {
-      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(indexed));
     } catch {}
     this.notify();
     return this.persistCatalog();
@@ -690,9 +733,15 @@ class CentralStoreService {
   }
 
   public async saveCategories(categories: AdminCategory[]): Promise<boolean> {
-    this.state = { ...this.state, categories };
+    const sorted = this.sortNewestCategoriesFirst(categories);
+    const indexed = sorted.map((c, index) => ({
+      ...c,
+      sortOrder: index,
+      createdAt: c.createdAt || (c.id.startsWith('cat-') ? new Date(Number(c.id.replace('cat-', '')) || Date.now()).toISOString() : undefined)
+    }));
+    this.state = { ...this.state, categories: indexed };
     try {
-      localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories));
+      localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(indexed));
     } catch {}
     this.notify();
     return this.persistCatalog();

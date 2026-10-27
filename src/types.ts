@@ -68,6 +68,8 @@ export interface Product {
     weight?: string;
     color?: string;
   };
+  createdAt?: string;
+  sortOrder?: number;
 }
 
 export interface HomepageBanner {

@@ -71,13 +71,16 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
     }
 
     if (editingCat === 'new') {
+      const now = new Date().toISOString();
       const newCat: AdminCategory = {
         id: `cat-${Date.now()}`,
         name: name.trim(),
         description: description.trim(),
         image: image.trim() || undefined,
+        createdAt: now,
+        sortOrder: 0,
       };
-      const updated = [...categories, newCat];
+      const updated = [newCat, ...categories];
       if (!await storeManager.saveCategories(updated)) {
         showToast('Category could not be saved to the shared catalog.');
         return;
@@ -173,7 +176,14 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
                       )}
                     </td>
                     <td className="py-3 px-4 font-bold text-slate-900">
-                      {cat.name}
+                      <div className="flex items-center gap-1.5">
+                        <span>{cat.name}</span>
+                        {(cat.createdAt || cat.id.startsWith('cat-')) && (
+                          <span className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-1.5 py-0.2 rounded shrink-0">
+                            NEW
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3 px-4 text-slate-600 max-w-md truncate">
                       {cat.description || 'No description provided'}

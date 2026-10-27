@@ -141,7 +141,7 @@ export const AdminHomepageView: React.FC<AdminHomepageViewProps> = ({ showToast 
         </div>
         <button
           type="button"
-          onClick={() => setBanners((current) => [...current, createBanner()])}
+          onClick={() => setBanners((current) => [createBanner(), ...current])}
           className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer shadow-xs"
         >
           <AppIcon name="add" className="text-[18px]" />

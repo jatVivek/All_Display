@@ -840,21 +840,53 @@ app.post(
   }
 );
 
+function sortNewestRecordsFirst(records, idPrefix = 'prod-') {
+  if (!Array.isArray(records)) return [];
+  return [...records].sort((a, b) => {
+    // 1. Explicit sortOrder preserved from client unshift
+    const orderA = typeof a.sortOrder === 'number' ? a.sortOrder : 999999;
+    const orderB = typeof b.sortOrder === 'number' ? b.sortOrder : 999999;
+    if (orderA !== orderB) return orderA - orderB;
+
+    // 2. Newly added items (with createdAt or timestamp in id) appear first
+    const timeA = a.createdAt ? new Date(a.createdAt).getTime() : (typeof a.id === 'string' && a.id.startsWith(idPrefix) ? Number(a.id.replace(idPrefix, '')) || 0 : 0);
+    const timeB = b.createdAt ? new Date(b.createdAt).getTime() : (typeof b.id === 'string' && b.id.startsWith(idPrefix) ? Number(b.id.replace(idPrefix, '')) || 0 : 0);
+    if (timeA > 0 || timeB > 0) {
+      if (timeA !== timeB) return timeB - timeA;
+    }
+    return 0;
+  });
+}
+
 app.get('/api/catalog', async (_request, response, next) => {
   if (!pool) {
     return response.json({
-      products: memoryStore.products,
-      categories: memoryStore.categories,
+      products: sortNewestRecordsFirst(memoryStore.products, 'prod-'),
+      categories: sortNewestRecordsFirst(memoryStore.categories, 'cat-'),
     });
   }
   try {
     const [products, categories] = await Promise.all([
-      pool.query('SELECT id, data FROM catalog_products ORDER BY id'),
-      pool.query('SELECT id, data FROM catalog_categories ORDER BY id'),
+      pool.query('SELECT id, data FROM catalog_products'),
+      pool.query('SELECT id, data FROM catalog_categories'),
     ]);
+    const parsedProducts = products[0].map((row) => {
+      let data = row.data;
+      if (typeof data === 'string') {
+        try { data = JSON.parse(data); } catch {}
+      }
+      return { ...data, id: row.id };
+    });
+    const parsedCategories = categories[0].map((row) => {
+      let data = row.data;
+      if (typeof data === 'string') {
+        try { data = JSON.parse(data); } catch {}
+      }
+      return { ...data, id: row.id };
+    });
     response.json({
-      products: products[0].map((row) => ({ ...row.data, id: row.id })),
-      categories: categories[0].map((row) => ({ ...row.data, id: row.id })),
+      products: sortNewestRecordsFirst(parsedProducts, 'prod-'),
+      categories: sortNewestRecordsFirst(parsedCategories, 'cat-'),
     });
   } catch (error) {
     next(error);
@@ -1272,7 +1304,7 @@ app.put('/api/catalog', requireSameOrigin, requireAdmin, async (request, respons
       if (records.length) {
         await connection.query(
           `INSERT INTO ${table} (id, data) VALUES ? ON DUPLICATE KEY UPDATE data = VALUES(data)`,
-          [records.map(({ id, ...data }) => [id, JSON.stringify(data)])]
+          [records.map(({ id, ...data }, index) => [id, JSON.stringify({ ...data, sortOrder: index })])]
         );
       }
       if (records.length) {

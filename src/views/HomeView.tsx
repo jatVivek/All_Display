@@ -95,16 +95,18 @@ export const HomeView: React.FC<HomeViewProps> = ({
     'Packaging Tools': '/assets/vinayak/cat_bag.png',
   };
 
-  // Issue #5: Filter categories to only those with at least 1 product
+  // Issue #5: Filter categories to only those with at least 1 product (Newest categories first)
   const activeCategoriesList = categories
     .map((cat) => {
       const count = products.filter((p) => p.category.toLowerCase() === cat.name.toLowerCase()).length;
       return {
+        id: cat.id,
         title: cat.name,
         category: cat.name,
         icon: cat.image || defaultCategoryIcons[cat.name] || '/assets/vinayak/cat_stand.png',
         count: `${count} Item${count === 1 ? '' : 's'}`,
         itemCount: count,
+        createdAt: cat.createdAt,
       };
     })
     .filter((cat) => cat.itemCount > 0);
@@ -334,7 +336,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   onClick={() => setActiveView('shop', `/shop?category=${encodeURIComponent(cat.category)}`)}
                   className="flex flex-col items-center gap-1.5 group shrink-0 min-w-[75px] sm:min-w-[110px] cursor-pointer"
                 >
-                  <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-full p-1 bg-white border border-slate-200 group-hover:border-orange-500 group-hover:shadow-md transition-all duration-300 flex items-center justify-center overflow-hidden">
+                  <div className="relative w-14 h-14 sm:w-20 sm:h-20 rounded-full p-1 bg-white border border-slate-200 group-hover:border-orange-500 group-hover:shadow-md transition-all duration-300 flex items-center justify-center overflow-hidden">
                     <img
                       src={cat.icon}
                       alt={cat.title}
@@ -343,6 +345,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
                         (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=150&q=80';
                       }}
                     />
+                    {(cat.createdAt || cat.id.startsWith('cat-')) && (
+                      <span className="absolute top-0.5 right-0.5 bg-emerald-600 text-white text-[7px] sm:text-[8px] font-black px-1.5 py-0.2 rounded-full shadow-xs">
+                        NEW
+                      </span>
+                    )}
                   </div>
                   <span className="text-[11px] sm:text-xs font-semibold text-slate-800 group-hover:text-orange-600 transition-colors text-center line-clamp-1">
                     {cat.title}

@@ -244,6 +244,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
     let saved: boolean;
 
     if (isNew) {
+      const now = new Date().toISOString();
       const newProduct: Product = {
         id: `prod-${Date.now()}`,
         code,
@@ -270,7 +271,9 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
         finishes: [
           { name: finish, color: '#1A1C20' },
           { name: 'Pure White', color: '#FFFFFF' }
-        ]
+        ],
+        createdAt: now,
+        sortOrder: 0,
       };
       saved = await storeManager.saveProducts([newProduct, ...products]);
     } else {
