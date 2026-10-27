@@ -66,31 +66,11 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
 
     setIsUploadingLogo(true);
     try {
-      // Issue #2 & #20: Compress client-side and save immediately
+      // Issue #2 & #20: Compress client-side directly into high-clarity WebP Data URL
       const compressedLogo = await compressImage(file, { maxWidth: 800, maxHeight: 400, quality: 0.9 });
       
-      let finalUrl = compressedLogo;
-      try {
-        const formData = new FormData();
-        formData.append('image', file);
-        const response = await fetch('/api/admin/uploads', {
-          method: 'POST',
-          credentials: 'same-origin',
-          headers: { 'X-Admin-Request': '1' },
-          body: formData,
-        });
-        if (response.ok) {
-          const result = await response.json();
-          if (result.url) {
-            finalUrl = result.url;
-          }
-        }
-      } catch {
-        // Fallback to compressed logo data URL
-      }
-
-      handleChange('logoUrl', finalUrl);
-      const updatedSettings = { ...settings, logoUrl: finalUrl };
+      handleChange('logoUrl', compressedLogo);
+      const updatedSettings = { ...settings, logoUrl: compressedLogo };
       await storeManager.saveSettings(updatedSettings);
       showToast('Brand logo updated and synced across storefront!');
     } catch (error) {
@@ -218,6 +198,9 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
                     src={settings.logoUrl}
                     alt="Brand Logo Preview"
                     className="max-w-full max-h-full object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/assets/vinayak/logo.png';
+                    }}
                   />
                 ) : (
                   <span className="text-xs text-slate-400 font-semibold text-center">No Logo Set</span>

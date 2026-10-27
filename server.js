@@ -128,14 +128,21 @@ app.use((request, response, next) => {
   response.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   next();
 });
-app.use(express.json({ limit: '2mb' }));
-app.use('/uploads', express.static(uploadDirectory, {
-  dotfiles: 'deny',
-  index: false,
-  maxAge: production ? '1d' : 0,
-}));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use('/uploads', (req, res, next) => {
+  const filePath = path.join(uploadDirectory, path.basename(req.path));
+  if (existsSync(filePath)) {
+    return res.sendFile(filePath);
+  }
+  return res.redirect('/assets/vinayak/logo.png');
+});
 
-mkdirSync(uploadDirectory, { recursive: true });
+try {
+  mkdirSync(uploadDirectory, { recursive: true });
+} catch {
+  // Read-only filesystem in serverless environments
+}
 
 // Standalone in-memory fallback store when cloud MySQL is not yet configured or connecting
 const memoryStore = {
@@ -157,13 +164,8 @@ const imageExtensions = new Map([
   ['image/gif', '.gif'],
 ]);
 const imageUpload = multer({
-  storage: multer.diskStorage({
-    destination: uploadDirectory,
-    filename: (_request, file, callback) => {
-      callback(null, `${randomBytes(16).toString('hex')}${imageExtensions.get(file.mimetype) || '.img'}`);
-    },
-  }),
-  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024, files: 1 },
   fileFilter: (_request, file, callback) => {
     if (!imageExtensions.has(file.mimetype)) {
       callback(new Error('Choose a JPEG, PNG, WebP, or GIF image.'));
@@ -178,16 +180,11 @@ const videoExtensions = new Map([
   ['video/quicktime', '.mov'],
 ]);
 const videoUpload = multer({
-  storage: multer.diskStorage({
-    destination: uploadDirectory,
-    filename: (_request, file, callback) => {
-      callback(null, `${randomBytes(16).toString('hex')}${videoExtensions.get(file.mimetype) || '.video'}`);
-    },
-  }),
-  limits: { fileSize: 50 * 1024 * 1024, files: 1 },
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 25 * 1024 * 1024, files: 1 },
   fileFilter: (_request, file, callback) => {
     if (!videoExtensions.has(file.mimetype)) {
-      callback(new Error('Choose an MP4, WebM, or QuickTime video.'));
+      callback(new Error('Choose an MP4, WebM, or MOV video.'));
       return;
     }
     callback(null, true);
@@ -804,7 +801,10 @@ app.post(
     if (!request.file) {
       return response.status(400).json({ error: 'Select an image to upload.' });
     }
-    response.status(201).json({ url: `/uploads/${request.file.filename}` });
+    const mime = request.file.mimetype || 'image/webp';
+    const base64 = request.file.buffer.toString('base64');
+    const dataUrl = `data:${mime};base64,${base64}`;
+    response.status(201).json({ url: dataUrl });
   }
 );
 
@@ -816,7 +816,7 @@ app.post(
     videoUpload.single('video')(request, response, (error) => {
       if (error) {
         if (error instanceof multer.MulterError && error.code === 'LIMIT_FILE_SIZE') {
-          return response.status(413).json({ error: 'Video must be 50 MB or smaller.' });
+          return response.status(413).json({ error: 'Video must be 25 MB or smaller.' });
         }
         return response.status(400).json({
           error: error instanceof Error ? error.message : 'Video upload failed.',
@@ -829,7 +829,10 @@ app.post(
     if (!request.file) {
       return response.status(400).json({ error: 'Select a video to upload.' });
     }
-    response.status(201).json({ url: `/uploads/${request.file.filename}` });
+    const mime = request.file.mimetype || 'video/mp4';
+    const base64 = request.file.buffer.toString('base64');
+    const dataUrl = `data:${mime};base64,${base64}`;
+    response.status(201).json({ url: dataUrl });
   }
 );
 
@@ -856,11 +859,27 @@ app.get('/api/catalog', async (_request, response, next) => {
 
 app.get('/api/settings', async (_request, response, next) => {
   if (!pool) {
-    return response.json({ settings: memoryStore.settings });
+    let settings = memoryStore.settings;
+    if (settings) {
+      if (settings.storeName === 'Vinayak Packaging') settings.storeName = 'All Display';
+      if (settings.brandName === 'Vinayak Packaging') settings.brandName = 'All Display';
+      if (typeof settings.logoUrl === 'string' && settings.logoUrl.startsWith('/uploads/')) {
+        settings.logoUrl = '/assets/vinayak/logo.png';
+      }
+    }
+    return response.json({ settings });
   }
   try {
     const [rows] = await pool.query('SELECT data FROM business_settings WHERE id = 1');
-    response.json({ settings: rows.length ? rows[0].data : null });
+    let settings = rows.length ? rows[0].data : null;
+    if (settings) {
+      if (settings.storeName === 'Vinayak Packaging') settings.storeName = 'All Display';
+      if (settings.brandName === 'Vinayak Packaging') settings.brandName = 'All Display';
+      if (typeof settings.logoUrl === 'string' && settings.logoUrl.startsWith('/uploads/')) {
+        settings.logoUrl = '/assets/vinayak/logo.png';
+      }
+    }
+    response.json({ settings });
   } catch (error) {
     next(error);
   }

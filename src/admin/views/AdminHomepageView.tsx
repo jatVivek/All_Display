@@ -88,24 +88,20 @@ export const AdminHomepageView: React.FC<AdminHomepageViewProps> = ({ showToast 
     });
   };
 
-  // Execute upload after crop
+  // Execute upload after crop directly into high-clarity WebP Data URL
   const handleUploadCroppedFile = async (bannerId: string, field: 'image' | 'mobileImage', file: File) => {
     setUploadingBannerId(bannerId);
     try {
-      const formData = new FormData();
-      formData.append('image', file);
-      const response = await fetch('/api/admin/uploads', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'X-Admin-Request': '1' },
-        body: formData,
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error('Failed to read image'));
+        reader.readAsDataURL(file);
       });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || `Image upload failed (${response.status}).`);
-      updateBanner(bannerId, { [field]: result.url });
+      updateBanner(bannerId, { [field]: dataUrl });
       showToast('Cropped uniform banner applied successfully!');
     } catch (error) {
-      showToast(error instanceof Error ? error.message : 'Image upload failed.');
+      showToast(error instanceof Error ? error.message : 'Image processing failed.');
     } finally {
       setUploadingBannerId(null);
     }

@@ -306,8 +306,11 @@ class CentralStoreService {
       const stored = localStorage.getItem(STORAGE_KEYS.SETTINGS);
       if (stored !== null) {
         const parsed = JSON.parse(stored);
-        if (parsed.storeName === 'Vinayak Packaging') parsed.storeName = 'All Display';
-        if (parsed.brandName === 'Vinayak Packaging') parsed.brandName = 'All Display';
+        if (!parsed.storeName || parsed.storeName === 'Vinayak Packaging') parsed.storeName = 'All Display';
+        if (!parsed.brandName || parsed.brandName === 'Vinayak Packaging') parsed.brandName = 'All Display';
+        if (typeof parsed.logoUrl === 'string' && parsed.logoUrl.startsWith('/uploads/')) {
+          parsed.logoUrl = '/assets/vinayak/logo.png';
+        }
         return parsed;
       }
     } catch {}
@@ -365,13 +368,18 @@ class CentralStoreService {
     try {
       const { settings } = await this.apiRequest<{ settings: AdminSettings | null }>('/api/settings');
       if (settings && Object.keys(settings).length > 0) {
-        const brand = settings.brandName || settings.storeName || this.state.settings.brandName || 'All Display';
+        let brand = settings.brandName || settings.storeName || this.state.settings.brandName || 'All Display';
+        if (brand === 'Vinayak Packaging') brand = 'All Display';
+        let logo = settings.logoUrl || this.state.settings.logoUrl || '/assets/vinayak/logo.png';
+        if (typeof logo === 'string' && logo.startsWith('/uploads/')) {
+          logo = '/assets/vinayak/logo.png';
+        }
         const normalized: AdminSettings = {
           ...this.state.settings,
           ...settings,
           storeName: brand,
           brandName: brand,
-          logoUrl: settings.logoUrl || this.state.settings.logoUrl,
+          logoUrl: logo,
         };
         this.state = { ...this.state, settings: normalized };
         try {

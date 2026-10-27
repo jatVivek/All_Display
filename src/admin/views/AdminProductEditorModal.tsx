@@ -157,7 +157,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
     try {
       const processedUrls: string[] = [];
       for (const file of files) {
-        // Compress client-side first (Issue #20)
+        // Compress client-side first into high-clarity WebP Data URL (Issue #20)
         let compressedDataUrl: string;
         try {
           compressedDataUrl = await compressImage(file, { maxWidth: 1600, maxHeight: 1600, quality: 0.88 });
@@ -168,28 +168,6 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
             reader.readAsDataURL(file);
           });
         }
-
-        // Try server upload if available
-        try {
-          const formData = new FormData();
-          formData.append('image', file);
-          const response = await fetch('/api/admin/uploads', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: { 'X-Admin-Request': '1' },
-            body: formData,
-          });
-          if (response.ok) {
-            const result = await response.json();
-            if (result.url) {
-              processedUrls.push(result.url);
-              continue;
-            }
-          }
-        } catch {
-          // Server upload failed or in local standalone mode, use compressed data URL fallback
-        }
-
         processedUrls.push(compressedDataUrl);
       }
       setImages((current) => [...current, ...processedUrls]);
