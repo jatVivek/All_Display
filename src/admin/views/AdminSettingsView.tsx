@@ -34,9 +34,9 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
       brand = 'All Display';
       needsUpdate = true;
     }
-    let logo = current.logoUrl || '/assets/logo_alldisplay.svg';
-    if (typeof logo === 'string' && (logo.startsWith('/uploads/') || logo.includes('vinayak/logo.png'))) {
-      logo = '/assets/logo_alldisplay.svg';
+    let logo = current.logoUrl || '/assets/logo.png';
+    if (typeof logo === 'string' && (logo.startsWith('/uploads/') || logo.includes('vinayak/logo.png') || logo.includes('logo_alldisplay.svg'))) {
+      logo = '/assets/logo.png';
       needsUpdate = true;
     }
     if (needsUpdate) {
@@ -49,8 +49,8 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
       if (state.settings) {
         setSettings((prev) => {
           let updatedLogo = state.settings.logoUrl || prev.logoUrl;
-          if (typeof updatedLogo === 'string' && (updatedLogo.startsWith('/uploads/') || updatedLogo.includes('vinayak/logo.png'))) {
-            updatedLogo = '/assets/logo_alldisplay.svg';
+          if (typeof updatedLogo === 'string' && (updatedLogo.startsWith('/uploads/') || updatedLogo.includes('vinayak/logo.png') || updatedLogo.includes('logo_alldisplay.svg'))) {
+            updatedLogo = '/assets/logo.png';
           }
           return { ...state.settings, logoUrl: updatedLogo };
         });
@@ -118,10 +118,10 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
   };
 
   const handleResetDefaultLogo = async () => {
-    handleChange('logoUrl', '/assets/logo_alldisplay.svg');
+    handleChange('logoUrl', '/assets/logo.png');
     const updatedSettings = {
       ...settings,
-      logoUrl: '/assets/logo_alldisplay.svg',
+      logoUrl: '/assets/logo.png',
     };
     await storeManager.saveSettings(updatedSettings);
     showToast('Default All Display logo restored!');
@@ -268,11 +268,11 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
             <div className="flex flex-col items-center gap-2 shrink-0">
               <div className="w-24 h-24 rounded-2xl bg-white border border-slate-200 p-2 flex items-center justify-center shadow-xs overflow-hidden">
                 <img
-                  src={settings.logoUrl || '/assets/logo_alldisplay.svg'}
+                  src={settings.logoUrl || '/assets/logo.png'}
                   alt="Brand Logo Preview"
                   className="max-w-full max-h-full object-contain"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/assets/logo_alldisplay.svg';
+                    (e.target as HTMLImageElement).src = '/assets/logo.png';
                   }}
                 />
               </div>

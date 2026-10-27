@@ -188,7 +188,7 @@ const DEFAULT_SETTINGS: AdminSettings = {
   businessAddress: '29, Perumal Mudali St, Sowcarpet, George Town, Chennai, Tamil Nadu 600001',
   showroomAddress: '29, Perumal Mudali St, Sowcarpet, George Town, Chennai, Tamil Nadu 600001',
   brandTagline: 'Jewellery Display, Trays & Packaging Solutions',
-  logoUrl: '/assets/logo_alldisplay.svg',
+  logoUrl: '/assets/logo.png',
   headerNotice: 'Direct Factory Wholesale • Sowcarpet Depot, Chennai • Same-Day Dispatch Across India',
   supportEmail: 'contact@alldisplay.com',
   supportPhone: '+91 94622 47004',
@@ -526,8 +526,8 @@ class CentralStoreService {
     }
 
     let logo = raw.logoUrl;
-    if (!logo || typeof logo !== 'string' || logo.startsWith('/uploads/') || logo.includes('vinayak/logo.png')) {
-      logo = '/assets/logo_alldisplay.svg';
+    if (!logo || typeof logo !== 'string' || logo.startsWith('/uploads/') || logo.includes('vinayak/logo.png') || logo.includes('logo_alldisplay.svg')) {
+      logo = '/assets/logo.png';
     }
 
     let upiId = raw.upiId || fallback.upiId;

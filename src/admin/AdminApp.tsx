@@ -159,11 +159,11 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
         <div className="bg-white max-w-md w-full rounded-3xl shadow-2xl overflow-hidden border border-slate-200 p-8 flex flex-col items-center animate-in fade-in duration-300">
           <div className="h-14 mb-4 flex items-center justify-center">
             <img
-              src={storeManager.getSettings().logoUrl || '/assets/logo_alldisplay.svg'}
+              src={storeManager.getSettings().logoUrl || '/assets/logo.png'}
               alt="All Display Admin"
               className="max-h-14 w-auto max-w-[200px] object-contain"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = '/assets/logo_alldisplay.svg';
+                (e.target as HTMLImageElement).src = '/assets/logo.png';
               }}
             />
           </div>

@@ -52,10 +52,10 @@ export async function compressImageAdvanced(
       try {
         const fallbackReader = new FileReader();
         fallbackReader.onload = () => resolve({ dataUrl: fallbackReader.result as string, file });
-        fallbackReader.onerror = () => resolve({ dataUrl: '/assets/logo_alldisplay.svg', file });
+        fallbackReader.onerror = () => resolve({ dataUrl: '/assets/logo.png', file });
         fallbackReader.readAsDataURL(file);
       } catch {
-        resolve({ dataUrl: '/assets/logo_alldisplay.svg', file });
+        resolve({ dataUrl: '/assets/logo.png', file });
       }
     }, 2500);
 
@@ -68,18 +68,18 @@ export async function compressImageAdvanced(
     if (file.type === 'image/svg+xml' || file.type === 'image/gif') {
       const reader = new FileReader();
       reader.onload = () => safeResolve({ dataUrl: reader.result as string, file });
-      reader.onerror = () => safeResolve({ dataUrl: '/assets/logo_alldisplay.svg', file });
+      reader.onerror = () => safeResolve({ dataUrl: '/assets/logo.png', file });
       reader.readAsDataURL(file);
       return;
     }
 
     // 3. Read image file and process through canvas
     const reader = new FileReader();
-    reader.onerror = () => safeResolve({ dataUrl: '/assets/logo_alldisplay.svg', file });
+    reader.onerror = () => safeResolve({ dataUrl: '/assets/logo.png', file });
     reader.onload = (e) => {
       const rawDataUrl = (e.target?.result as string) || '';
       if (!rawDataUrl) {
-        safeResolve({ dataUrl: '/assets/logo_alldisplay.svg', file });
+        safeResolve({ dataUrl: '/assets/logo.png', file });
         return;
       }
 

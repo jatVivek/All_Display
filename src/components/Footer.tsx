@@ -53,11 +53,11 @@ export const Footer: React.FC<FooterProps> = ({ setActiveView, onOpenWishlist, o
           <div className="flex flex-col items-center md:items-start gap-3">
             <div className="flex items-center gap-2 mb-1">
               <img
-                src={settings.logoUrl || '/assets/logo_alldisplay.svg'}
+                src={settings.logoUrl || '/assets/logo.png'}
                 alt={brandName}
                 className="h-8 w-auto object-contain max-w-[140px]"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/assets/logo_alldisplay.svg';
+                  (e.target as HTMLImageElement).src = '/assets/logo.png';
                 }}
               />
               <span className="font-extrabold text-slate-900 tracking-tight text-base">

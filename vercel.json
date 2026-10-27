@@ -9,7 +9,7 @@
     },
     {
       "source": "/uploads/(.*)",
-      "destination": "/assets/logo_alldisplay.svg"
+      "destination": "/assets/logo.png"
     },
     {
       "source": "/((?!api|uploads|assets|.*\\..*).*)",

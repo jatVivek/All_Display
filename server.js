@@ -135,7 +135,7 @@ app.use('/uploads', (req, res, next) => {
   if (existsSync(filePath)) {
     return res.sendFile(filePath);
   }
-  return res.redirect('/assets/logo_alldisplay.svg');
+  return res.redirect('/assets/logo.png');
 });
 
 try {
@@ -1073,8 +1073,8 @@ function sanitizeSettingsObject(settings) {
   if (typeof settings.supportEmail === 'string' && /vinayak/i.test(settings.supportEmail)) {
     settings.supportEmail = 'contact@alldisplay.com';
   }
-  if (!settings.logoUrl || typeof settings.logoUrl !== 'string' || settings.logoUrl.startsWith('/uploads/') || settings.logoUrl.includes('vinayak/logo.png')) {
-    settings.logoUrl = '/assets/logo_alldisplay.svg';
+  if (!settings.logoUrl || typeof settings.logoUrl !== 'string' || settings.logoUrl.startsWith('/uploads/') || settings.logoUrl.includes('vinayak/logo.png') || settings.logoUrl.includes('logo_alldisplay.svg')) {
+    settings.logoUrl = '/assets/logo.png';
   }
   if (!settings.siteUrl) {
     settings.siteUrl = 'https://all-display.vercel.app/';

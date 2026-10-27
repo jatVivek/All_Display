@@ -20,7 +20,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   onOpenTour,
   onExitAdmin
 }) => {
-  const [logoUrl, setLogoUrl] = useState(() => storeManager.getSettings().logoUrl || '/assets/logo_alldisplay.svg');
+  const [logoUrl, setLogoUrl] = useState(() => storeManager.getSettings().logoUrl || '/assets/logo.png');
 
   useEffect(() => {
     return storeManager.subscribe((state) => {
@@ -36,11 +36,11 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
       <div className="flex items-center gap-4">
         <div className="h-10 flex items-center shrink-0">
           <img
-            src={logoUrl}
+            src={logoUrl || '/assets/logo.png'}
             alt="All Display Admin"
             className="h-9 sm:h-10 w-auto max-w-[120px] object-contain rounded-lg"
             onError={(e) => {
-              (e.target as HTMLImageElement).src = '/assets/logo_alldisplay.svg';
+              (e.target as HTMLImageElement).src = '/assets/logo.png';
             }}
           />
         </div>
