@@ -158,10 +158,12 @@ const memoryStore = {
 };
 
 const catalogDiskCachePath = path.join(uploadDirectory, 'catalog_cache.json');
+const catalogSeedPath = path.join(rootDirectory, 'public', 'uploads', 'catalog_cache.json');
 function loadDiskCatalog() {
   try {
-    if (existsSync(catalogDiskCachePath)) {
-      const raw = readFileSync(catalogDiskCachePath, 'utf-8');
+    const targetPath = existsSync(catalogDiskCachePath) ? catalogDiskCachePath : (existsSync(catalogSeedPath) ? catalogSeedPath : null);
+    if (targetPath) {
+      const raw = readFileSync(targetPath, 'utf-8');
       const data = JSON.parse(raw);
       if (Array.isArray(data?.products) && data.products.length > 0) {
         memoryStore.products = data.products;
@@ -183,10 +185,12 @@ function saveDiskCatalog() {
 loadDiskCatalog();
 
 const usersDiskCachePath = path.join(uploadDirectory, 'users_cache.json');
+const usersSeedPath = path.join(rootDirectory, 'public', 'uploads', 'users_cache.json');
 function loadDiskUsers() {
   try {
-    if (existsSync(usersDiskCachePath)) {
-      const raw = readFileSync(usersDiskCachePath, 'utf-8');
+    const targetPath = existsSync(usersDiskCachePath) ? usersDiskCachePath : (existsSync(usersSeedPath) ? usersSeedPath : null);
+    if (targetPath) {
+      const raw = readFileSync(targetPath, 'utf-8');
       const data = JSON.parse(raw);
       if (Array.isArray(data) && data.length > 0) {
         const existingIds = new Set(memoryStore.users.map((u) => u.id));
