@@ -142,7 +142,7 @@ const isLegacyStarterBanner = (banners: HomepageBanner[]) =>
   (banners[0].title.includes('Heavy-Duty Display Racks') || banners[0].title.includes('Heavy-duty racks'));
 
 const STORAGE_KEYS = {
-  PRODUCTS: 'alldisplay_store_products_v3',
+  PRODUCTS: 'alldisplay_store_products_v4',
   ORDERS: 'alldisplay_store_orders_v3',
   QUOTES: 'alldisplay_store_quotes_v3',
   SETTINGS: 'alldisplay_store_settings_v3',
@@ -247,7 +247,10 @@ class CentralStoreService {
   private loadProducts(): Product[] {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
-      if (stored !== null) return JSON.parse(stored);
+      if (stored !== null) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length >= 100) return parsed;
+      }
     } catch {}
     return INITIAL_PRODUCTS;
   }
@@ -334,7 +337,7 @@ class CentralStoreService {
   private async loadSharedCatalog() {
     try {
       const catalog = await this.apiRequest<{ products: Product[]; categories: AdminCategory[] }>('/api/catalog');
-      if (catalog && (catalog.products?.length > 0 || catalog.categories?.length > 0)) {
+      if (catalog && Array.isArray(catalog.products) && catalog.products.length >= 100) {
         this.state = {
           ...this.state,
           products: catalog.products,
@@ -347,6 +350,9 @@ class CentralStoreService {
           localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(catalog.categories));
         } catch {}
         this.notify();
+      } else if (catalog && (!catalog.products || catalog.products.length < 100)) {
+        // Automatically sync the full 120 products to shared backend
+        void this.persistCatalog();
       }
     } catch (error) {
       if (this.apiConfigured) {
