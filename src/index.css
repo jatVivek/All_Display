@@ -18,8 +18,11 @@
   --color-primary-container: #fff7ed;
   --color-on-primary: #ffffff;
   --color-secondary: #0f172a;
+  --color-on-secondary: #ffffff;
   --color-secondary-container: #f8fafc;
+  --color-on-secondary-container: #0f172a;
   --color-secondary-fixed: #fdba74;
+  --color-on-secondary-fixed: #7c2d12;
   --color-secondary-fixed-dim: #fed7aa;
   --color-outline: #cbd5e1;
   --color-outline-variant: #e2e8f0;

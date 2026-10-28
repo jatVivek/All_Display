@@ -242,7 +242,7 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
             <div className="flex flex-col gap-1 pb-4 mb-6 border-b border-surface-container">
               <div className="flex items-center justify-between">
                 <span className="text-xs uppercase font-bold tracking-wider text-secondary">Official Wholesale Ingestion Form</span>
-                <span className="bg-secondary text-on-secondary px-2 py-0.5 rounded text-[10px] font-bold uppercase">Priority Dispatch</span>
+                <span className="bg-secondary text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase shadow-2xs">Priority Dispatch</span>
               </div>
               <h2 className="font-serif text-2xl font-bold text-primary mt-1">Store Specifications &amp; Bill of Materials</h2>
               <p className="text-xs text-on-surface-variant">Fill in your requirements below. Our factory estimation engineers in Feel Khana will prepare a detailed GST itemized quote.</p>
@@ -331,7 +331,7 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
                         key={type}
                         type="button"
                         onClick={() => setStoreType(type)}
-                        className={`px-3 py-2 rounded-lg text-center transition-all ${
+                        className={`px-3 py-2 rounded-lg text-center transition-all cursor-pointer ${
                           storeType === type
                             ? 'bg-primary text-on-primary font-bold shadow'
                             : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
@@ -351,21 +351,26 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
                       { id: '500-1000', label: '500-1000', desc: 'Standard Store' },
                       { id: '1000-2500', label: '1000-2500', desc: 'Large Showroom' },
                       { id: '2500+', label: '2500+', desc: 'Mega Retail / Mall' },
-                    ].map(area => (
-                      <button
-                        key={area.id}
-                        type="button"
-                        onClick={() => setFloorArea(area.id)}
-                        className={`p-2.5 rounded-lg text-center transition-all ${
-                          floorArea === area.id
-                            ? 'bg-secondary text-on-secondary font-bold shadow'
-                            : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
-                        }`}
-                      >
-                        <span className="block font-serif text-base font-bold leading-tight">{area.label}</span>
-                        <span className="text-[10px] uppercase">{area.desc}</span>
-                      </button>
-                    ))}
+                    ].map(area => {
+                      const isSelected = floorArea === area.id;
+                      return (
+                        <button
+                          key={area.id}
+                          type="button"
+                          onClick={() => setFloorArea(area.id)}
+                          className={`p-2.5 rounded-lg text-center transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-primary text-on-primary font-bold shadow-md ring-2 ring-primary/20'
+                              : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
+                          }`}
+                        >
+                          <span className="block font-serif text-base font-bold leading-tight">{area.label}</span>
+                          <span className={`text-[10px] uppercase font-semibold ${isSelected ? 'text-white/90' : 'text-on-surface-variant'}`}>
+                            {area.desc}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -477,8 +482,8 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
                       key={t}
                       type="button"
                       onClick={() => setTimeline(t)}
-                      className={`p-2 rounded-lg text-center transition-all font-semibold ${
-                        timeline === t ? 'bg-primary text-on-primary shadow' : 'bg-surface-container-low text-on-surface'
+                      className={`p-2 rounded-lg text-center transition-all font-semibold cursor-pointer ${
+                        timeline === t ? 'bg-primary text-on-primary shadow' : 'bg-surface-container-low text-on-surface hover:bg-surface-container'
                       }`}
                     >
                       {t}
