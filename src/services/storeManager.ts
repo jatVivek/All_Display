@@ -164,9 +164,11 @@ const STORAGE_KEYS = {
   PRODUCTS: 'alldisplay_store_products_v4',
   CUSTOM_PRODUCTS: 'alldisplay_store_custom_products_v1',
   DELETED_PRODUCT_IDS: 'alldisplay_store_deleted_prod_ids_v1',
+  CATALOG_CLEARED: 'alldisplay_store_catalog_cleared_v1',
   CATEGORIES: 'alldisplay_store_categories_v3',
   CUSTOM_CATEGORIES: 'alldisplay_store_custom_categories_v1',
   DELETED_CATEGORY_IDS: 'alldisplay_store_deleted_cat_ids_v1',
+  CATEGORIES_CLEARED: 'alldisplay_store_categories_cleared_v1',
   ORDERS: 'alldisplay_store_orders_v3',
   QUOTES: 'alldisplay_store_quotes_v3',
   CUSTOMERS: 'alldisplay_store_customers_v1',
@@ -389,6 +391,12 @@ class CentralStoreService {
   }
 
   private loadProducts(): Product[] {
+    try {
+      if (localStorage.getItem(STORAGE_KEYS.CATALOG_CLEARED) === '1') {
+        return [];
+      }
+    } catch {}
+
     const custom = this.loadCustomProducts();
     const deleted = this.loadDeletedProductIds();
 
@@ -397,7 +405,7 @@ class CentralStoreService {
       const stored = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
       if (stored !== null) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length >= 100) base = parsed;
+        if (Array.isArray(parsed)) base = parsed;
       }
     } catch {}
 
@@ -416,6 +424,12 @@ class CentralStoreService {
   }
 
   private loadCategories(): AdminCategory[] {
+    try {
+      if (localStorage.getItem(STORAGE_KEYS.CATEGORIES_CLEARED) === '1') {
+        return [];
+      }
+    } catch {}
+
     const custom = this.loadCustomCategories();
     const deleted = this.loadDeletedCategoryIds();
 
@@ -424,7 +438,7 @@ class CentralStoreService {
       const stored = localStorage.getItem(STORAGE_KEYS.CATEGORIES);
       if (stored !== null) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) base = parsed;
+        if (Array.isArray(parsed)) base = parsed;
       }
     } catch {}
 
@@ -614,7 +628,36 @@ class CentralStoreService {
       const customCategories = this.loadCustomCategories();
       const deletedCategories = this.loadDeletedCategoryIds();
 
-      if (catalog && Array.isArray(catalog.products) && catalog.products.length >= 100) {
+      if (catalog && Array.isArray(catalog.products)) {
+        // If server catalog is empty, respect the cleared state!
+        if (catalog.products.length === 0) {
+          try {
+            localStorage.setItem(STORAGE_KEYS.CATALOG_CLEARED, '1');
+            localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
+            if (Array.isArray(catalog.categories) && catalog.categories.length === 0) {
+              localStorage.setItem(STORAGE_KEYS.CATEGORIES_CLEARED, '1');
+              localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify([]));
+            }
+          } catch {}
+          this.state = {
+            ...this.state,
+            products: [],
+            categories: Array.isArray(catalog.categories) && catalog.categories.length === 0 ? [] : (Array.isArray(catalog.categories) ? catalog.categories : this.state.categories),
+            catalogSyncStatus: 'connected',
+            catalogSyncError: null,
+          };
+          this.notify();
+          return;
+        }
+
+        // Server has products, clear the cleared flag
+        try {
+          localStorage.removeItem(STORAGE_KEYS.CATALOG_CLEARED);
+          if (Array.isArray(catalog.categories) && catalog.categories.length > 0) {
+            localStorage.removeItem(STORAGE_KEYS.CATEGORIES_CLEARED);
+          }
+        } catch {}
+
         // Merge server products with local custom products so custom products NEVER disappear
         const prodMap = new Map<string, Product>();
         customProducts.forEach((p) => {
@@ -655,12 +698,9 @@ class CentralStoreService {
         // If server is missing custom items, sync them to server
         const serverProdIds = new Set(catalog.products.map(p => p.id));
         const missingOnServer = customProducts.some(p => !serverProdIds.has(p.id));
-        if (missingOnServer) {
+        if (missingOnServer && sortedProducts.length > 0) {
           void this.persistCatalog();
         }
-      } else if (catalog && (!catalog.products || catalog.products.length < 100)) {
-        // Automatically sync the full catalog to shared backend
-        void this.persistCatalog();
       }
     } catch (error) {
       if (this.apiConfigured) {
@@ -854,6 +894,9 @@ class CentralStoreService {
   }
 
   private async migrateLocalCatalogIfCloudIsEmpty() {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem(STORAGE_KEYS.CATALOG_CLEARED) === '1') {
+      return;
+    }
     const catalog = await this.apiRequest<{ products: Product[]; categories: AdminCategory[] }>('/api/catalog');
     if (catalog.products.length || catalog.categories.length) return;
 
@@ -968,6 +1011,23 @@ class CentralStoreService {
   }
 
   public async saveProducts(products: Product[]): Promise<boolean> {
+    if (products.length === 0) {
+      try {
+        localStorage.setItem(STORAGE_KEYS.CATALOG_CLEARED, '1');
+        localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
+        localStorage.removeItem(STORAGE_KEYS.CUSTOM_PRODUCTS);
+        const initialIds = new Set(INITIAL_PRODUCTS.map(p => p.id));
+        this.saveDeletedProductIds(initialIds);
+      } catch {}
+      this.state = { ...this.state, products: [] };
+      this.notify();
+      return this.persistCatalog();
+    } else {
+      try {
+        localStorage.removeItem(STORAGE_KEYS.CATALOG_CLEARED);
+      } catch {}
+    }
+
     const sanitized = products.map(this.sanitizeProduct);
     const sorted = this.sortNewestProductsFirst(sanitized);
     const indexed = sorted.map((p, index) => ({
@@ -1058,6 +1118,23 @@ class CentralStoreService {
   }
 
   public async saveCategories(categories: AdminCategory[]): Promise<boolean> {
+    if (categories.length === 0) {
+      try {
+        localStorage.setItem(STORAGE_KEYS.CATEGORIES_CLEARED, '1');
+        localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify([]));
+        localStorage.removeItem(STORAGE_KEYS.CUSTOM_CATEGORIES);
+        const initialCatIds = new Set(INITIAL_CATEGORIES.map(c => c.id));
+        this.saveDeletedCategoryIds(initialCatIds);
+      } catch {}
+      this.state = { ...this.state, categories: [] };
+      this.notify();
+      return this.persistCatalog();
+    } else {
+      try {
+        localStorage.removeItem(STORAGE_KEYS.CATEGORIES_CLEARED);
+      } catch {}
+    }
+
     const sorted = this.sortNewestCategoriesFirst(categories);
     const indexed = sorted.map((c, index) => ({
       ...c,

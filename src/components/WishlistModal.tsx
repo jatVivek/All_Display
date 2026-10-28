@@ -2,7 +2,6 @@ import React from 'react';
 import { AppIcon } from './AppIcon';
 import { Product } from '../types';
 import { storeManager } from '../services/storeManager';
-import { INITIAL_PRODUCTS } from '../data/catalog';
 import { useScrollLock } from '../hooks/useScrollLock';
 
 interface WishlistModalProps {
@@ -22,7 +21,7 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({
 }) => {
   useScrollLock(isOpen);
   const [wishlistIds, setWishlistIds] = React.useState<string[]>(() => storeManager.getWishlist());
-  const allProducts = storeManager.getProducts().length > 0 ? storeManager.getProducts() : INITIAL_PRODUCTS;
+  const [allProducts, setAllProducts] = React.useState<Product[]>(() => storeManager.getProducts());
 
   const navigateProduct = onSelectProduct || onNavigateToProduct || (() => {});
 
@@ -30,20 +29,25 @@ export const WishlistModal: React.FC<WishlistModalProps> = ({
   React.useEffect(() => {
     if (isOpen) {
       setWishlistIds(storeManager.getWishlist());
+      setAllProducts(storeManager.getProducts());
     }
   }, [isOpen]);
 
   React.useEffect(() => {
     const handleUpdate = () => {
       setWishlistIds(storeManager.getWishlist());
+      setAllProducts(storeManager.getProducts());
     };
     window.addEventListener('vinayak_wishlist_updated', handleUpdate);
+    window.addEventListener('alldisplay_catalog_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
-    const unsub = storeManager.subscribe(() => {
+    const unsub = storeManager.subscribe((state) => {
       setWishlistIds(storeManager.getWishlist());
+      setAllProducts(state.products);
     });
     return () => {
       window.removeEventListener('vinayak_wishlist_updated', handleUpdate);
+      window.removeEventListener('alldisplay_catalog_updated', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
       unsub();
     };

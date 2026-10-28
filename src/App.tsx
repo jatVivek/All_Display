@@ -1,7 +1,7 @@
 import { AppIcon } from './components/AppIcon';
 import React, { useState, useEffect, useRef } from 'react';
 import { ActiveView, HomepageBanner, Product, CartItem, ProjectReel, ConsigneeDetails } from './types';
-import { PROJECT_REELS, INITIAL_PRODUCTS } from './data/catalog';
+import { PROJECT_REELS } from './data/catalog';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
@@ -113,7 +113,7 @@ export default function App() {
     if (path.startsWith('/products/')) {
       const rawSlug = path.replace(/^\/products\//, '').replace(/\/+$/, '');
       const slug = decodeURIComponent(rawSlug).toLowerCase().trim();
-      const allProds: Product[] = storeManager.getProducts().length > 0 ? storeManager.getProducts() : INITIAL_PRODUCTS;
+      const allProds: Product[] = storeManager.getProducts();
       const match = allProds.find((p: Product) => 
         (p.code && p.code.toLowerCase().trim() === slug) ||
         (p.id && p.id.toLowerCase().trim() === slug) ||
@@ -196,7 +196,7 @@ export default function App() {
       if (route.view === 'pdp' && window.location.pathname.startsWith('/products/')) {
         const rawSlug = window.location.pathname.replace(/^\/products\//, '').replace(/\/+$/, '');
         const slug = decodeURIComponent(rawSlug).toLowerCase().trim();
-        const allProds: Product[] = storeManager.getProducts().length > 0 ? storeManager.getProducts() : INITIAL_PRODUCTS;
+        const allProds: Product[] = storeManager.getProducts();
         const match = allProds.find((p: Product) => 
           (p.code && p.code.toLowerCase().trim() === slug) ||
           (p.id && p.id.toLowerCase().trim() === slug) ||
@@ -252,7 +252,7 @@ export default function App() {
     if (window.location.pathname.startsWith('/products/')) {
       const rawSlug = window.location.pathname.replace(/^\/products\//, '').replace(/\/+$/, '');
       const slug = decodeURIComponent(rawSlug).toLowerCase().trim();
-      const allProds: Product[] = storeManager.getProducts().length > 0 ? storeManager.getProducts() : INITIAL_PRODUCTS;
+      const allProds: Product[] = storeManager.getProducts();
       const match = allProds.find((p: Product) => 
         (p.code && p.code.toLowerCase().trim() === slug) ||
         (p.id && p.id.toLowerCase().trim() === slug) ||

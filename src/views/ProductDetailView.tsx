@@ -3,7 +3,6 @@ import { AppIcon } from '../components/AppIcon';
 import { ActiveView, Product, CartItem, ProductVariation } from '../types';
 import { getWhatsAppLink } from '../utils/whatsapp';
 import { storeManager } from '../services/storeManager';
-import { INITIAL_PRODUCTS } from '../data/catalog';
 
 interface ProductDetailViewProps {
   product?: Product | null;
@@ -14,30 +13,23 @@ interface ProductDetailViewProps {
   onOpenReel?: () => void;
 }
 
-export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
-  product: initialProduct,
+interface ProductDetailContentProps {
+  product: Product;
+  onNavigate: (view: ActiveView, path?: string) => void;
+  onAddToCart: (item: Omit<CartItem, 'id'>, qty: number) => void;
+  onSelectProduct?: (product: Product) => void;
+  onOpenCad?: () => void;
+  onOpenReel?: () => void;
+}
+
+const ProductDetailContent: React.FC<ProductDetailContentProps> = ({
+  product: currentProduct,
   onNavigate,
   onAddToCart,
   onSelectProduct,
   onOpenCad,
   onOpenReel
 }) => {
-  // Fallback to initial catalog product if store not yet hydrated
-  const allProducts = storeManager.getProducts().length > 0 ? storeManager.getProducts() : INITIAL_PRODUCTS;
-  const currentProduct: Product = useMemo(() => {
-    if (initialProduct) return initialProduct;
-    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/products/')) {
-      const rawSlug = window.location.pathname.replace(/^\/products\//, '').replace(/\/+$/, '');
-      const slug = decodeURIComponent(rawSlug).toLowerCase().trim();
-      const match = allProducts.find((p) => 
-        (p.code && p.code.toLowerCase().trim() === slug) ||
-        (p.id && p.id.toLowerCase().trim() === slug) ||
-        (p.title && p.title.toLowerCase().trim() === slug)
-      );
-      if (match) return match;
-    }
-    return allProducts[0] || INITIAL_PRODUCTS[0];
-  }, [initialProduct, allProducts]);
 
   const [settings, setSettings] = useState(() => storeManager.getSettings());
 
@@ -801,5 +793,65 @@ Please confirm stock availability and freight to my location.`;
 
       </div>
     </div>
+  );
+};
+
+export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
+  product: initialProduct,
+  onNavigate,
+  onAddToCart,
+  onSelectProduct,
+  onOpenCad,
+  onOpenReel
+}) => {
+  const allProducts = storeManager.getProducts();
+  const currentProduct: Product | null = useMemo(() => {
+    if (initialProduct) return initialProduct;
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/products/')) {
+      const rawSlug = window.location.pathname.replace(/^\/products\//, '').replace(/\/+$/, '');
+      const slug = decodeURIComponent(rawSlug).toLowerCase().trim();
+      const match = allProducts.find((p) => 
+        (p.code && p.code.toLowerCase().trim() === slug) ||
+        (p.id && p.id.toLowerCase().trim() === slug) ||
+        (p.title && p.title.toLowerCase().trim() === slug)
+      );
+      if (match) return match;
+    }
+    return allProducts[0] || null;
+  }, [initialProduct, allProducts]);
+
+  if (!currentProduct) {
+    return (
+      <div className="min-h-[70vh] bg-slate-50 flex items-center justify-center py-16 px-4">
+        <div className="max-w-md w-full bg-white rounded-3xl p-8 text-center border border-slate-200/80 shadow-xl">
+          <div className="w-16 h-16 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center mx-auto mb-4">
+            <AppIcon name="inventory_2" className="text-3xl" />
+          </div>
+          <h2 className="text-xl font-black text-slate-900 mb-2">Product Not Found</h2>
+          <p className="text-sm text-slate-500 mb-6">
+            The product catalog is currently empty or this product is no longer available.
+          </p>
+          <button
+            type="button"
+            onClick={() => onNavigate('shop')}
+            className="w-full py-3 px-6 bg-slate-900 hover:bg-orange-600 text-white font-bold text-sm rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+          >
+            <AppIcon name="storefront" className="text-base" />
+            <span>Go to Shop Catalog</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <ProductDetailContent
+      product={currentProduct}
+      onNavigate={onNavigate}
+      onAddToCart={onAddToCart}
+      onSelectProduct={onSelectProduct}
+      onOpenCad={onOpenCad}
+      onOpenReel={onOpenReel}
+    />
   );
 };

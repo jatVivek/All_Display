@@ -583,16 +583,22 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             {displayedProducts.length === 0 ? (
               <div className="bg-slate-50 rounded-3xl p-12 text-center flex flex-col items-center gap-3 border border-slate-100">
                 <AppIcon name="inventory_2" className="text-4xl text-slate-400" />
-                <h3 className="font-bold text-base text-slate-900">No products matched your criteria</h3>
+                <h3 className="font-bold text-base text-slate-900">
+                  {products.length === 0 ? 'No Products in Catalog' : 'No products matched your criteria'}
+                </h3>
                 <p className="text-xs text-slate-600 max-w-sm">
-                  Try widening your price range or clearing category / material filters.
+                  {products.length === 0
+                    ? 'The product catalog has been cleared. Products added via Admin will be visible here.'
+                    : 'Try widening your price range or clearing category / material filters.'}
                 </p>
-                <button
-                  onClick={resetAllFilters}
-                  className="bg-orange-600 text-white text-xs font-bold px-4 py-2 rounded-full mt-2 cursor-pointer"
-                >
-                  Reset All Filters
-                </button>
+                {products.length > 0 && (
+                  <button
+                    onClick={resetAllFilters}
+                    className="bg-orange-600 text-white text-xs font-bold px-4 py-2 rounded-full mt-2 cursor-pointer"
+                  >
+                    Reset All Filters
+                  </button>
+                )}
               </div>
             ) : (
               <div

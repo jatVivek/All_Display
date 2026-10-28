@@ -244,7 +244,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </button>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
+          {allProductsList.length === 0 ? (
+            <div className="bg-slate-50/70 border border-slate-100 rounded-3xl p-10 text-center flex flex-col items-center justify-center gap-2">
+              <AppIcon name="inventory_2" className="text-3xl text-slate-400" />
+              <h3 className="font-bold text-sm text-slate-800">No Products in Catalog</h3>
+              <p className="text-xs text-slate-500 max-w-sm">The product catalog has been cleared. Products created in the Admin panel will appear here.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
               {allProductsList.map((product) => {
                 const discountPercent = product.originalPrice
                   ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -346,6 +353,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 );
               })}
             </div>
+          )}
         </section>
 
         {/* 5. WHY CHOOSE ALL DISPLAY */}

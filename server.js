@@ -178,6 +178,7 @@ const memoryStore = {
   quotes: [],
   users: [...SEED_USERS],
   sessions: new Map(),
+  catalogCleared: false,
 };
 
 const catalogDiskCachePath = path.join(uploadDirectory, 'catalog_cache.json');
@@ -188,10 +189,16 @@ function loadDiskCatalog() {
     if (targetPath) {
       const raw = readFileSync(targetPath, 'utf-8');
       const data = JSON.parse(raw);
-      if (Array.isArray(data?.products) && data.products.length > 0) {
+      if (data?.catalogCleared === true) {
+        memoryStore.products = [];
+        memoryStore.categories = Array.isArray(data?.categories) ? data.categories : [];
+        memoryStore.catalogCleared = true;
+        return;
+      }
+      if (Array.isArray(data?.products)) {
         memoryStore.products = data.products;
       }
-      if (Array.isArray(data?.categories) && data.categories.length > 0) {
+      if (Array.isArray(data?.categories)) {
         memoryStore.categories = data.categories;
       }
     }
@@ -202,6 +209,7 @@ function saveDiskCatalog() {
     writeFileSync(catalogDiskCachePath, JSON.stringify({
       products: memoryStore.products,
       categories: memoryStore.categories,
+      catalogCleared: memoryStore.catalogCleared === true,
     }));
   } catch {}
 }
@@ -1081,12 +1089,13 @@ function sortNewestRecordsFirst(records, idPrefix = 'prod-') {
 
 app.get('/api/catalog', async (_request, response, next) => {
   if (!pool) {
-    if (!memoryStore.products || memoryStore.products.length === 0) {
+    if ((!memoryStore.products || memoryStore.products.length === 0) && !memoryStore.catalogCleared) {
       loadDiskCatalog();
     }
     return response.json({
       products: sortNewestRecordsFirst(memoryStore.products, 'prod-'),
       categories: sortNewestRecordsFirst(memoryStore.categories, 'cat-'),
+      catalogCleared: memoryStore.catalogCleared === true,
     });
   }
   try {
@@ -1111,6 +1120,7 @@ app.get('/api/catalog', async (_request, response, next) => {
     response.json({
       products: sortNewestRecordsFirst(parsedProducts, 'prod-'),
       categories: sortNewestRecordsFirst(parsedCategories, 'cat-'),
+      catalogCleared: parsedProducts.length === 0,
     });
   } catch (error) {
     next(error);
@@ -1683,6 +1693,7 @@ app.put('/api/catalog', requireSameOrigin, requireAdmin, async (request, respons
   if (!pool) {
     memoryStore.products = products;
     memoryStore.categories = categories;
+    memoryStore.catalogCleared = (products.length === 0);
     saveDiskCatalog();
     return response.json({ saved: true });
   }
