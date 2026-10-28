@@ -44,7 +44,7 @@ export const AdminProductsView: React.FC<AdminProductsViewProps> = ({
   const handleToggleStock = async (id: string) => {
     const updated = products.map(p => {
       if (p.id === id) {
-        const nextStatus = p.stockStatus.includes('In Stock') ? 'Sold Out / Make to Order' : 'Sowcarpet In Stock';
+        const nextStatus = p.stockStatus.includes('In Stock') ? 'Sold Out / Make to Order' : 'Feel Khana In Stock';
         return { ...p, stockStatus: nextStatus };
       }
       return p;

@@ -242,7 +242,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 Jewellery Displays &amp; Packaging Catalog
               </h1>
               <p className="text-xs text-slate-500 mt-1">
-                Wholesale prices directly from Sowcarpet, George Town depot. GST invoices provided.
+                Wholesale prices directly from Feel Khana, Hyderabad depot. GST invoices provided.
               </p>
             </div>
 
@@ -270,7 +270,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               Pan-India &amp; Global Wholesale Dispatch
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Order boutique displays, velvet busts, multi-slot trays, and branded packaging cards in bulk. Dispatch within 24-48 hours from Chennai.
+              Order boutique displays, velvet busts, multi-slot trays, and branded packaging cards in bulk. Dispatch within 24-48 hours from Hyderabad.
             </p>
             <div className="pt-1 flex flex-wrap items-center justify-center md:justify-start gap-3">
               <a
@@ -501,7 +501,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 rel="noreferrer"
                 className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1 mt-1"
               >
-                <span>Chat with Sowcarpet Depot</span>
+                <span>Chat with Feel Khana Depot</span>
                 <AppIcon name="arrow_forward" className="text-xs" />
               </a>
             </div>

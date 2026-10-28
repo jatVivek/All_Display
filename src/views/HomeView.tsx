@@ -383,7 +383,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   Global Shipping
                 </h4>
                 <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 leading-relaxed">
-                  Fast delivery across Tamil Nadu, all Indian states, &amp; export.
+                  Fast delivery across Telangana, Andhra Pradesh, all Indian states, &amp; export.
                 </p>
               </div>
             </div>
@@ -408,10 +408,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </div>
               <div className="flex flex-col">
                 <h4 className="text-[11px] sm:text-xs font-bold text-slate-900 uppercase tracking-wide">
-                  Sowcarpet Depot
+                  Feel Khana Depot
                 </h4>
                 <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 leading-relaxed">
-                  Visit George Town showroom or order online with WhatsApp.
+                  Visit Hyderabad showroom or order online with WhatsApp.
                 </p>
               </div>
             </div>
@@ -429,7 +429,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               Trusted by 5,000+ Jewellers, Designers &amp; Boutique Brands
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Based in Sowcarpet, Chennai, {brandName} is a premier manufacturer and wholesaler of luxury jewellery display systems, velvet busts, packaging boxes, tags, and packing machinery.
+              Based in Feel Khana, Hyderabad, {brandName} is a premier manufacturer and wholesaler of luxury jewellery display systems, velvet busts, packaging boxes, tags, and packing machinery.
             </p>
             <div className="flex flex-wrap items-center gap-2.5 pt-1">
               <button
@@ -446,7 +446,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-4 py-2 sm:px-5 sm:py-2.5 rounded-full transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <AppIcon name="chat" className="text-emerald-600 text-sm" />
-                <span>Chat with Chennai Depot</span>
+                <span>Chat with Hyderabad Depot</span>
               </a>
             </div>
           </div>
@@ -456,10 +456,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
               Showroom &amp; Warehouse
             </h4>
             <p className="text-xs text-slate-600 leading-relaxed">
-              {settings.showroomAddress || '29, Perumal Mudali St, Sowcarpet, George Town, Chennai, Tamil Nadu 600001'}
+              {settings.showroomAddress || '15-8-397, Feel Khana, Hyderabad 500012, Telangana, India'}
             </p>
             <p className="text-xs text-slate-600">
-              <strong className="text-slate-800">Phone:</strong> {settings.supportPhone || '+91 94622 47004'}<br />
+              <strong className="text-slate-800">Phone:</strong> {settings.supportPhone || '+91 73961 27273'}<br />
               <strong className="text-slate-800">Email:</strong> {settings.supportEmail || 'contact@alldisplay.com'}
             </p>
           </div>
@@ -515,7 +515,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 <div className="hidden sm:flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600 pt-1">
                   <span className="flex items-center gap-1.5">
                     <AppIcon name="check_circle" className="text-emerald-500 text-sm" />
-                    Same-Day Chennai Dispatch
+                    Same-Day Hyderabad Dispatch
                   </span>
                   <span className="flex items-center gap-1.5">
                     <AppIcon name="check_circle" className="text-emerald-500 text-sm" />
@@ -539,8 +539,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   </picture>
                   <div className="absolute bottom-2.5 left-2.5 right-2.5 bg-white/95 backdrop-blur-xs p-2 sm:p-2.5 rounded-xl border border-slate-100 flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] sm:text-[11px] font-bold text-slate-900 truncate">Sowcarpet Wholesale Depot</p>
-                      <p className="text-[9px] sm:text-[10px] text-slate-500">Ready Dispatch Chennai</p>
+                      <p className="text-[10px] sm:text-[11px] font-bold text-slate-900 truncate">Feel Khana Wholesale Depot</p>
+                      <p className="text-[9px] sm:text-[10px] text-slate-500">Ready Dispatch Hyderabad</p>
                     </div>
                     <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[9px] sm:text-[10px] font-bold shrink-0">
                       Ready Stock

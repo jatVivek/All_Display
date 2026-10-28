@@ -37,7 +37,7 @@ export const ContactView: React.FC<ContactViewProps> = ({
         `• Subject: ${subject || 'Jewellery Display Inquiry'}\n` +
         `• Message: ${message}`;
       window.open(getWhatsAppLink(text), '_blank');
-      onToast('Thank you! Your message was sent to our Sowcarpet sales desk.');
+      onToast('Thank you! Your message was sent to our Feel Khana sales desk.');
       setFirstName('');
       setLastName('');
       setSubject('');
@@ -70,7 +70,7 @@ export const ContactView: React.FC<ContactViewProps> = ({
             Leave Us A Message
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
-            Have questions about ready stock, custom jewelry card printing, or bulk wholesale rates? Reach out to our Sowcarpet Chennai showroom team directly.
+            Have questions about ready stock, custom jewelry card printing, or bulk wholesale rates? Reach out to our Feel Khana Hyderabad showroom team directly.
           </p>
         </div>
 
@@ -171,28 +171,28 @@ export const ContactView: React.FC<ContactViewProps> = ({
               </div>
             </div>
 
-            {/* Sowcarpet Chennai Store Address Card */}
+            {/* Feel Khana Hyderabad Store Address Card */}
             <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-xs flex items-start gap-4">
               <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0 border border-orange-100">
                 <AppIcon name="location_on" className="text-2xl" />
               </div>
               <div className="flex flex-col gap-2">
                 <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                  Sowcarpet Showroom &amp; Depot
+                  Feel Khana Showroom &amp; Depot
                 </h4>
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  29, Perumal Mudali St, Sowcarpet, George Town, Chennai, Tamil Nadu 600001
+                  {settings.showroomAddress || '15-8-397, Feel Khana, Hyderabad 500012, Telangana, India'}
                 </p>
                 <div className="flex flex-wrap items-center gap-2 pt-1">
                   <a
-                    href="tel:+919462247004"
+                    href={`tel:${(settings.supportPhone || '+917396127273').replace(/\s+/g, '')}`}
                     className="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold px-3 py-1.5 rounded-full transition-colors"
                   >
                     <AppIcon name="phone" className="text-[13px] text-orange-600" />
-                    <span>+91 94622 47004</span>
+                    <span>{settings.supportPhone || '+91 73961 27273'}</span>
                   </a>
                   <a
-                    href={getWhatsAppLink('Hi All Display Sowcarpet, I would like to visit or place an order.')}
+                    href={getWhatsAppLink('Hi All Display Feel Khana, I would like to visit or place an order.')}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-full transition-colors"
@@ -218,17 +218,17 @@ export const ContactView: React.FC<ContactViewProps> = ({
           </div>
         </div>
 
-        {/* Embedded Interactive Map of Sowcarpet, Chennai */}
+        {/* Embedded Interactive Map of Feel Khana, Hyderabad */}
         <div className="w-full bg-slate-50 rounded-3xl overflow-hidden border border-slate-100 shadow-xs">
           <div className="px-6 py-4 bg-white border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <AppIcon name="map" className="text-orange-600 text-base" />
               <span className="text-xs font-bold text-slate-900">
-                Sowcarpet, Chennai Wholesale Market Location
+                Feel Khana, Hyderabad Wholesale Market Location
               </span>
             </div>
             <a
-              href="https://maps.google.com/?q=29+Perumal+Mudali+St+Sowcarpet+George+Town+Chennai"
+              href="https://maps.google.com/?q=15-8-397+Feel+Khana+Hyderabad+500012"
               target="_blank"
               rel="noreferrer"
               className="text-xs text-orange-600 hover:underline font-semibold"
@@ -237,8 +237,8 @@ export const ContactView: React.FC<ContactViewProps> = ({
             </a>
           </div>
           <iframe
-            title="All Display Sowcarpet Chennai Location"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3886.107575294025!2d80.276412!3d13.092358!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a5265fd860c4cf9%3A0x6b4ef8d31a5474ad!2sPerumal%20Mudali%20St%2C%20Sowcarpet%2C%20George%20Town%2C%20Chennai%2C%20Tamil%20Nadu%20600001!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+            title="All Display Feel Khana Hyderabad Location"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3807.472147395232!2d78.472304!3d17.377626!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bcb9788f28d7a1f%3A0x7d6f5f9227f309d!2sFeelkhana%2C%20Begum%20Bazaar%2C%20Hyderabad%2C%20Telangana%20500012!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
             className="w-full h-80 border-0"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"

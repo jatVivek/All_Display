@@ -1146,22 +1146,46 @@ function sanitizeSettingsObject(settings) {
   if (!settings.siteUrl) {
     settings.siteUrl = 'https://all-display.vercel.app/';
   }
+  if (!settings.instagramUrl) {
+    settings.instagramUrl = 'https://www.instagram.com/all_display_?cplk=MXNpcGN3cno4MHI0Nw==';
+  }
   if (typeof settings.whatsappNumber === 'string') {
     const digits = settings.whatsappNumber.replace(/\D/g, '');
-    if (digits.length >= 10 && digits.length <= 15) {
+    if (digits.includes('9462247004')) {
+      settings.whatsappNumber = '917396127273';
+    } else if (digits.length >= 10 && digits.length <= 15) {
       settings.whatsappNumber = digits.length === 10 ? `91${digits}` : digits;
     }
+  } else {
+    settings.whatsappNumber = '917396127273';
   }
   if (typeof settings.alternateWhatsapp === 'string') {
     const altDigits = settings.alternateWhatsapp.replace(/\D/g, '');
-    if (altDigits.length >= 10 && altDigits.length <= 15) {
+    if (altDigits.includes('9462247004')) {
+      settings.alternateWhatsapp = '917396127273';
+    } else if (altDigits.length >= 10 && altDigits.length <= 15) {
       settings.alternateWhatsapp = altDigits.length === 10 ? `91${altDigits}` : altDigits;
     }
-  } else if (!settings.alternateWhatsapp) {
-    settings.alternateWhatsapp = settings.whatsappNumber || '919462247004';
+  } else {
+    settings.alternateWhatsapp = settings.whatsappNumber || '917396127273';
   }
-  if (!settings.supportPhone) {
-    settings.supportPhone = '+91 94622 47004';
+  if (!settings.supportPhone || settings.supportPhone.includes('94622')) {
+    settings.supportPhone = '+91 73961 27273';
+  }
+  if (!settings.businessAddress || settings.businessAddress.includes('Sowcarpet') || settings.businessAddress.includes('Perumal Mudali')) {
+    settings.businessAddress = '15-8-397, Feel Khana, Hyderabad 500012, Telangana, India';
+  }
+  if (!settings.showroomAddress || settings.showroomAddress.includes('Sowcarpet') || settings.showroomAddress.includes('Perumal Mudali')) {
+    settings.showroomAddress = '15-8-397, Feel Khana, Hyderabad 500012, Telangana, India';
+  }
+  if (!settings.headerNotice || settings.headerNotice.includes('Sowcarpet')) {
+    settings.headerNotice = 'Direct Factory Wholesale • Feel Khana Depot, Hyderabad • Same-Day Dispatch Across India';
+  }
+  if (!settings.bankName || settings.bankName.includes('Sowcarpet') || settings.bankName.includes('Chennai')) {
+    settings.bankName = 'HDFC Bank - Feel Khana Branch, Hyderabad';
+  }
+  if (!settings.shippingNotes || settings.shippingNotes.includes('Chennai')) {
+    settings.shippingNotes = 'Global shipping available. Safe doorstep delivery across India from Hyderabad warehouse.';
   }
   return settings;
 }

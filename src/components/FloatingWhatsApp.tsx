@@ -35,7 +35,7 @@ export const FloatingWhatsApp: React.FC = () => {
               </div>
               <div className="flex flex-col">
                 <span className="font-bold text-sm leading-tight">All Display Desk</span>
-                <span className="text-xs text-orange-400">Sowcarpet Depot • Chennai</span>
+                <span className="text-xs text-orange-400">Feel Khana Depot • Hyderabad</span>
                 <span className="text-[10px] text-white/60">Typically replies in &lt; 5 mins</span>
               </div>
             </div>
@@ -76,7 +76,7 @@ export const FloatingWhatsApp: React.FC = () => {
             </div>
 
             <div className="text-[10px] text-slate-500 text-center pt-1">
-              Sowcarpet Showroom, Chennai open Mon–Sat 10am to 8pm
+              Feel Khana Showroom, Hyderabad open Mon–Sat 10am to 8pm
             </div>
           </div>
         </div>

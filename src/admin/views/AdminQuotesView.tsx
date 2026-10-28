@@ -23,7 +23,7 @@ export const AdminQuotesView: React.FC<AdminQuotesViewProps> = ({ showToast }) =
 
   const handleReplyWhatsApp = (quote: AdminQuote) => {
     const text = `Hi ${quote.customerName} (${quote.storeName}), regarding your custom packaging & display quote *${quote.quoteNo}* (${quote.storeType} in ${quote.city}):\n\n` +
-      `Our Sowcarpet design desk has reviewed your display & packaging requirements. Let's discuss bulk wholesale pricing and custom branding options!`;
+      `Our Feel Khana design desk has reviewed your display & packaging requirements. Let's discuss bulk wholesale pricing and custom branding options!`;
 
     window.open(getContactWhatsAppLink(quote.whatsapp, text), '_blank');
     showToast('WhatsApp quote consultation opened.');

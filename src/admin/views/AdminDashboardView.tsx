@@ -34,7 +34,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
             <span className="text-xs font-medium text-orange-700 uppercase tracking-wider font-mono">
-              Sowcarpet Headquarters, George Town, Chennai
+              Feel Khana Headquarters, Hyderabad, Telangana
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">

@@ -462,7 +462,7 @@ Please confirm stock availability and freight to my location.`;
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex flex-col items-center text-center gap-1">
                 <AppIcon name="support_agent" className="text-blue-500 text-lg" />
                 <span className="text-[11px] font-bold text-slate-800">B2B Support</span>
-                <span className="text-[10px] text-slate-500">Sowcarpet Team Ready</span>
+                <span className="text-[10px] text-slate-500">Feel Khana Team Ready</span>
               </div>
             </div>
           </div>
@@ -671,7 +671,7 @@ Please confirm stock availability and freight to my location.`;
                 <div className="grid grid-cols-3 p-3 bg-slate-50/50">
                   <span className="text-slate-500 font-medium">Dispatch Readiness</span>
                   <span className="col-span-2 text-slate-900 font-semibold text-emerald-700">
-                    {currentProduct.dispatchReadiness || 'Ready Stock - Sowcarpet Depot'}
+                    {currentProduct.dispatchReadiness || 'Ready Stock - Feel Khana Depot'}
                   </span>
                 </div>
                 <div className="grid grid-cols-3 p-3 bg-white">

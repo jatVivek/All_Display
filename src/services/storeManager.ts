@@ -92,6 +92,7 @@ export interface AdminSettings {
   supportPhone?: string;
   showroomAddress?: string;
   siteUrl?: string;
+  instagramUrl?: string;
   requirementImages?: Record<string, string>;
   updatedAt?: number;
 }
@@ -122,7 +123,7 @@ const INITIAL_CATEGORIES: AdminCategory[] = [
 const INITIAL_HOMEPAGE_BANNERS: HomepageBanner[] = [
   {
     id: 'banner-main',
-    eyebrow: 'Direct Manufacturer • Sowcarpet Depot, Chennai',
+    eyebrow: 'Direct Manufacturer • Feel Khana Depot, Hyderabad',
     title: 'Jewellery Displays & Packaging That Make Every Piece Stand Out',
     subtitle: 'Lightweight, elegant velvet busts, counter trays, and custom printed packaging.',
     description: 'Serving over 5,000+ retail jewellers, boutique owners, and online creators across India with factory-direct rates.',
@@ -136,7 +137,7 @@ const INITIAL_HOMEPAGE_BANNERS: HomepageBanner[] = [
     eyebrow: 'Fast Dispatch • High-Speed Packaging Desk',
     title: 'High-Grade Display Cards, Wonder Tapes & Packaging Tools',
     subtitle: 'From barcode dumbbell tags to heavy duty cast iron tape dispensers.',
-    description: 'Same-day dispatches across Tamil Nadu and express courier shipping PAN India.',
+    description: 'Same-day dispatches across Telangana, Andhra Pradesh, and express courier shipping PAN India.',
     image: '/assets/vinayak/deal_left_banner.png',
     mobileImage: '/assets/vinayak/req_online_sellers.png',
     linkType: 'category',
@@ -179,24 +180,25 @@ const STORAGE_KEYS = {
 };
 
 const DEFAULT_SETTINGS: AdminSettings = {
-  whatsappNumber: '919462247004',
-  alternateWhatsapp: '919462247004',
+  whatsappNumber: '917396127273',
+  alternateWhatsapp: '917396127273',
   upiId: 'alldisplay@icici',
-  bankName: 'HDFC Bank - Sowcarpet Branch, Chennai',
+  bankName: 'HDFC Bank - Feel Khana Branch, Hyderabad',
   accountNo: '50200049210081',
   ifscCode: 'HDFC0000231',
   minOrderValue: 500,
-  shippingNotes: 'Global shipping available. Safe doorstep delivery across India from Chennai warehouse.',
+  shippingNotes: 'Global shipping available. Safe doorstep delivery across India from Hyderabad warehouse.',
   storeName: 'All Display',
   brandName: 'All Display',
-  businessAddress: '29, Perumal Mudali St, Sowcarpet, George Town, Chennai, Tamil Nadu 600001',
-  showroomAddress: '29, Perumal Mudali St, Sowcarpet, George Town, Chennai, Tamil Nadu 600001',
+  businessAddress: '15-8-397, Feel Khana, Hyderabad 500012, Telangana, India',
+  showroomAddress: '15-8-397, Feel Khana, Hyderabad 500012, Telangana, India',
   brandTagline: 'Jewellery Display, Trays & Packaging Solutions',
   logoUrl: '/assets/logo.png',
-  headerNotice: 'Direct Factory Wholesale • Sowcarpet Depot, Chennai • Same-Day Dispatch Across India',
+  headerNotice: 'Direct Factory Wholesale • Feel Khana Depot, Hyderabad • Same-Day Dispatch Across India',
   supportEmail: 'contact@alldisplay.com',
-  supportPhone: '+91 94622 47004',
+  supportPhone: '+91 73961 27273',
   siteUrl: 'https://all-display.vercel.app',
+  instagramUrl: 'https://www.instagram.com/all_display_?cplk=MXNpcGN3cno4MHI0Nw==',
 };
 
 export interface CentralStoreState {
@@ -559,7 +561,11 @@ class CentralStoreService {
     let whatsappNumber = raw.whatsappNumber;
     if (typeof whatsappNumber === 'string') {
       const digits = whatsappNumber.replace(/\D/g, '');
-      whatsappNumber = digits.length === 10 ? `91${digits}` : (digits || fallback.whatsappNumber);
+      if (digits.includes('9462247004')) {
+        whatsappNumber = fallback.whatsappNumber;
+      } else {
+        whatsappNumber = digits.length === 10 ? `91${digits}` : (digits || fallback.whatsappNumber);
+      }
     } else {
       whatsappNumber = fallback.whatsappNumber;
     }
@@ -567,12 +573,36 @@ class CentralStoreService {
     let alternateWhatsapp = raw.alternateWhatsapp;
     if (typeof alternateWhatsapp === 'string' && alternateWhatsapp.trim()) {
       const altDigits = alternateWhatsapp.replace(/\D/g, '');
-      alternateWhatsapp = altDigits.length === 10 ? `91${altDigits}` : (altDigits || whatsappNumber);
+      if (altDigits.includes('9462247004')) {
+        alternateWhatsapp = fallback.alternateWhatsapp;
+      } else {
+        alternateWhatsapp = altDigits.length === 10 ? `91${altDigits}` : (altDigits || whatsappNumber);
+      }
     } else {
       alternateWhatsapp = whatsappNumber || fallback.alternateWhatsapp;
     }
 
-    const supportPhone = raw.supportPhone || fallback.supportPhone;
+    let supportPhone = raw.supportPhone || fallback.supportPhone;
+    if (typeof supportPhone === 'string' && supportPhone.includes('94622')) {
+      supportPhone = fallback.supportPhone;
+    }
+
+    let businessAddress = raw.businessAddress || fallback.businessAddress;
+    if (typeof businessAddress === 'string' && (businessAddress.includes('Sowcarpet') || businessAddress.includes('Perumal Mudali'))) {
+      businessAddress = fallback.businessAddress;
+    }
+
+    let showroomAddress = raw.showroomAddress || fallback.showroomAddress;
+    if (typeof showroomAddress === 'string' && (showroomAddress.includes('Sowcarpet') || showroomAddress.includes('Perumal Mudali'))) {
+      showroomAddress = fallback.showroomAddress;
+    }
+
+    let headerNotice = raw.headerNotice || fallback.headerNotice;
+    if (typeof headerNotice === 'string' && headerNotice.includes('Sowcarpet')) {
+      headerNotice = fallback.headerNotice;
+    }
+
+    let instagramUrl = raw.instagramUrl || fallback.instagramUrl;
 
     return {
       ...fallback,
@@ -585,6 +615,10 @@ class CentralStoreService {
       whatsappNumber,
       alternateWhatsapp,
       supportPhone,
+      businessAddress,
+      showroomAddress,
+      headerNotice,
+      instagramUrl,
       updatedAt: typeof raw.updatedAt === 'number' ? raw.updatedAt : undefined,
     };
   }

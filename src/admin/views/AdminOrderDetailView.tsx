@@ -65,11 +65,11 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
 
   // WhatsApp Templates
   const handleWhatsAppReply = () => {
-    const text = `Hi ${order.customerName} (${order.storeName}), thanks for confirming your order *${order.orderNo}* with All Display Sowcarpet, Chennai.\n\n` +
+    const text = `Hi ${order.customerName} (${order.storeName}), thanks for confirming your order *${order.orderNo}* with All Display Feel Khana, Hyderabad.\n\n` +
       `Order Summary:\n` +
       order.items.map(i => `• ${i.title} (${i.finish}): ${i.quantity} ${i.unitLabel} @ ₹${i.unitPrice.toLocaleString('en-IN')}`).join('\n') +
       `\n\nGrand Total: ₹${order.total.toLocaleString('en-IN')}\n\n` +
-      `Your order is being prepared at our Sowcarpet warehouse. We will share dispatch tracking details soon!`;
+      `Your order is being prepared at our Feel Khana warehouse. We will share dispatch tracking details soon!`;
     
     window.open(getContactWhatsAppLink(order.whatsapp, text), '_blank');
     showToast('WhatsApp reply window opened with order confirmation template.');
@@ -160,7 +160,7 @@ export const AdminOrderDetailView: React.FC<AdminOrderDetailViewProps> = ({
                 <span className="font-bold text-sm text-slate-900">{order.destination}</span>
                 <span className="text-slate-600 font-mono">Pincode: {order.pincode}</span>
                 <span className="text-[11px] text-slate-500 mt-1">
-                  Dispatch Depot: Sowcarpet Centre, Chennai
+                  Dispatch Depot: Feel Khana Centre, Hyderabad
                 </span>
               </div>
             </div>

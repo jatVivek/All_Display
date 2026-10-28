@@ -73,7 +73,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActive
       <div className="p-4 border-t border-slate-200 bg-slate-50">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></div>
-          <span className="text-[11px] font-medium text-slate-800">Sowcarpet Depot Online</span>
+          <span className="text-[11px] font-medium text-slate-800">Feel Khana Depot Online</span>
         </div>
         <p className="text-[10px] text-slate-500 mt-1 font-mono">
           WhatsApp: +{getWhatsAppNumber()}

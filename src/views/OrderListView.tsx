@@ -257,7 +257,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                     </span>
                   </div>
                   <p className="text-[11px] text-outline-variant">
-                    Sowcarpet Central Depot Direct Dispatch • {brandName} Wholesale Pricing
+                    Feel Khana Central Depot Direct Dispatch • {brandName} Wholesale Pricing
                   </p>
                 </div>
               </div>
@@ -425,7 +425,7 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                     <div className="flex items-start gap-2">
                       <AppIcon name="videocam" className="text-secondary text-[16px] shrink-0 mt-0.5" />
                       <span className="text-on-surface-variant leading-relaxed">
-                        <strong className="text-on-surface">Fast Dispatch:</strong> Same-day dispatch from Sowcarpet depot for ready stock items.
+                        <strong className="text-on-surface">Fast Dispatch:</strong> Same-day dispatch from Feel Khana depot for ready stock items.
                       </span>
                     </div>
                   </div>

@@ -199,7 +199,7 @@ export const DealsView: React.FC<DealsViewProps> = ({
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-600"></span>
             </span>
-            <span>Direct Wholesale Flash Rates • Sowcarpet Depot Dispatch</span>
+            <span>Direct Wholesale Flash Rates • Feel Khana Depot Dispatch</span>
           </div>
         </div>
       </div>
@@ -263,7 +263,7 @@ export const DealsView: React.FC<DealsViewProps> = ({
             </div>
 
             <span className="text-[10px] text-slate-300">
-              Refreshed every 24 Hours • Sowcarpet Depot, Chennai
+              Refreshed every 24 Hours • Feel Khana Depot, Hyderabad
             </span>
           </div>
 
@@ -599,7 +599,7 @@ export const DealsView: React.FC<DealsViewProps> = ({
               Buying for Multiple Showrooms or Export?
             </h3>
             <p className="text-xs sm:text-sm text-orange-100 max-w-xl leading-relaxed">
-              Get an extra 5% to 15% discount on bulk cartons, custom logo laser-engraving, and safe sea/air cargo packaging directly from Sowcarpet depot.
+              Get an extra 5% to 15% discount on bulk cartons, custom logo laser-engraving, and safe sea/air cargo packaging directly from Feel Khana depot.
             </p>
           </div>
 

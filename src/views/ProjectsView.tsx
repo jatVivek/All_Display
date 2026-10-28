@@ -41,12 +41,12 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             <div className="inline-flex items-center gap-2 bg-surface-container-lowest px-3 py-1.5 rounded-full shadow-sm text-on-surface border border-surface-container">
               <span className="inline-block w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
               <span className="text-xs uppercase font-bold tracking-wider text-secondary">
-                Proven On-Site Turnkey Fit-Outs • Chennai &amp; South India
+                Proven On-Site Turnkey Fit-Outs • Hyderabad &amp; South India
               </span>
             </div>
 
             <a 
-              href="https://instagram.com/all_display_" 
+              href="https://www.instagram.com/all_display_?cplk=MXNpcGN3cno4MHI0Nw==" 
               target="_blank" 
               rel="noopener noreferrer"
               className="flex items-center gap-2 bg-surface-container-lowest hover:bg-surface-container px-3.5 py-1.5 rounded-full shadow-sm transition-all transform hover:-translate-y-0.5 border border-surface-container text-xs"
@@ -82,7 +82,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
               <div className="bg-surface-container-lowest p-4 rounded-xl shadow-sm border border-surface-container flex flex-col">
                 <span className="font-serif text-2xl lg:text-3xl font-bold text-primary">48 Hrs</span>
                 <span className="text-[10px] uppercase font-bold tracking-wider text-on-surface-variant">Dispatch Window</span>
-                <span className="text-xs text-[#25D366] font-semibold mt-0.5">Sowcarpet Depot</span>
+                <span className="text-xs text-[#25D366] font-semibold mt-0.5">Feel Khana Depot</span>
               </div>
             </div>
           </div>
@@ -250,7 +250,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
               Have a 2D Floor Plan or Rough Shop Sketch?
             </h2>
             <p className="text-xs sm:text-sm text-primary-fixed max-w-2xl leading-relaxed">
-              Send your shop dimensions, architectural AutoCAD drawings, or hand-drawn measurements directly to our Sowcarpet desk on WhatsApp. Our engineers calculate your exact rack count, wall channel lengths, and tiered wholesale cost within 2 hours.
+              Send your shop dimensions, architectural AutoCAD drawings, or hand-drawn measurements directly to our Feel Khana desk on WhatsApp. Our engineers calculate your exact rack count, wall channel lengths, and tiered wholesale cost within 2 hours.
             </p>
 
             {/* Process Steps */}
@@ -273,7 +273,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
                 <span className="font-serif text-2xl font-bold text-secondary leading-none">3</span>
                 <div className="flex flex-col">
                   <span className="text-xs font-bold text-surface">Direct Dispatch</span>
-                  <span className="text-[11px] text-primary-fixed-dim">From Sowcarpet Depot</span>
+                  <span className="text-[11px] text-primary-fixed-dim">From Feel Khana Depot</span>
                 </div>
               </div>
             </div>
@@ -317,7 +317,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             </a>
 
             <div className="text-center text-[11px] text-on-surface-variant">
-              Or Call Sowcarpet Head: <a href={`tel:+${getWhatsAppNumber(true)}`} className="text-secondary font-bold underline">+{getWhatsAppNumber(true)}</a>
+              Or Call Hyderabad Head: <a href={`tel:+${getWhatsAppNumber(true)}`} className="text-secondary font-bold underline">+{getWhatsAppNumber(true)}</a>
             </div>
           </div>
         </div>
@@ -334,7 +334,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
             Trusted Across Telangana, Andhra Pradesh &amp; Karnataka
           </h2>
           <p className="text-xs text-on-surface-variant">
-            Real feedback from boutique owners, showroom managers, and apparel retail chains who rely on our Sowcarpet &amp; George Town wholesale supply.
+            Real feedback from boutique owners, showroom managers, and apparel retail chains who rely on our Feel Khana &amp; Hyderabad wholesale supply.
           </p>
         </div>
 

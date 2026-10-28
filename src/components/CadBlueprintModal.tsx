@@ -104,7 +104,7 @@ export const CadBlueprintModal: React.FC<CadBlueprintModalProps> = ({
                 Custom Millimetric Sizing
               </span>
               <p className="text-xs text-[#45474b]">
-                Have non-standard column spacing or low ceiling clearance? Our Sowcarpet facility produces custom lengths with no tooling surcharge.
+                Have non-standard column spacing or low ceiling clearance? Our Feel Khana facility produces custom lengths with no tooling surcharge.
               </p>
             </div>
           </div>

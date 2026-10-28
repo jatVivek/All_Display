@@ -1,18 +1,1 @@
-{
-  "brandName": "All Display",
-  "storeName": "All Display",
-  "logoUrl": "/assets/logo.png",
-  "siteUrl": "https://all-display.vercel.app/",
-  "supportEmail": "contact@alldisplay.com",
-  "whatsappNumber": "919462247004",
-  "alternateWhatsapp": "919462247004",
-  "supportPhone": "+91 94622 47004",
-  "upiId": "alldisplay@icici",
-  "bankName": "HDFC Bank - Sowcarpet Branch, Chennai",
-  "accountNo": "50200049210081",
-  "ifscCode": "HDFC0000231",
-  "minOrderValue": 500,
-  "address": "No. 42, Narayana Mudali Street, Sowcarpet, Chennai - 600079",
-  "currency": "INR",
-  "currencySymbol": "₹"
-}
+{"upiId":"alldisplay@icici","logoUrl":"/assets/logo.png","siteUrl":"https://all-display.vercel.app/","bankName":"HDFC Bank - Feel Khana Branch, Hyderabad","ifscCode":"HDFC0000231","accountNo":"50200049210081","brandName":"All Display","storeName":"All Display","brandTagline":"Jewellery Display, Trays & Packaging Solutions","supportPhone":"+91 73961 27273","minOrderValue":500,"shippingNotes":"Global shipping available. Safe doorstep delivery across India from Hyderabad warehouse.","whatsappNumber":"917396127273","businessAddress":"15-8-397, Feel Khana, Hyderabad 500012, Telangana, India","alternateWhatsapp":"917396127273","instagramUrl":"https://www.instagram.com/all_display_?cplk=MXNpcGN3cno4MHI0Nw==","showroomAddress":"15-8-397, Feel Khana, Hyderabad 500012, Telangana, India","headerNotice":"Direct Factory Wholesale • Feel Khana Depot, Hyderabad • Same-Day Dispatch Across India"}

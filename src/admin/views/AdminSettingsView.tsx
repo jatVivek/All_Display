@@ -328,7 +328,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
               type="text"
               value={settings.headerNotice || ''}
               onChange={(e) => handleChange('headerNotice', e.target.value)}
-              placeholder="✦ Wholesale Jewellery Displays, Velvet Busts & Packaging Tools — Sowcarpet, Chennai • Fast Dispatch across India"
+              placeholder="✦ Wholesale Jewellery Displays, Velvet Busts & Packaging Tools — Feel Khana, Hyderabad • Fast Dispatch across India"
               className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
             />
             <span className="text-[10px] text-slate-500">Displays at the very top banner bar of all storefront pages.</span>
@@ -349,7 +349,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
                 type="tel"
                 value={settings.whatsappNumber || ''}
                 onChange={(e) => handleChange('whatsappNumber', e.target.value)}
-                placeholder="919462247004"
+                placeholder="917396127273"
                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
               />
               <span className="text-[10px] text-slate-500">For direct cart orders &amp; product inquiries.</span>
@@ -361,7 +361,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
                 type="tel"
                 value={settings.alternateWhatsapp || ''}
                 onChange={(e) => handleChange('alternateWhatsapp', e.target.value)}
-                placeholder="919462247004"
+                placeholder="917396127273"
                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
               />
               <span className="text-[10px] text-slate-500">For wholesale quote desk &amp; specialist chat.</span>
@@ -373,14 +373,26 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
                 type="tel"
                 value={settings.supportPhone || ''}
                 onChange={(e) => handleChange('supportPhone', e.target.value)}
-                placeholder="+91 94622 47004"
+                placeholder="+91 73961 27273"
                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
               />
               <span className="text-[10px] text-slate-500">Displays on header top bar &amp; contact cards.</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-slate-800">Instagram Profile Link</label>
+              <input
+                type="url"
+                value={settings.instagramUrl || ''}
+                onChange={(e) => handleChange('instagramUrl', e.target.value)}
+                placeholder="https://www.instagram.com/all_display_?cplk=MXNpcGN3cno4MHI0Nw=="
+                className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
+              />
+              <span className="text-[10px] text-slate-500">Official brand Instagram link on header and footer.</span>
+            </div>
+
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-slate-800">Support Email</label>
               <input
@@ -402,10 +414,10 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
                   handleChange('showroomAddress', e.target.value);
                   handleChange('businessAddress', e.target.value);
                 }}
-                placeholder="29, Perumal Mudali St, Sowcarpet, George Town, Chennai - 600001"
+                placeholder="15-8-397, Feel Khana, Hyderabad 500012, Telangana, India"
                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
               />
-              <span className="text-[10px] text-slate-500">Physical address in Sowcarpet, Chennai.</span>
+              <span className="text-[10px] text-slate-500">Physical address in Feel Khana, Hyderabad.</span>
             </div>
           </div>
         </div>
@@ -435,7 +447,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
                 type="text"
                 value={settings.bankName || ''}
                 onChange={(e) => handleChange('bankName', e.target.value)}
-                placeholder="HDFC Bank, Sowcarpet Branch"
+                placeholder="HDFC Bank, Feel Khana Branch"
                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
               />
             </div>

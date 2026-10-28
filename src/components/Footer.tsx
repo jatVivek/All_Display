@@ -158,7 +158,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveView, onOpenWishlist, o
             </h4>
             <div className="flex items-center gap-2.5 pt-1">
               <a
-                href="https://instagram.com"
+                href={settings.instagramUrl || "https://www.instagram.com/all_display_?cplk=MXNpcGN3cno4MHI0Nw=="}
                 target="_blank"
                 rel="noreferrer"
                 className="w-9 h-9 rounded-full bg-white border border-slate-200 text-slate-700 flex items-center justify-center hover:text-white hover:bg-gradient-to-tr hover:from-amber-500 hover:via-rose-500 hover:to-purple-600 hover:border-transparent transition-all shadow-2xs"
@@ -176,7 +176,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveView, onOpenWishlist, o
                 <AppIcon name="chat" className="text-sm" />
               </a>
               <a
-                href={`tel:${settings.supportPhone || '+919462247004'}`}
+                href={`tel:${(settings.supportPhone || '+917396127273').replace(/\s+/g, '')}`}
                 className="w-9 h-9 rounded-full bg-white border border-slate-200 text-slate-700 flex items-center justify-center hover:text-white hover:bg-orange-600 hover:border-transparent transition-all shadow-2xs"
                 title="Call Depot"
               >
@@ -184,7 +184,7 @@ export const Footer: React.FC<FooterProps> = ({ setActiveView, onOpenWishlist, o
               </a>
             </div>
             <p className="text-[11px] text-slate-600 text-center md:text-right">
-              {settings.showroomAddress || 'Sowcarpet Showroom, George Town, Chennai'} • Ph: {settings.supportPhone || '+91 94622 47004'}
+              {settings.showroomAddress || '15-8-397, Feel Khana, Hyderabad 500012, Telangana, India'} • Ph: {settings.supportPhone || '+91 73961 27273'}
             </p>
           </div>
 

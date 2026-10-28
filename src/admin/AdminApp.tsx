@@ -283,7 +283,7 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
               <div className="flex flex-col gap-3 py-2">
                 <h3 className="font-bold text-sm text-slate-900">2. Manage Products &amp; Prices instantly</h3>
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  Need to update jewellery display prices, upload photos, or toggle stock status when sold out at Sowcarpet godown? Go to the 'Products' tab to change prices, stock toggles, and multi-angle photos.
+                  Need to update jewellery display prices, upload photos, or toggle stock status when sold out at Feel Khana godown? Go to the 'Products' tab to change prices, stock toggles, and multi-angle photos.
                 </p>
                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs font-mono text-slate-800">
                   ⚡ Updates reflect on your public customer website immediately.

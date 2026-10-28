@@ -67,8 +67,8 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
 
   const [material, setMaterial] = useState(isNew ? 'Velvet' : (product.material || 'Velvet'));
   const [finish, setFinish] = useState(isNew ? 'Velvet / Acrylic' : product.finish);
-  const [stockStatus, setStockStatus] = useState(isNew ? 'Sowcarpet In Stock' : product.stockStatus);
-  const [dispatchReadiness, setDispatchReadiness] = useState(isNew ? 'Same-Day Dispatch from Sowcarpet, Chennai' : (product.dispatchReadiness || 'Ready Stock'));
+  const [stockStatus, setStockStatus] = useState(isNew ? 'Feel Khana In Stock' : product.stockStatus);
+  const [dispatchReadiness, setDispatchReadiness] = useState(isNew ? 'Same-Day Dispatch from Feel Khana, Hyderabad' : (product.dispatchReadiness || 'Ready Stock'));
 
   // Requirements (multiple)
   const [requirements, setRequirements] = useState<string[]>(isNew ? ['online-sellers', 'retail-shops'] : (product.requirements || []));
@@ -548,8 +548,8 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
                 onChange={(e) => setStockStatus(e.target.value)}
                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
               >
-                <option value="Sowcarpet In Stock">Sowcarpet In Stock</option>
-                <option value="Chennai Depot Ready Stock">Chennai Depot Ready Stock</option>
+                <option value="Feel Khana In Stock">Feel Khana In Stock</option>
+                <option value="Hyderabad Depot Ready Stock">Hyderabad Depot Ready Stock</option>
                 <option value="Sold Out / Make to Order">Sold Out / Make to Order</option>
               </select>
             </div>

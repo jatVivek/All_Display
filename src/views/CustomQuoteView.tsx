@@ -123,11 +123,11 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
   const faqs = [
     {
       q: 'Can you customize heights to match our ceiling beam height?',
-      a: 'Yes, our Sowcarpet facility fabricates custom pipe uprights and floor-to-ceiling channel assemblies up to 12 feet. Simply share your ceiling slab-to-false-ceiling elevation on WhatsApp.'
+      a: 'Yes, our Feel Khana facility fabricates custom pipe uprights and floor-to-ceiling channel assemblies up to 12 feet. Simply share your ceiling slab-to-false-ceiling elevation on WhatsApp.'
     },
     {
       q: 'How is freight calculated for outstation dispatches to AP, Karnataka, or Tamil Nadu?',
-      a: 'Freight is billed at actuals based on cubic volume and crate weight via trusted road carriers (VRL, Navata, TCI, Kranti). We deliver goods to the Chennai transport hub with zero local cartage fee.'
+      a: 'Freight is billed at actuals based on cubic volume and crate weight via trusted road carriers (VRL, Navata, TCI, Kranti). We deliver goods to the Hyderabad transport hub with zero local cartage fee.'
     },
     {
       q: 'Do you provide installation technicians at the store site?',
@@ -157,7 +157,7 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
                 Get a Factory-Direct Quote for Custom Racks or Full Boutique Fit-Outs
               </h1>
               <p className="text-sm md:text-base text-on-surface-variant max-w-2xl leading-relaxed">
-                Whether you need custom-height triple pipe racks, PVD gold wall channels cut to your wall dimensions, or a turnkey setup for a 2,000 sq.ft showroom, our Sowcarpet team prepares comprehensive itemized proforma estimates within 2 hours.
+                Whether you need custom-height triple pipe racks, PVD gold wall channels cut to your wall dimensions, or a turnkey setup for a 2,000 sq.ft showroom, our Feel Khana team prepares comprehensive itemized proforma estimates within 2 hours.
               </p>
             </div>
 
@@ -245,7 +245,7 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
                 <span className="bg-secondary text-on-secondary px-2 py-0.5 rounded text-[10px] font-bold uppercase">Priority Dispatch</span>
               </div>
               <h2 className="font-serif text-2xl font-bold text-primary mt-1">Store Specifications &amp; Bill of Materials</h2>
-              <p className="text-xs text-on-surface-variant">Fill in your requirements below. Our factory estimation engineers in Sowcarpet will prepare a detailed GST itemized quote.</p>
+              <p className="text-xs text-on-surface-variant">Fill in your requirements below. Our factory estimation engineers in Feel Khana will prepare a detailed GST itemized quote.</p>
             </div>
 
             <form onSubmit={handleWhatsAppSubmit} className="flex flex-col gap-6">
@@ -513,13 +513,13 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
                   className="w-full bg-surface-container hover:bg-surface-container-high text-primary py-2.5 px-4 rounded-lg font-bold text-xs flex items-center justify-center gap-2 transition-colors border border-surface-container"
                 >
                   <AppIcon name="phone" className="text-[18px]" />
-                  <span>Request Call Back from Sowcarpet Desk Lead (+{getWhatsAppNumber(true)})</span>
+                  <span>Request Call Back from Feel Khana Desk Lead (+{getWhatsAppNumber(true)})</span>
                 </a>
               </div>
             </form>
           </div>
 
-          {/* Right Column: Workflow, Guarantee & Chennai Showroom Addresses (5 cols) */}
+          {/* Right Column: Workflow, Guarantee & Hyderabad Showroom Addresses (5 cols) */}
           <div className="lg:col-span-5 flex flex-col gap-6">
             
             {/* 4-Stage Workflow */}
@@ -530,8 +530,8 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
               <div className="flex flex-col gap-3">
                 {[
                   { num: '01', title: 'Hand Sketch Ingestion', desc: 'Share your carpet dimensions or AutoCAD floor plan on WhatsApp.' },
-                  { num: '02', title: 'CAD & Bill of Materials (BOQ)', desc: 'Our Chennai specialists optimize rack bays and provide millimetric cut-sheets.' },
-                  { num: '03', title: 'Direct Ex-Factory Dispatch', desc: 'Heavy bubble wrap + pinewood crating from Sowcarpet Depot warehouse.' },
+                  { num: '02', title: 'CAD & Bill of Materials (BOQ)', desc: 'Our Hyderabad specialists optimize rack bays and provide millimetric cut-sheets.' },
+                  { num: '03', title: 'Direct Ex-Factory Dispatch', desc: 'Heavy bubble wrap + pinewood crating from Feel Khana Depot warehouse.' },
                   { num: '04', title: 'Boltless Rapid Assembly', desc: 'Interlocking socket pillars assembled in 10 minutes per rack.' },
                 ].map((step) => (
                   <div key={step.num} className="flex items-start gap-3 p-2 rounded-lg hover:bg-surface-container-low transition-colors">
@@ -552,7 +552,7 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
                 <span>Direct Wholesale Guarantee</span>
               </div>
               <p className="text-xs text-primary-fixed leading-relaxed">
-                We manufacture and assemble everything in-house in Chennai, Tamil Nadu. No middleman margins. 100% advance RTGS / NEFT before transport loading.
+                We manufacture and assemble everything in-house in Hyderabad, Telangana. No middleman margins. 100% advance RTGS / NEFT before transport loading.
               </p>
               <div className="flex items-center gap-2 text-[11px] text-secondary-fixed pt-1 border-t border-white/10">
                 <AppIcon name="videocam" className="text-[16px]" />
@@ -560,11 +560,11 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
               </div>
             </div>
 
-            {/* Visit Our Sowcarpet Store */}
+            {/* Visit Our Feel Khana Store */}
             <div className="bg-surface-container-lowest rounded-xl p-5 shadow-sm border border-surface-container flex flex-col gap-4">
               <div className="flex items-center justify-between">
                 <span className="text-xs uppercase font-bold tracking-wider text-secondary">
-                  Visit Our Sowcarpet Store
+                  Visit Our Feel Khana Store
                 </span>
                 <span className="text-[10px] text-[#25D366] font-bold uppercase bg-[#25D366]/10 px-2 py-0.5 rounded">
                   Open Mon - Sat
@@ -575,10 +575,10 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
               <div className="flex flex-col gap-1 text-xs border-b border-surface-container pb-3">
                 <div className="flex items-center gap-1.5 font-bold text-primary">
                   <AppIcon name="store" className="text-secondary text-[16px]" />
-                  <span>George Town Showroom</span>
+                  <span>Feel Khana Wholesale Showroom</span>
                 </div>
                 <p className="text-[11px] text-on-surface-variant">
-                  Shop #4-1-825, Near Fish Market Complex, George Town Wholesale Market, Chennai - 500012
+                  15-8-397, Feel Khana, Hyderabad 500012, Telangana, India
                 </p>
                 <div className="text-[11px] text-secondary font-semibold">Display: Over 120+ Racks &amp; Dummies on Display</div>
               </div>
@@ -587,10 +587,10 @@ export const CustomQuoteView: React.FC<CustomQuoteViewProps> = ({
               <div className="flex flex-col gap-1 text-xs">
                 <div className="flex items-center gap-1.5 font-bold text-primary">
                   <AppIcon name="factory" className="text-secondary text-[16px]" />
-                  <span>Sowcarpet Central Manufacturing &amp; Warehouse</span>
+                  <span>Feel Khana Central Manufacturing &amp; Warehouse</span>
                 </div>
                 <p className="text-[11px] text-on-surface-variant">
-                  Plot 14, Commercial Industrial Area, Sowcarpet, Secunderabad, Telangana - 500003
+                  15-8-397, Feel Khana, Hyderabad 500012, Telangana, India
                 </p>
                 <div className="text-[11px] text-secondary font-semibold">Bulk Loading &amp; Outstation Logistics Depot</div>
               </div>

@@ -163,8 +163,9 @@ export const Header: React.FC<HeaderProps> = ({
 
   const brandName = settings.brandName || settings.storeName || 'All Display';
   const brandTagline = settings.brandTagline || 'Jewellery Display, Trays & Packaging Solutions';
-  const headerNotice = settings.headerNotice || 'Direct Factory Wholesale • Sowcarpet Depot, Chennai • Same-Day Dispatch Across India';
-  const phone = settings.supportPhone || '+91 94622 47004';
+  const headerNotice = settings.headerNotice || 'Direct Factory Wholesale • Feel Khana Depot, Hyderabad • Same-Day Dispatch Across India';
+  const phone = settings.supportPhone || '+91 73961 27273';
+  const instagramLink = settings.instagramUrl || 'https://www.instagram.com/all_display_?cplk=MXNpcGN3cno4MHI0Nw==';
 
   return (
     <>
@@ -198,7 +199,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <AppIcon name="chat" className="text-[12px]" />
                 </a>
                 <a
-                  href="https://instagram.com"
+                  href={instagramLink}
                   target="_blank"
                   rel="noreferrer"
                   className="w-5 h-5 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white flex items-center justify-center transition-transform hover:scale-105"
@@ -500,7 +501,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             <div className="flex items-center gap-2 text-slate-500 font-medium text-[11px]">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              <span>Sowcarpet Depot Online</span>
+              <span>Feel Khana Depot Online</span>
             </div>
           </div>
         </nav>
@@ -564,7 +565,7 @@ export const Header: React.FC<HeaderProps> = ({
                   </button>
                 )}
                 <button onClick={() => navigateTo('custom-quote')} className="text-left py-2 hover:text-orange-600">Custom Bulk Quotes</button>
-                <button onClick={() => navigateToSection('contact-us')} className="text-left py-2 hover:text-orange-600">Contact &amp; Sowcarpet Depot</button>
+                <button onClick={() => navigateToSection('contact-us')} className="text-left py-2 hover:text-orange-600">Contact &amp; Feel Khana Depot</button>
               </div>
             </div>
 
