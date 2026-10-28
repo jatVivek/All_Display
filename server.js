@@ -171,14 +171,14 @@ const SEED_USERS = [
 const memoryStore = {
   settings: null,
   banners: null,
-  dealProductIds: ['ad-prod-001', 'ad-prod-002', 'ad-prod-003', 'ad-prod-004'],
+  dealProductIds: [],
   products: [],
   categories: [],
   orders: [],
   quotes: [],
   users: [...SEED_USERS],
   sessions: new Map(),
-  catalogCleared: false,
+  catalogCleared: true,
 };
 
 const catalogDiskCachePath = path.join(uploadDirectory, 'catalog_cache.json');
@@ -190,27 +190,32 @@ function loadDiskCatalog() {
       const raw = readFileSync(targetPath, 'utf-8');
       const data = JSON.parse(raw);
       if (data?.catalogCleared === true) {
-        memoryStore.products = [];
+        memoryStore.products = Array.isArray(data?.products) ? data.products.filter(p => p && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-')) : [];
         memoryStore.categories = Array.isArray(data?.categories) ? data.categories : [];
-        memoryStore.catalogCleared = true;
+        memoryStore.catalogCleared = (memoryStore.products.length === 0);
         return;
       }
       if (Array.isArray(data?.products)) {
-        memoryStore.products = data.products;
+        memoryStore.products = data.products.filter(p => p && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-'));
       }
       if (Array.isArray(data?.categories)) {
         memoryStore.categories = data.categories;
       }
+      memoryStore.catalogCleared = (memoryStore.products.length === 0);
     }
   } catch {}
 }
 function saveDiskCatalog() {
   try {
-    writeFileSync(catalogDiskCachePath, JSON.stringify({
+    const payload = JSON.stringify({
       products: memoryStore.products,
       categories: memoryStore.categories,
       catalogCleared: memoryStore.catalogCleared === true,
-    }));
+    }, null, 2);
+    writeFileSync(catalogDiskCachePath, payload);
+    if (catalogSeedPath !== catalogDiskCachePath) {
+      try { writeFileSync(catalogSeedPath, payload); } catch {}
+    }
   } catch {}
 }
 loadDiskCatalog();
@@ -1222,11 +1227,11 @@ app.get('/api/settings', async (_request, response, next) => {
 app.get('/api/homepage-banners', async (_request, response, next) => {
   if (!pool) {
     const memoryDeals = Array.isArray(memoryStore.dealProductIds)
-      ? memoryStore.dealProductIds.filter((id) => typeof id === 'string' && !id.startsWith('vp-'))
+      ? memoryStore.dealProductIds.filter((id) => typeof id === 'string' && !id.startsWith('vp-') && !id.startsWith('ad-prod-'))
       : [];
     return response.json({
       banners: memoryStore.banners,
-      dealProductIds: memoryDeals.length > 0 ? memoryDeals : ['ad-prod-001', 'ad-prod-002', 'ad-prod-003', 'ad-prod-004'],
+      dealProductIds: memoryDeals,
     });
   }
   try {
@@ -1241,11 +1246,8 @@ app.get('/api/homepage-banners', async (_request, response, next) => {
     }
     const banners = Array.isArray(savedHomepage) ? savedHomepage : savedHomepage?.banners ?? null;
     let dealProductIds = Array.isArray(savedHomepage?.dealProductIds)
-      ? savedHomepage.dealProductIds.filter((id) => typeof id === 'string' && !id.startsWith('vp-'))
+      ? savedHomepage.dealProductIds.filter((id) => typeof id === 'string' && !id.startsWith('vp-') && !id.startsWith('ad-prod-'))
       : [];
-    if (dealProductIds.length === 0) {
-      dealProductIds = ['ad-prod-001', 'ad-prod-002', 'ad-prod-003', 'ad-prod-004'];
-    }
     response.json({
       banners,
       dealProductIds,

@@ -324,7 +324,11 @@ class CentralStoreService {
       const stored = localStorage.getItem(STORAGE_KEYS.CUSTOM_PRODUCTS);
       if (stored !== null) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) return parsed.map(this.sanitizeProduct);
+        if (Array.isArray(parsed)) {
+          return parsed
+            .map(this.sanitizeProduct)
+            .filter((p) => p && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-'));
+        }
       }
     } catch {}
     return [];
@@ -402,22 +406,26 @@ class CentralStoreService {
     const custom = this.loadCustomProducts();
     const deleted = this.loadDeletedProductIds();
 
-    let base = INITIAL_PRODUCTS;
+    let base: Product[] = [];
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
       if (stored !== null) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) base = parsed;
+        if (Array.isArray(parsed)) {
+          base = parsed.filter((p) => p && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-'));
+        }
       }
     } catch {}
 
     const map = new Map<string, Product>();
     // Custom added/edited products have highest priority
     custom.forEach((p) => {
-      if (!deleted.has(p.id)) map.set(p.id, p);
+      if (!deleted.has(p.id) && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-')) {
+        map.set(p.id, p);
+      }
     });
     base.forEach((p) => {
-      if (!map.has(p.id) && !deleted.has(p.id)) {
+      if (!map.has(p.id) && !deleted.has(p.id) && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-')) {
         map.set(p.id, p);
       }
     });
@@ -474,12 +482,12 @@ class CentralStoreService {
       if (stored !== null) {
         const parsed: unknown = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.every((id) => typeof id === 'string')) {
-          const cleaned = parsed.filter((id) => !id.startsWith('vp-'));
-          if (cleaned.length > 0) return cleaned;
+          const cleaned = parsed.filter((id) => !id.startsWith('vp-') && !id.startsWith('ad-prod-'));
+          return cleaned;
         }
       }
     } catch {}
-    return ['ad-prod-001', 'ad-prod-002', 'ad-prod-003', 'ad-prod-004'];
+    return [];
   }
 
   private loadOrders(): AdminOrder[] {
@@ -656,18 +664,19 @@ class CentralStoreService {
 
   private async loadSharedCatalog() {
     try {
-      const catalog = await this.apiRequest<{ products: Product[]; categories: AdminCategory[] }>('/api/catalog');
+      const catalog = await this.apiRequest<{ products: Product[]; categories: AdminCategory[]; catalogCleared?: boolean }>('/api/catalog');
       const customProducts = this.loadCustomProducts();
       const deletedProducts = this.loadDeletedProductIds();
       const customCategories = this.loadCustomCategories();
       const deletedCategories = this.loadDeletedCategoryIds();
 
       if (catalog && Array.isArray(catalog.products)) {
-        // If server catalog is empty, respect the cleared state!
-        if (catalog.products.length === 0) {
+        // If server catalog is empty or catalogCleared is true, respect the cleared state!
+        if (catalog.products.length === 0 || catalog.catalogCleared === true) {
           try {
             localStorage.setItem(STORAGE_KEYS.CATALOG_CLEARED, '1');
             localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
+            localStorage.removeItem(STORAGE_KEYS.CUSTOM_PRODUCTS);
             if (Array.isArray(catalog.categories) && catalog.categories.length === 0) {
               localStorage.setItem(STORAGE_KEYS.CATEGORIES_CLEARED, '1');
               localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify([]));
@@ -692,12 +701,17 @@ class CentralStoreService {
           }
         } catch {}
 
+        // Filter out legacy ad-prod- items
+        const cleanServerProducts = catalog.products.filter(p => p && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-'));
+
         // Merge server products with local custom products so custom products NEVER disappear
         const prodMap = new Map<string, Product>();
         customProducts.forEach((p) => {
-          if (!deletedProducts.has(p.id)) prodMap.set(p.id, p);
+          if (!deletedProducts.has(p.id) && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-')) {
+            prodMap.set(p.id, p);
+          }
         });
-        catalog.products.forEach((p) => {
+        cleanServerProducts.forEach((p) => {
           if (!prodMap.has(p.id) && !deletedProducts.has(p.id)) {
             prodMap.set(p.id, p);
           }
@@ -730,7 +744,7 @@ class CentralStoreService {
         this.notify();
 
         // If server is missing custom items, sync them to server
-        const serverProdIds = new Set(catalog.products.map(p => p.id));
+        const serverProdIds = new Set(cleanServerProducts.map(p => p.id));
         const missingOnServer = customProducts.some(p => !serverProdIds.has(p.id));
         if (missingOnServer && sortedProducts.length > 0) {
           void this.persistCatalog();
@@ -793,8 +807,8 @@ class CentralStoreService {
         } catch {}
       }
       if (Array.isArray(dealProductIds)) {
-        const cleanedDeals = dealProductIds.filter((id) => typeof id === 'string' && !id.startsWith('vp-'));
-        const finalDeals = cleanedDeals.length > 0 ? cleanedDeals : ['ad-prod-001', 'ad-prod-002', 'ad-prod-003', 'ad-prod-004'];
+        const cleanedDeals = dealProductIds.filter((id) => typeof id === 'string' && !id.startsWith('vp-') && !id.startsWith('ad-prod-'));
+        const finalDeals = cleanedDeals;
         this.state = { ...this.state, homepageDealProductIds: finalDeals };
         try {
           localStorage.setItem(STORAGE_KEYS.HOMEPAGE_DEALS, JSON.stringify(finalDeals));
@@ -928,29 +942,8 @@ class CentralStoreService {
   }
 
   private async migrateLocalCatalogIfCloudIsEmpty() {
-    if (typeof localStorage !== 'undefined' && localStorage.getItem(STORAGE_KEYS.CATALOG_CLEARED) === '1') {
-      return;
-    }
-    const catalog = await this.apiRequest<{ products: Product[]; categories: AdminCategory[] }>('/api/catalog');
-    if (catalog.products.length || catalog.categories.length) return;
-
-    const readLocal = <T,>(key: string, fallback: T): T => {
-      const stored = localStorage.getItem(key);
-      if (stored === null) return fallback;
-      try {
-        return JSON.parse(stored) as T;
-      } catch {
-        return fallback;
-      }
-    };
-    this.state = {
-      ...this.state,
-      products: readLocal(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS),
-      categories: readLocal(STORAGE_KEYS.CATEGORIES, INITIAL_CATEGORIES),
-    };
-    if (!await this.persistCatalog()) {
-      throw new Error(this.state.catalogSyncError || 'Could not migrate the local catalog.');
-    }
+    // Never auto-migrate or restore initial/deleted products to the cloud
+    return;
   }
 
   public async signInAdmin(password: string): Promise<AdminRole> {
@@ -1050,8 +1043,7 @@ class CentralStoreService {
         localStorage.setItem(STORAGE_KEYS.CATALOG_CLEARED, '1');
         localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
         localStorage.removeItem(STORAGE_KEYS.CUSTOM_PRODUCTS);
-        const initialIds = new Set(INITIAL_PRODUCTS.map(p => p.id));
-        this.saveDeletedProductIds(initialIds);
+        localStorage.removeItem(STORAGE_KEYS.DELETED_PRODUCT_IDS);
       } catch {}
       this.state = { ...this.state, products: [] };
       this.notify();
@@ -1062,7 +1054,9 @@ class CentralStoreService {
       } catch {}
     }
 
-    const sanitized = products.map(this.sanitizeProduct);
+    const sanitized = products
+      .map(this.sanitizeProduct)
+      .filter((p) => p && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-'));
     const sorted = this.sortNewestProductsFirst(sanitized);
     const indexed = sorted.map((p, index) => ({
       ...p,
@@ -1071,8 +1065,7 @@ class CentralStoreService {
     }));
 
     // Identify and persist any custom products safely to dedicated storage key
-    const initialIds = new Set(INITIAL_PRODUCTS.map(p => p.id));
-    const custom = indexed.filter(p => !initialIds.has(p.id) || p.createdAt || p.id.startsWith('prod-'));
+    const custom = indexed.filter(p => !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-'));
     this.saveCustomProducts(custom);
 
     this.state = { ...this.state, products: indexed };
@@ -1544,16 +1537,23 @@ class CentralStoreService {
     localStorage.removeItem(STORAGE_KEYS.SETTINGS);
     localStorage.removeItem(STORAGE_KEYS.HOMEPAGE);
     localStorage.removeItem(STORAGE_KEYS.CATEGORIES);
+    localStorage.removeItem(STORAGE_KEYS.CUSTOM_PRODUCTS);
+    localStorage.removeItem(STORAGE_KEYS.CUSTOM_CATEGORIES);
+    localStorage.removeItem(STORAGE_KEYS.DELETED_PRODUCT_IDS);
+    localStorage.removeItem(STORAGE_KEYS.DELETED_CATEGORY_IDS);
+    localStorage.setItem(STORAGE_KEYS.CATALOG_CLEARED, '1');
     this.state = {
       ...this.state,
       settings: DEFAULT_SETTINGS,
+      products: [],
+      categories: INITIAL_CATEGORIES,
     };
-    if (!await this.saveProducts(INITIAL_PRODUCTS)) return false;
+    if (!await this.saveProducts([])) return false;
     if (!await this.saveCategories(INITIAL_CATEGORIES)) return false;
     if (!await this.saveSettings(DEFAULT_SETTINGS)) return false;
     this.state = {
       ...this.state,
-      products: INITIAL_PRODUCTS,
+      products: [],
       categories: INITIAL_CATEGORIES,
       settings: DEFAULT_SETTINGS,
     };
