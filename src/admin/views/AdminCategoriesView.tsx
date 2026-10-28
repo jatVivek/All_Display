@@ -239,20 +239,25 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
   };
 
   const handleDelete = async (id: string, catName: string, catLevel: 1 | 2 | 3 = 1) => {
-    if (role !== 'Owner') {
-      showToast('Staff role cannot delete categories. Switch to Owner mode.');
-      return;
-    }
-
     const levelLabel = catLevel === 1 ? 'Category' : catLevel === 2 ? 'Sub-Category' : 'Child Category';
     const warning = catLevel === 1 
       ? `Are you sure you want to delete ${levelLabel} "${catName}"? Any child sub-categories will also be deleted.`
       : `Are you sure you want to delete ${levelLabel} "${catName}"?`;
 
     if (window.confirm(warning)) {
-      if (await storeManager.deleteCategory(id)) {
-        setCategories(storeManager.getCategories());
-        showToast(`${levelLabel} deleted successfully!`);
+      const idsToDelete = new Set<string>([id]);
+      categories.forEach((c) => {
+        if (c.parentId && idsToDelete.has(c.parentId)) idsToDelete.add(c.id);
+      });
+      categories.forEach((c) => {
+        if (c.parentId && idsToDelete.has(c.parentId)) idsToDelete.add(c.id);
+      });
+      setCategories((prev) => prev.filter((c) => !idsToDelete.has(c.id)));
+
+      const ok = await storeManager.deleteCategory(id);
+      setCategories(storeManager.getCategories());
+      if (ok) {
+        showToast(`${levelLabel} "${catName}" deleted successfully!`);
       } else {
         showToast('Could not delete from the shared catalog.');
       }
@@ -275,6 +280,28 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
 
         {role === 'Owner' && (
           <div className="flex flex-wrap items-center gap-2">
+            {categories.length > 0 && (
+              <button
+                onClick={async () => {
+                  if (window.confirm('Are you sure you want to delete all categories? This will clear all categories, sub-categories, and child categories.')) {
+                    setCategories([]);
+                    const ok = await storeManager.clearCategories();
+                    if (ok) {
+                      setCategories([]);
+                      showToast('All categories have been cleared successfully!');
+                    } else {
+                      setCategories(storeManager.getCategories());
+                      showToast('Could not clear categories from the shared catalog.');
+                    }
+                  }
+                }}
+                className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                title="Clear all categories from the catalog"
+              >
+                <AppIcon name="delete_sweep" className="text-base" />
+                <span>Clear Categories</span>
+              </button>
+            )}
             <button
               onClick={() => handleOpenCreate(1)}
               className="bg-orange-600 hover:bg-orange-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"

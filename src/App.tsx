@@ -18,6 +18,10 @@ import { OrderListView } from './views/OrderListView';
 import { CustomQuoteView } from './views/CustomQuoteView';
 import { ContactView } from './views/ContactView';
 import { storeManager } from './services/storeManager';
+
+if (typeof window !== 'undefined') {
+  (window as any).storeManager = storeManager;
+}
 import { useAuth } from './auth/AuthContext';
 import { AuthDialog } from './auth/AuthDialog';
 import { WishlistModal } from './components/WishlistModal';

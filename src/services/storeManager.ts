@@ -108,17 +108,7 @@ export interface AdminCategory {
   sortOrder?: number;
 }
 
-const INITIAL_CATEGORIES: AdminCategory[] = [
-  { id: 'cat-1', name: 'Display Bust', description: 'Velvet and leatherette portrait busts for necklaces and bridal sets.', image: '/assets/vinayak/cat_bust.png' },
-  { id: 'cat-2', name: 'Display Cards', description: 'Earring cards, necklace tags, barcode cards and jewelry packaging.', image: '/assets/vinayak/cat_card.png' },
-  { id: 'cat-3', name: 'Display Stand', description: 'Tiered wooden & metal stands for earrings, chains and pendants.', image: '/assets/vinayak/cat_stand.png' },
-  { id: 'cat-4', name: 'Display Tray', description: 'Stackable velvet trays, ring pads, and flat counter showcase inserts.', image: '/assets/vinayak/cat_tray.png' },
-  { id: 'cat-5', name: 'Bangle & Bracelet Display Stand', description: 'Single and multi-tier cylinders for bangles, watches, and bracelets.', image: '/assets/vinayak/cat_stand.png' },
-  { id: 'cat-6', name: 'Storage Box', description: 'Velvet gift boxes, organizer chests, and acrylic storage boxes.', image: '/assets/vinayak/cat_box.png' },
-  { id: 'cat-7', name: 'Mannequin Stand', description: 'Full form mannequin busts, sculpted heads, and torso models.', image: '/assets/vinayak/cat_mannequin.png' },
-  { id: 'cat-8', name: 'Packaging Tools', description: 'Tape dispensers, clear wonder tapes, barcode sticker rolls, and sealers.', image: '/assets/vinayak/cat_bag.png' },
-  { id: 'cat-9', name: 'Jewellery Display Cloth', description: 'Seamless suede and velvet counter fabrics for showcase flatlays.', image: '/assets/vinayak/prod_suede_velvet.png' },
-];
+const INITIAL_CATEGORIES: AdminCategory[] = [];
 
 const INITIAL_HOMEPAGE_BANNERS: HomepageBanner[] = [
   {
@@ -443,12 +433,12 @@ class CentralStoreService {
     const custom = this.loadCustomCategories();
     const deleted = this.loadDeletedCategoryIds();
 
-    let base = INITIAL_CATEGORIES;
+    let base: AdminCategory[] = [];
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.CATEGORIES);
       if (stored !== null) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) base = parsed;
+        if (Array.isArray(parsed)) base = parsed.filter(c => c && !deleted.has(c.id));
       }
     } catch {}
 
@@ -671,21 +661,51 @@ class CentralStoreService {
       const deletedCategories = this.loadDeletedCategoryIds();
 
       if (catalog && Array.isArray(catalog.products)) {
-        // If server catalog is empty or catalogCleared is true, respect the cleared state!
+        // 1. Process categories with full deletedCategories filter
+        const rawServerCategories = Array.isArray(catalog.categories) ? catalog.categories : [];
+        const cleanServerCategories = rawServerCategories.filter(c => c && !deletedCategories.has(c.id));
+
+        const catMap = new Map<string, AdminCategory>();
+        customCategories.forEach((c) => {
+          if (!deletedCategories.has(c.id)) catMap.set(c.id, c);
+        });
+        cleanServerCategories.forEach((c) => {
+          if (!catMap.has(c.id) && !deletedCategories.has(c.id)) {
+            catMap.set(c.id, c);
+          }
+        });
+        const sortedCategories = this.sortNewestCategoriesFirst(Array.from(catMap.values()));
+
+        if (sortedCategories.length === 0) {
+          try {
+            localStorage.setItem(STORAGE_KEYS.CATEGORIES_CLEARED, '1');
+            localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify([]));
+            localStorage.removeItem(STORAGE_KEYS.CUSTOM_CATEGORIES);
+          } catch {}
+        } else {
+          try {
+            localStorage.removeItem(STORAGE_KEYS.CATEGORIES_CLEARED);
+            localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(sortedCategories));
+          } catch {}
+        }
+
+        // If server had categories that were deleted locally, sync server immediately
+        const missingOnServerCategories = cleanServerCategories.length < rawServerCategories.length;
+        if (missingOnServerCategories && this.adminAuthenticated) {
+          void this.persistCatalog();
+        }
+
+        // If server catalog is empty or catalogCleared is true, respect the cleared state for products!
         if (catalog.products.length === 0 || catalog.catalogCleared === true) {
           try {
             localStorage.setItem(STORAGE_KEYS.CATALOG_CLEARED, '1');
             localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
             localStorage.removeItem(STORAGE_KEYS.CUSTOM_PRODUCTS);
-            if (Array.isArray(catalog.categories) && catalog.categories.length === 0) {
-              localStorage.setItem(STORAGE_KEYS.CATEGORIES_CLEARED, '1');
-              localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify([]));
-            }
           } catch {}
           this.state = {
             ...this.state,
             products: [],
-            categories: Array.isArray(catalog.categories) && catalog.categories.length === 0 ? [] : (Array.isArray(catalog.categories) ? catalog.categories : this.state.categories),
+            categories: sortedCategories,
             catalogSyncStatus: 'connected',
             catalogSyncError: null,
           };
@@ -696,9 +716,6 @@ class CentralStoreService {
         // Server has products, clear the cleared flag
         try {
           localStorage.removeItem(STORAGE_KEYS.CATALOG_CLEARED);
-          if (Array.isArray(catalog.categories) && catalog.categories.length > 0) {
-            localStorage.removeItem(STORAGE_KEYS.CATEGORIES_CLEARED);
-          }
         } catch {}
 
         // Filter out legacy ad-prod- items
@@ -717,18 +734,7 @@ class CentralStoreService {
           }
         });
 
-        const catMap = new Map<string, AdminCategory>();
-        customCategories.forEach((c) => {
-          if (!deletedCategories.has(c.id)) catMap.set(c.id, c);
-        });
-        (catalog.categories || []).forEach((c) => {
-          if (!catMap.has(c.id) && !deletedCategories.has(c.id)) {
-            catMap.set(c.id, c);
-          }
-        });
-
         const sortedProducts = this.sortNewestProductsFirst(Array.from(prodMap.values()));
-        const sortedCategories = this.sortNewestCategoriesFirst(Array.from(catMap.values()));
 
         this.state = {
           ...this.state,
@@ -739,7 +745,6 @@ class CentralStoreService {
         };
         try {
           localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(sortedProducts));
-          localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(sortedCategories));
         } catch {}
         this.notify();
 
@@ -1150,8 +1155,9 @@ class CentralStoreService {
         localStorage.setItem(STORAGE_KEYS.CATEGORIES_CLEARED, '1');
         localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify([]));
         localStorage.removeItem(STORAGE_KEYS.CUSTOM_CATEGORIES);
-        const initialCatIds = new Set(INITIAL_CATEGORIES.map(c => c.id));
-        this.saveDeletedCategoryIds(initialCatIds);
+        const deleted = this.loadDeletedCategoryIds();
+        INITIAL_CATEGORIES.forEach(c => deleted.add(c.id));
+        this.saveDeletedCategoryIds(deleted);
       } catch {}
       this.state = { ...this.state, categories: [] };
       this.notify();
@@ -1168,6 +1174,18 @@ class CentralStoreService {
       sortOrder: index,
       createdAt: c.createdAt || (c.id.startsWith('cat-') ? new Date(Number(c.id.replace('cat-', '')) || Date.now()).toISOString() : undefined)
     }));
+
+    const deleted = this.loadDeletedCategoryIds();
+    let deletedChanged = false;
+    indexed.forEach(c => {
+      if (deleted.has(c.id)) {
+        deleted.delete(c.id);
+        deletedChanged = true;
+      }
+    });
+    if (deletedChanged) {
+      this.saveDeletedCategoryIds(deleted);
+    }
 
     const initialCatIds = new Set(INITIAL_CATEGORIES.map(c => c.id));
     const custom = indexed.filter(c => !initialCatIds.has(c.id) || c.createdAt || c.id.startsWith('cat-'));
@@ -1210,6 +1228,14 @@ class CentralStoreService {
 
     const updated = this.state.categories.filter(c => !idsToDelete.has(c.id));
     return this.saveCategories(updated);
+  }
+
+  public clearCategories(): Promise<boolean> {
+    const allIds = new Set(this.state.categories.map(c => c.id));
+    const deleted = this.loadDeletedCategoryIds();
+    allIds.forEach(id => deleted.add(id));
+    this.saveDeletedCategoryIds(deleted);
+    return this.saveCategories([]);
   }
 
   public getRootCategories(): AdminCategory[] {
