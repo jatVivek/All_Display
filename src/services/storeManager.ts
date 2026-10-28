@@ -101,6 +101,8 @@ export interface AdminCategory {
   name: string;
   description: string;
   image?: string;
+  parentId?: string | null; // null for Level 1 Root Category; parent Category ID for Level 2 Sub-Category; parent Sub-Category ID for Level 3 Child Category
+  level?: 1 | 2 | 3; // 1 = Category, 2 = Sub-Category, 3 = Child Category
   createdAt?: string;
   sortOrder?: number;
 }
@@ -1078,15 +1080,52 @@ class CentralStoreService {
   }
 
   public deleteCategory(id: string): Promise<boolean> {
-    const custom = this.loadCustomCategories().filter(c => c.id !== id);
+    // Find all descendant categories to cascade delete
+    const allCategories = this.state.categories;
+    const idsToDelete = new Set<string>([id]);
+    
+    // Add subcategories of this category
+    allCategories.forEach(c => {
+      if (c.parentId && idsToDelete.has(c.parentId)) {
+        idsToDelete.add(c.id);
+      }
+    });
+    // Add child categories of those subcategories
+    allCategories.forEach(c => {
+      if (c.parentId && idsToDelete.has(c.parentId)) {
+        idsToDelete.add(c.id);
+      }
+    });
+
+    const custom = this.loadCustomCategories().filter(c => !idsToDelete.has(c.id));
     this.saveCustomCategories(custom);
 
     const deleted = this.loadDeletedCategoryIds();
-    deleted.add(id);
+    idsToDelete.forEach(deletedId => deleted.add(deletedId));
     this.saveDeletedCategoryIds(deleted);
 
-    const updated = this.state.categories.filter(c => c.id !== id);
+    const updated = this.state.categories.filter(c => !idsToDelete.has(c.id));
     return this.saveCategories(updated);
+  }
+
+  public getRootCategories(): AdminCategory[] {
+    return this.getCategories().filter(c => !c.parentId || (c.level || 1) === 1);
+  }
+
+  public getSubCategories(parentCategoryId?: string): AdminCategory[] {
+    return this.getCategories().filter(c => {
+      const isSub = c.level === 2;
+      if (!isSub) return false;
+      return parentCategoryId ? c.parentId === parentCategoryId : true;
+    });
+  }
+
+  public getChildCategories(parentSubCategoryId?: string): AdminCategory[] {
+    return this.getCategories().filter(c => {
+      const isChild = c.level === 3;
+      if (!isChild) return false;
+      return parentSubCategoryId ? c.parentId === parentSubCategoryId : true;
+    });
   }
 
   // Wishlist Management

@@ -17,7 +17,6 @@ import { ProjectsView } from './views/ProjectsView';
 import { OrderListView } from './views/OrderListView';
 import { CustomQuoteView } from './views/CustomQuoteView';
 import { ContactView } from './views/ContactView';
-import { DealsView } from './views/DealsView';
 import { storeManager } from './services/storeManager';
 import { useAuth } from './auth/AuthContext';
 import { AuthDialog } from './auth/AuthDialog';
@@ -27,7 +26,7 @@ import { AccountModal } from './components/AccountModal';
 const viewPaths: Record<ActiveView, string> = {
   home: '/',
   shop: '/shop',
-  deals: '/deals',
+  deals: '/shop',
   contact: '/contact-us',
   about: '/about-us',
   'racks-floor-stands': '/shop/racks-and-floor-stands',
@@ -58,6 +57,9 @@ const getRouteFromLocation = () => {
     return { view: viewParam, section: null, path: window.location.pathname };
   }
   const path = window.location.pathname.replace(/\/+$/, '') || '/';
+  if (path === '/deals') {
+    return { view: 'shop' as ActiveView, section: null, path: '/shop' };
+  }
   if (path.startsWith('/products/')) {
     return { view: 'pdp' as ActiveView, section: null, path };
   }
@@ -467,15 +469,6 @@ export default function App() {
         {activeView === 'contact' && (
           <ContactView
             setActiveView={navigateToView}
-            onToast={showToast}
-          />
-        )}
-
-        {activeView === 'deals' && (
-          <DealsView
-            setActiveView={navigateToView}
-            onAddToCart={(prod, qty) => handleAddToCart(prod, qty || 1)}
-            onSelectProduct={handleSelectProduct}
             onToast={showToast}
           />
         )}

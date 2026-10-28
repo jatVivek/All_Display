@@ -30,7 +30,26 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
   const [modalError, setModalError] = useState<string | null>(null);
   const [title, setTitle] = useState(isNew ? '' : product.title);
   const [code, setCode] = useState(isNew ? 'AD-NEW-001' : product.code);
-  const [category, setCategory] = useState(isNew ? (storeManager.getCategories()[0]?.name ?? 'Display Bust') : product.category);
+
+  const allCategories = storeManager.getCategories();
+  const rootCategories = allCategories.filter((c) => !c.parentId || (c.level || 1) === 1);
+
+  const [category, setCategory] = useState(isNew ? (rootCategories[0]?.name ?? 'Display Bust') : product.category);
+  const [subCategory, setSubCategory] = useState(isNew ? '' : (product.subCategory || ''));
+  const [childCategory, setChildCategory] = useState(isNew ? '' : (product.childCategory || ''));
+
+  // Sub-categories under currently selected Category
+  const matchingRootCat = rootCategories.find((c) => c.name.toLowerCase() === category.toLowerCase());
+  const availableSubCategories = allCategories.filter(
+    (c) => c.level === 2 && (matchingRootCat ? c.parentId === matchingRootCat.id : true)
+  );
+
+  // Child categories under currently selected Sub-Category
+  const matchingSubCat = availableSubCategories.find((c) => c.name.toLowerCase() === subCategory.toLowerCase());
+  const availableChildCategories = allCategories.filter(
+    (c) => c.level === 3 && (matchingSubCat ? c.parentId === matchingSubCat.id : true)
+  );
+
   const [price, setPrice] = useState(isNew ? 450 : product.price);
   const [originalPrice, setOriginalPrice] = useState(isNew ? 550 : (product.originalPrice || Math.round(product.price * 1.25)));
   const [unit, setUnit] = useState(isNew ? 'piece' : product.unit);
@@ -257,6 +276,8 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
         reviewCount: 18,
         loadCapacity: 'Standard Jewelry Display',
         category,
+        subCategory: subCategory.trim() || undefined,
+        childCategory: childCategory.trim() || undefined,
         finish,
         material,
         structuralProfile: 'Fine Handcrafted / Commercial Grade',
@@ -278,6 +299,8 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
         title,
         code,
         category,
+        subCategory: subCategory.trim() || undefined,
+        childCategory: childCategory.trim() || undefined,
         price,
         originalPrice,
         unit,
@@ -363,21 +386,92 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
             </div>
           </div>
 
-          {/* Category, Prices & Units */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-800">Category</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
-              >
-                {storeManager.getCategories().map((cat) => (
-                  <option key={cat.id} value={cat.name}>{cat.name}</option>
-                ))}
-              </select>
+          {/* Category Hierarchy: Main Category, Sub-Category (Optional), Child Category (Optional) */}
+          <div className="flex flex-col gap-2.5 p-4 bg-slate-50/80 border border-slate-200/90 rounded-2xl">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <AppIcon name="category" className="text-orange-600 text-sm" />
+                <span>Product Categorization Hierarchy</span>
+              </label>
+              <span className="text-[10px] text-slate-500 font-medium">
+                Sub-Category &amp; Child Category are optional
+              </span>
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* 1. Category (Required) */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-semibold text-slate-700 flex items-center justify-between">
+                  <span>1. Category (Required)</span>
+                  <span className="text-[9px] font-bold text-orange-600 bg-orange-100 px-1.5 py-0.2 rounded">Required</span>
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => {
+                    setCategory(e.target.value);
+                    setSubCategory('');
+                    setChildCategory('');
+                  }}
+                  className="p-2.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:border-orange-500 transition-all"
+                >
+                  {rootCategories.map((cat) => (
+                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 2. Sub-Category (Optional) */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-semibold text-slate-700 flex items-center justify-between">
+                  <span>2. Sub-Category</span>
+                  <span className="text-[9px] text-slate-400">Optional</span>
+                </label>
+                <select
+                  value={subCategory}
+                  onChange={(e) => {
+                    setSubCategory(e.target.value);
+                    setChildCategory('');
+                  }}
+                  className="p-2.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:border-orange-500 transition-all"
+                >
+                  <option value="">-- None (No Sub-Category) --</option>
+                  {availableSubCategories.map((sub) => (
+                    <option key={sub.id} value={sub.name}>{sub.name}</option>
+                  ))}
+                </select>
+                {availableSubCategories.length === 0 && (
+                  <span className="text-[10px] text-slate-400">No sub-categories created under this category</span>
+                )}
+              </div>
+
+              {/* 3. Child Category (Optional) */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[11px] font-semibold text-slate-700 flex items-center justify-between">
+                  <span>3. Child Category</span>
+                  <span className="text-[9px] text-slate-400">Optional</span>
+                </label>
+                <select
+                  value={childCategory}
+                  disabled={!subCategory}
+                  onChange={(e) => setChildCategory(e.target.value)}
+                  className="p-2.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:border-orange-500 disabled:opacity-50 disabled:bg-slate-100 transition-all"
+                >
+                  <option value="">-- None (No Child Category) --</option>
+                  {availableChildCategories.map((child) => (
+                    <option key={child.id} value={child.name}>{child.name}</option>
+                  ))}
+                </select>
+                {!subCategory ? (
+                  <span className="text-[10px] text-slate-400">Select a sub-category first</span>
+                ) : availableChildCategories.length === 0 ? (
+                  <span className="text-[10px] text-slate-400">No child categories under this sub-category</span>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          {/* Pricing & Units */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-slate-800">Selling Price (₹)</label>
               <input
@@ -385,7 +479,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
                 required
                 value={price}
                 onChange={(e) => setPrice(Number(e.target.value))}
-                className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
+                className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all font-bold"
               />
             </div>
 
@@ -407,6 +501,17 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
                 placeholder="piece / pack / set"
+                className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold text-slate-800">Minimum Order (MOQ)</label>
+              <input
+                type="text"
+                value={moq}
+                onChange={(e) => setMoq(e.target.value)}
+                placeholder="e.g. MOQ: 1 Pack"
                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
               />
             </div>

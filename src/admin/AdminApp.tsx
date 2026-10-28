@@ -10,7 +10,6 @@ import { AdminProductsView } from './views/AdminProductsView';
 import { AdminProductEditorModal } from './views/AdminProductEditorModal';
 import { AdminCategoriesView } from './views/AdminCategoriesView';
 import { AdminHomepageView } from './views/AdminHomepageView';
-import { AdminDealsView } from './views/AdminDealsView';
 import { AdminCustomersView } from './views/AdminCustomersView';
 import { AdminMediaView } from './views/AdminMediaView';
 import { AdminSettingsView } from './views/AdminSettingsView';
@@ -31,7 +30,6 @@ export type AdminTab =
   | 'products' 
   | 'categories'
   | 'homepage' 
-  | 'deals'
   | 'customers' 
   | 'media' 
   | 'settings' 
@@ -391,9 +389,6 @@ export const AdminApp: React.FC<AdminAppProps> = ({ onExitAdmin }) => {
             )}
             {activeTab === 'homepage' && (
               <AdminHomepageView showToast={showToast} />
-            )}
-            {activeTab === 'deals' && (
-              <AdminDealsView showToast={showToast} />
             )}
             {activeTab === 'customers' && (
               <AdminCustomersView />

@@ -13,16 +13,8 @@ interface CatalogViewProps {
   cartSubtotal: number;
   initialCategoryName?: string;
   initialProductId?: string | null;
-  initialRequirements?: string[];
   showAllProducts?: boolean;
 }
-
-const REQUIREMENT_OPTIONS = [
-  { id: 'online-sellers', label: 'Online Sellers', icon: 'storefront' },
-  { id: 'instagram-shop', label: 'Instagram Shop', icon: 'photo_camera' },
-  { id: 'new-jewellery', label: 'New Jewellery Sellers', icon: 'diamond' },
-  { id: 'retail-shops', label: 'Retail Shops', icon: 'store' },
-];
 
 const MATERIAL_OPTIONS = [
   'Velvet',
@@ -39,7 +31,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   onSelectProduct,
   onToast,
   initialCategoryName = 'All Categories',
-  initialRequirements = [],
 }) => {
   const [products, setProducts] = useState<Product[]>(() => storeManager.getProducts());
   const [categories, setCategories] = useState(() => storeManager.getCategories());
@@ -76,16 +67,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   }, []);
 
   const brandName = settings.brandName || settings.storeName || 'All Display';
-
-  // Read URL query params on mount for requirement
-  const [selectedRequirements, setSelectedRequirements] = useState<string[]>(() => {
-    const params = new URLSearchParams(window.location.search);
-    const reqParam = params.get('requirement');
-    if (reqParam) {
-      return [reqParam];
-    }
-    return initialRequirements;
-  });
 
   // Filter States
   const [selectedCategory, setSelectedCategory] = useState(initialCategoryName);
@@ -124,26 +105,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     );
   }, [products, categorySearch]);
 
-  // Issue #6: Filter requirement options to only those with products
-  const activeRequirementOptions = useMemo(() => {
-    return REQUIREMENT_OPTIONS.map((req) => {
-      const count = products.filter((p) => p.requirements?.includes(req.id)).length;
-      return { ...req, count };
-    }).filter((req) => req.count > 0);
-  }, [products]);
-
   const handleQtyChange = (productId: string, delta: number) => {
     setQuantities((prev) => {
       const current = prev[productId] || 1;
       const updated = Math.max(1, current + delta);
       return { ...prev, [productId]: updated };
     });
-  };
-
-  const toggleRequirement = (reqId: string) => {
-    setSelectedRequirements(prev =>
-      prev.includes(reqId) ? prev.filter(r => r !== reqId) : [...prev, reqId]
-    );
   };
 
   const toggleMaterial = (mat: string) => {
@@ -155,19 +122,14 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   // Filter application
   const filteredProducts = useMemo(() => {
     return products.filter((prod) => {
-      // Category filter
+      // Category filter (matches root category, sub-category, or child-category)
       if (selectedCategory !== 'All Categories' && selectedCategory !== 'All') {
+        const sel = selectedCategory.toLowerCase();
         const matchesCategory =
-          prod.category.toLowerCase().includes(selectedCategory.toLowerCase()) ||
-          selectedCategory.toLowerCase().includes(prod.category.toLowerCase());
+          (prod.category && (prod.category.toLowerCase().includes(sel) || sel.includes(prod.category.toLowerCase()))) ||
+          (prod.subCategory && (prod.subCategory.toLowerCase().includes(sel) || sel.includes(prod.subCategory.toLowerCase()))) ||
+          (prod.childCategory && (prod.childCategory.toLowerCase().includes(sel) || sel.includes(prod.childCategory.toLowerCase())));
         if (!matchesCategory) return false;
-      }
-
-      // Requirement filter (support multiple)
-      if (selectedRequirements.length > 0) {
-        const prodReqs = prod.requirements || [];
-        const matchesReq = selectedRequirements.some(req => prodReqs.includes(req));
-        if (!matchesReq) return false;
       }
 
       // Material filter (support multiple)
@@ -210,9 +172,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       }
       const orderA = typeof a.sortOrder === 'number' ? a.sortOrder : 999999;
       const orderB = typeof b.sortOrder === 'number' ? b.sortOrder : 999999;
-      return orderA - orderB;
+      return orderB - orderA;
     });
-  }, [products, selectedCategory, selectedRequirements, selectedMaterials, priceRange, stockStatusFilter, sortBy]);
+  }, [products, selectedCategory, selectedMaterials, priceRange, stockStatusFilter, sortBy]);
 
   const displayedProducts = filteredProducts.slice(0, itemsPerPage);
 
@@ -245,7 +207,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
   const resetAllFilters = () => {
     setSelectedCategory('All Categories');
-    setSelectedRequirements([]);
     setSelectedMaterials([]);
     setPriceRange(10500);
     setStockStatusFilter('all');
@@ -286,7 +247,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             </div>
 
             {/* Active Filters tags preview */}
-            {(selectedRequirements.length > 0 || selectedMaterials.length > 0 || selectedCategory !== 'All Categories') && (
+            {(selectedMaterials.length > 0 || selectedCategory !== 'All Categories') && (
               <button
                 type="button"
                 onClick={resetAllFilters}
@@ -343,57 +304,8 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           {/* LEFT FILTER SIDEBAR */}
           <aside className="lg:col-span-3 bg-white rounded-3xl p-6 border border-slate-100 shadow-xs flex flex-col gap-6">
             
-            {/* SHOP BY REQUIREMENT (Multi-select) */}
-            {activeRequirementOptions.length > 0 && (
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
-                    <AppIcon name="hub" className="text-orange-500 text-sm" />
-                    Shop by Requirement
-                  </h3>
-                  {selectedRequirements.length > 0 && (
-                    <button
-                      onClick={() => setSelectedRequirements([])}
-                      className="text-[11px] text-orange-600 font-bold hover:underline cursor-pointer"
-                    >
-                      Clear
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  {activeRequirementOptions.map((req) => {
-                    const isChecked = selectedRequirements.includes(req.id);
-                    return (
-                      <label
-                        key={req.id}
-                        className={`flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer text-xs font-medium ${
-                          isChecked
-                            ? 'bg-orange-50/80 border-orange-300 text-orange-950 font-semibold'
-                            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                        }`}
-                      >
-                        <span className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => toggleRequirement(req.id)}
-                            className="accent-orange-600 rounded"
-                          />
-                          <span>{req.label}</span>
-                        </span>
-                        <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold">
-                          {req.count}
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
             {/* Filter by Categories with Search */}
-            <div className="flex flex-col gap-3 pt-2 border-t border-slate-100">
+            <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                 <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-900">
                   Filter by Category
@@ -673,7 +585,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
                 <AppIcon name="inventory_2" className="text-4xl text-slate-400" />
                 <h3 className="font-bold text-base text-slate-900">No products matched your criteria</h3>
                 <p className="text-xs text-slate-600 max-w-sm">
-                  Try widening your price range or clearing requirement / category filters.
+                  Try widening your price range or clearing category / material filters.
                 </p>
                 <button
                   onClick={resetAllFilters}
@@ -761,9 +673,15 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
                       {/* Product Metadata & Title */}
                       <div className="flex flex-col gap-1 flex-1">
-                        <span className="text-[10px] text-orange-600 uppercase font-bold tracking-wider truncate">
-                          {product.category}
-                        </span>
+                        <div className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider truncate">
+                          <span className="text-orange-600 truncate">{product.category}</span>
+                          {product.subCategory && (
+                            <>
+                              <span className="text-slate-300">/</span>
+                              <span className="text-slate-500 truncate">{product.subCategory}</span>
+                            </>
+                          )}
+                        </div>
                         
                         <h3 className="text-xs font-bold text-slate-900 group-hover:text-orange-600 transition-colors line-clamp-2 leading-snug">
                           {product.title}

@@ -21,7 +21,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
 }) => {
   const [products, setProducts] = useState<Product[]>(() => storeManager.getProducts());
   const [homepageBanners, setHomepageBanners] = useState(() => storeManager.getHomepageBanners());
-  const [dealProductIds, setDealProductIds] = useState(() => storeManager.getHomepageDealProductIds());
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isCategoryHovered, setIsCategoryHovered] = useState(false);
@@ -35,14 +34,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
     const handleUpdate = () => {
       setProducts(storeManager.getProducts());
       setHomepageBanners(storeManager.getHomepageBanners());
-      setDealProductIds(storeManager.getHomepageDealProductIds());
       setWishlistIds(storeManager.getWishlist());
       setSettings(storeManager.getSettings());
       setCategories(storeManager.getCategories());
     };
     window.addEventListener('alldisplay_catalog_updated', handleUpdate);
     window.addEventListener('alldisplay_data_updated', handleUpdate);
-    window.addEventListener('alldisplay_deals_updated', handleUpdate);
     window.addEventListener('vinayak_wishlist_updated', handleUpdate);
     window.addEventListener('vinayak_settings_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
@@ -50,7 +47,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
     const unsubscribe = storeManager.subscribe((state) => {
       setProducts(state.products);
       setHomepageBanners(state.homepageBanners);
-      setDealProductIds(state.homepageDealProductIds);
       setWishlistIds(storeManager.getWishlist());
       setSettings(state.settings);
       setCategories(state.categories);
@@ -59,7 +55,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
     return () => {
       window.removeEventListener('alldisplay_catalog_updated', handleUpdate);
       window.removeEventListener('alldisplay_data_updated', handleUpdate);
-      window.removeEventListener('alldisplay_deals_updated', handleUpdate);
       window.removeEventListener('vinayak_wishlist_updated', handleUpdate);
       window.removeEventListener('vinayak_settings_updated', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
@@ -141,49 +136,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
       .filter((cat) => cat.itemCount > 0);
   }, [categories, products, initialCatIds]);
 
-  // Requirements Cards (Configurable via Admin, Issue #12)
-  const allRequirementCards = [
-    {
-      title: 'Online Sellers',
-      subtitle: 'Photo-ready bust displays & necklace stands for high-converting social photos.',
-      tag: 'Online Sellers',
-      requirementKey: 'online-sellers',
-      image: settings.requirementImages?.['online-sellers'] || '/assets/vinayak/req_online_sellers.png',
-    },
-    {
-      title: 'Instagram Shop',
-      subtitle: 'Double tier bangle rods & earring organizers designed for live sales.',
-      tag: 'Instagram Shop',
-      requirementKey: 'instagram-shop',
-      image: settings.requirementImages?.['instagram-shop'] || '/assets/vinayak/req_instagram_shop.png',
-    },
-    {
-      title: 'New Jewellery Sellers',
-      subtitle: 'Starter display dishes, branded packaging cards, and portable trays.',
-      tag: 'New Jewellery',
-      requirementKey: 'new-jewellery',
-      image: settings.requirementImages?.['new-jewellery'] || '/assets/vinayak/req_new_jewellery.png',
-    },
-    {
-      title: 'Retail Shops',
-      subtitle: 'Complete graduated velvet showroom bust suites & locking counter trays.',
-      tag: 'Retail Shops',
-      requirementKey: 'retail-shops',
-      image: settings.requirementImages?.['retail-shops'] || '/assets/vinayak/req_retail_shops.png',
-    }
-  ];
-
-  // Issue #6: Filter requirements to only those with at least 1 product
-  const activeRequirementCards = allRequirementCards.filter((req) =>
-    products.some((prod) => prod.requirements?.includes(req.requirementKey))
-  );
-
-  // Top Selling Products (Curated Deal of the Day)
-  const adminDeals = dealProductIds
-    .map((id) => products.find((p) => p.id === id))
-    .filter((p): p is Product => Boolean(p));
-
-  const topSellingList = adminDeals.length > 0 ? adminDeals : products.slice(0, 4);
+  // All Products List
+  const allProductsList = products;
 
   const activeBanner = homepageBanners[activeBannerIndex] || homepageBanners[0];
 
@@ -191,146 +145,16 @@ export const HomeView: React.FC<HomeViewProps> = ({
     <div className="w-full bg-white text-slate-900 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-6 sm:gap-10 pt-4 sm:pt-6">
         
-        {/* 1. UNIFORM MULTI-DEVICE HERO BANNER (Optimized for Mobile & Desktop - Positioned First) */}
-        {homepageBanners.length > 0 && activeBanner && (
-          <section
-            className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-orange-50 via-amber-50/40 to-slate-50 border border-orange-100/70 p-4 sm:p-8 lg:p-10 shadow-xs group min-h-[320px] sm:min-h-[360px] lg:min-h-[400px] flex flex-col justify-between"
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
-          >
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-8 items-center flex-1">
-              
-              {/* Hero Copy */}
-              <div className="lg:col-span-7 flex flex-col items-start gap-2.5 sm:gap-3.5">
-                <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-white/90 border border-orange-200/60 px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold text-orange-600 shadow-2xs">
-                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span className="truncate max-w-[240px] sm:max-w-none">{activeBanner.eyebrow || 'Wholesale & Retail Manufacturer'}</span>
-                </div>
-
-                <h1 className="text-xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.2] line-clamp-2">
-                  {activeBanner.title}
-                </h1>
-
-                <p className="text-xs sm:text-sm lg:text-base text-slate-600 max-w-xl leading-relaxed line-clamp-2 sm:line-clamp-3">
-                  {activeBanner.subtitle || activeBanner.description}
-                </p>
-
-                {/* Actions */}
-                <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 pt-1 sm:pt-2 w-full sm:w-auto">
-                  <button
-                    type="button"
-                    onClick={() => onOpenBannerTarget(activeBanner)}
-                    className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs sm:text-sm px-4 sm:px-6 py-2.5 sm:py-3 rounded-full shadow-xs hover:shadow-sm transition-all cursor-pointer truncate"
-                  >
-                    <span>Explore Shop</span>
-                    <AppIcon name="arrow_forward" className="text-sm" />
-                  </button>
-
-                  <a
-                    href={getWhatsAppLink(`Hi ${brandName}, I would like to inquire about wholesale prices.`)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-xs sm:text-sm px-4 sm:px-5 py-2.5 sm:py-3 rounded-full transition-colors cursor-pointer truncate"
-                  >
-                    <AppIcon name="chat" className="text-emerald-500 text-sm sm:text-base" />
-                    <span>WhatsApp</span>
-                  </a>
-                </div>
-
-                {/* Trust Points */}
-                <div className="hidden sm:flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600 pt-1">
-                  <span className="flex items-center gap-1.5">
-                    <AppIcon name="check_circle" className="text-emerald-500 text-sm" />
-                    Same-Day Chennai Dispatch
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <AppIcon name="check_circle" className="text-emerald-500 text-sm" />
-                    Direct Factory Pricing
-                  </span>
-                </div>
-              </div>
-
-              {/* Uniform Banner Image Frame (Universal Sizing & Aspect Ratio) */}
-              <div className="lg:col-span-5 relative w-full">
-                <div className="relative w-full h-44 sm:h-56 lg:h-72 rounded-2xl overflow-hidden bg-white shadow-md border border-slate-100">
-                  <picture>
-                    {activeBanner.mobileImage && (
-                      <source media="(max-width: 767px)" srcSet={activeBanner.mobileImage} />
-                    )}
-                    <img
-                      src={activeBanner.image || '/assets/vinayak/shop_banner.png'}
-                      alt={activeBanner.title}
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-                    />
-                  </picture>
-                  <div className="absolute bottom-2.5 left-2.5 right-2.5 bg-white/95 backdrop-blur-xs p-2 sm:p-2.5 rounded-xl border border-slate-100 flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] sm:text-[11px] font-bold text-slate-900 truncate">Sowcarpet Wholesale Depot</p>
-                      <p className="text-[9px] sm:text-[10px] text-slate-500">Ready Dispatch Chennai</p>
-                    </div>
-                    <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[9px] sm:text-[10px] font-bold shrink-0">
-                      Ready Stock
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            {/* Uniform Slider Controls */}
-            {homepageBanners.length > 1 && (
-              <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-orange-200/40 flex items-center justify-between">
-                {/* Dots */}
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  {homepageBanners.map((_, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setActiveBannerIndex(idx)}
-                      className={`h-1.5 sm:h-2 rounded-full transition-all cursor-pointer ${
-                        activeBannerIndex === idx
-                          ? 'w-5 sm:w-6 bg-orange-600'
-                          : 'w-1.5 sm:w-2 bg-slate-300 hover:bg-slate-400'
-                      }`}
-                      aria-label={`Go to slide ${idx + 1}`}
-                    />
-                  ))}
-                </div>
-
-                {/* Arrows */}
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setActiveBannerIndex((prev) => (prev - 1 + homepageBanners.length) % homepageBanners.length)}
-                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 hover:bg-white border border-slate-200 text-slate-700 flex items-center justify-center shadow-2xs transition-colors cursor-pointer"
-                    aria-label="Previous banner"
-                  >
-                    <AppIcon name="arrow_back" className="text-xs sm:text-sm" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveBannerIndex((prev) => (prev + 1) % homepageBanners.length)}
-                    className="w-8 h-8 rounded-full bg-white/90 hover:bg-white border border-slate-200 text-slate-700 flex items-center justify-center shadow-2xs transition-colors cursor-pointer"
-                    aria-label="Next banner"
-                  >
-                    <AppIcon name="arrow_forward" className="text-xs sm:text-sm" />
-                  </button>
-                </div>
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* 2. POPULAR CATEGORIES CAROUSEL (Positioned Below Banner - Only active categories) */}
+        {/* 1. SHOP CATEGORIES CAROUSEL (Positioned First) */}
         {activeCategoriesList.length > 0 && (
           <section className="rounded-2xl sm:rounded-3xl border border-slate-100 bg-slate-50/60 p-4 sm:p-6 shadow-2xs">
             <div className="flex items-center justify-between mb-2.5 sm:mb-4">
               <div>
                 <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-orange-600">
-                  Explore Our Range
+                  Explore By Category
                 </span>
                 <h2 className="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight">
-                  Most Popular Categories
+                  Shop Categories
                 </h2>
               </div>
               
@@ -399,73 +223,15 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </section>
         )}
 
-        {/* 3. TAILORED FOR YOUR BUSINESS / SHOP BY REQUIREMENT (Only active requirements) */}
-        {activeRequirementCards.length > 0 && (
-          <section className="flex flex-col gap-3.5 sm:gap-6">
-            <div className="flex flex-col items-center text-center gap-1">
-              <span className="bg-orange-50 text-orange-600 border border-orange-200/60 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                Tailored For Your Business
-              </span>
-              <h2 className="text-lg sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-                Shop By Requirement
-              </h2>
-              <p className="text-xs text-slate-500 max-w-lg hidden sm:block">
-                Specialized packaging and display fixtures curated for your specific sales channel.
-              </p>
-            </div>
-
-            {/* 2-Col on Mobile saves space */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-6">
-              {activeRequirementCards.map((req, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => setActiveView('shop', `/shop?requirement=${req.requirementKey}`)}
-                  className="group relative rounded-2xl sm:rounded-3xl overflow-hidden bg-white border border-slate-100 hover:border-orange-300 shadow-2xs hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col"
-                >
-                  {/* Image Frame with Floating Tag */}
-                  <div className="relative aspect-[4/3] sm:aspect-[4/3] bg-slate-100 overflow-hidden">
-                    <img
-                      src={req.image}
-                      alt={req.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=400&q=80';
-                      }}
-                    />
-                    {/* Floating Tag */}
-                    <div className="absolute bottom-2 left-2 right-2 flex justify-center">
-                      <span className="bg-white/95 backdrop-blur-md text-slate-900 text-[10px] sm:text-xs font-bold px-2.5 sm:px-3.5 py-1 rounded-full shadow-xs border border-white/60 group-hover:bg-orange-600 group-hover:text-white transition-colors truncate">
-                        {req.tag}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="p-2.5 sm:p-4 flex flex-col gap-1 flex-1">
-                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-orange-600 transition-colors line-clamp-1">
-                      {req.title}
-                    </h3>
-                    <p className="text-[11px] sm:text-xs text-slate-500 line-clamp-1 sm:line-clamp-2 leading-relaxed">
-                      {req.subtitle}
-                    </p>
-                    <div className="mt-auto pt-1 sm:pt-2 flex items-center text-[11px] sm:text-xs font-semibold text-orange-600">
-                      <span className="truncate">View Items →</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* 4. TOP SELLING PRODUCTS & DEAL OF THE DAY */}
+        {/* 2. ALL PRODUCTS */}
         <section className="flex flex-col gap-4 sm:gap-6">
           <div className="flex items-center justify-between gap-3 pb-2 border-b border-slate-100">
             <div>
               <span className="text-[10px] uppercase font-bold tracking-wider text-orange-600">
-                Customer Favorites
+                Wholesale &amp; Retail Catalog
               </span>
               <h2 className="text-lg sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-                Top Selling Products
+                All Products
               </h2>
             </div>
             <button
@@ -473,62 +239,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
               onClick={() => setActiveView('shop')}
               className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1 cursor-pointer"
             >
-              <span>View All</span>
+              <span>View All in Shop</span>
               <AppIcon name="arrow_forward" className="text-xs sm:text-sm" />
             </button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
-            
-            {/* Deal of the Day Highlight Banner */}
-            <div className="lg:col-span-3 bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex flex-col justify-between gap-4 sm:gap-6 shadow-xs relative overflow-hidden">
-              <div className="relative z-10 flex flex-col gap-1.5 sm:gap-2">
-                <div className="flex items-center justify-between">
-                  <span className="w-fit bg-orange-500 text-white px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">
-                    Deal Of The Day
-                  </span>
-                  <span className="text-[10px] font-bold text-orange-300 uppercase tracking-wider">
-                    🔥 24h Flash
-                  </span>
-                </div>
-                <h3 className="text-base sm:text-xl font-bold tracking-tight">
-                  Global Seller <br className="hidden sm:block" />
-                  <span className="text-orange-400 font-extrabold">Wholesale Price</span>
-                </h3>
-                <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed">
-                  Premium jewelry display suites with tier pricing for bulk buyers &amp; retail chains.
-                </p>
-              </div>
-
-              <div
-                onClick={() => setActiveView('deals')}
-                className="relative z-10 aspect-video sm:aspect-square rounded-xl overflow-hidden bg-white/5 border border-white/10 p-1.5 sm:p-2 cursor-pointer group"
-              >
-                <img
-                  src="/assets/vinayak/deal_left_banner.png"
-                  alt="Deal of the day showcase"
-                  className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=400&q=80';
-                  }}
-                />
-              </div>
-
-              <div className="relative z-10">
-                <button
-                  type="button"
-                  onClick={() => setActiveView('deals')}
-                  className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider py-2.5 sm:py-3 rounded-xl sm:rounded-2xl shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <span>Show More Deals</span>
-                  <AppIcon name="arrow_forward" className="text-xs" />
-                </button>
-              </div>
-            </div>
-
-            {/* Right Product Grid */}
-            <div className="lg:col-span-9 grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
-              {topSellingList.map((product) => {
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
+              {allProductsList.map((product) => {
                 const discountPercent = product.originalPrice
                   ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
                   : 0;
@@ -582,9 +299,15 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
                     {/* Product Details */}
                     <div className="flex flex-col gap-0.5 sm:gap-1 flex-1">
-                      <span className="text-[9px] sm:text-[10px] text-orange-600 uppercase font-bold tracking-wider truncate">
-                        {product.category}
-                      </span>
+                      <div className="flex items-center gap-1 text-[9px] sm:text-[10px] uppercase font-bold tracking-wider truncate">
+                        <span className="text-orange-600 truncate">{product.category}</span>
+                        {product.subCategory && (
+                          <>
+                            <span className="text-slate-300">/</span>
+                            <span className="text-slate-500 truncate">{product.subCategory}</span>
+                          </>
+                        )}
+                      </div>
                       <h4 className="text-xs font-bold text-slate-900 group-hover:text-orange-600 transition-colors line-clamp-2 leading-snug">
                         {product.title}
                       </h4>
@@ -623,8 +346,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 );
               })}
             </div>
-
-          </div>
         </section>
 
         {/* 5. WHY CHOOSE ALL DISPLAY */}
@@ -735,6 +456,136 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </p>
           </div>
         </section>
+
+        {/* 5. HOMEPAGE PROMOTIONAL BANNER (Positioned at the end of the page before footer) */}
+        {homepageBanners.length > 0 && activeBanner && (
+          <section
+            className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-orange-50 via-amber-50/40 to-slate-50 border border-orange-100/70 p-4 sm:p-8 lg:p-10 shadow-xs group min-h-[320px] sm:min-h-[360px] lg:min-h-[400px] flex flex-col justify-between"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-8 items-center flex-1">
+              
+              {/* Hero Copy */}
+              <div className="lg:col-span-7 flex flex-col items-start gap-2.5 sm:gap-3.5">
+                <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-white/90 border border-orange-200/60 px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold text-orange-600 shadow-2xs">
+                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className="truncate max-w-[240px] sm:max-w-none">{activeBanner.eyebrow || 'Wholesale & Retail Manufacturer'}</span>
+                </div>
+
+                <h2 className="text-xl sm:text-3xl lg:text-4xl xl:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.2] line-clamp-2">
+                  {activeBanner.title}
+                </h2>
+
+                <p className="text-xs sm:text-sm lg:text-base text-slate-600 max-w-xl leading-relaxed line-clamp-2 sm:line-clamp-3">
+                  {activeBanner.subtitle || activeBanner.description}
+                </p>
+
+                {/* Actions */}
+                <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 pt-1 sm:pt-2 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={() => onOpenBannerTarget(activeBanner)}
+                    className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs sm:text-sm px-4 sm:px-6 py-2.5 sm:py-3 rounded-full shadow-xs hover:shadow-sm transition-all cursor-pointer truncate"
+                  >
+                    <span>Explore Shop</span>
+                    <AppIcon name="arrow_forward" className="text-sm" />
+                  </button>
+
+                  <a
+                    href={getWhatsAppLink(`Hi ${brandName}, I would like to inquire about wholesale prices.`)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold text-xs sm:text-sm px-4 sm:px-5 py-2.5 sm:py-3 rounded-full transition-colors cursor-pointer truncate"
+                  >
+                    <AppIcon name="chat" className="text-emerald-500 text-sm sm:text-base" />
+                    <span>WhatsApp</span>
+                  </a>
+                </div>
+
+                {/* Trust Points */}
+                <div className="hidden sm:flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600 pt-1">
+                  <span className="flex items-center gap-1.5">
+                    <AppIcon name="check_circle" className="text-emerald-500 text-sm" />
+                    Same-Day Chennai Dispatch
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <AppIcon name="check_circle" className="text-emerald-500 text-sm" />
+                    Direct Factory Pricing
+                  </span>
+                </div>
+              </div>
+
+              {/* Uniform Banner Image Frame (Universal Sizing & Aspect Ratio) */}
+              <div className="lg:col-span-5 relative w-full">
+                <div className="relative w-full h-44 sm:h-56 lg:h-72 rounded-2xl overflow-hidden bg-white shadow-md border border-slate-100">
+                  <picture>
+                    {activeBanner.mobileImage && (
+                      <source media="(max-width: 767px)" srcSet={activeBanner.mobileImage} />
+                    )}
+                    <img
+                      src={activeBanner.image || '/assets/vinayak/shop_banner.png'}
+                      alt={activeBanner.title}
+                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                    />
+                  </picture>
+                  <div className="absolute bottom-2.5 left-2.5 right-2.5 bg-white/95 backdrop-blur-xs p-2 sm:p-2.5 rounded-xl border border-slate-100 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] sm:text-[11px] font-bold text-slate-900 truncate">Sowcarpet Wholesale Depot</p>
+                      <p className="text-[9px] sm:text-[10px] text-slate-500">Ready Dispatch Chennai</p>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[9px] sm:text-[10px] font-bold shrink-0">
+                      Ready Stock
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Uniform Slider Controls */}
+            {homepageBanners.length > 1 && (
+              <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-orange-200/40 flex items-center justify-between">
+                {/* Dots */}
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  {homepageBanners.map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setActiveBannerIndex(idx)}
+                      className={`h-1.5 sm:h-2 rounded-full transition-all cursor-pointer ${
+                        activeBannerIndex === idx
+                          ? 'w-5 sm:w-6 bg-orange-600'
+                          : 'w-1.5 sm:w-2 bg-slate-300 hover:bg-slate-400'
+                      }`}
+                      aria-label={`Go to slide ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+
+                {/* Arrows */}
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setActiveBannerIndex((prev) => (prev - 1 + homepageBanners.length) % homepageBanners.length)}
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/90 hover:bg-white border border-slate-200 text-slate-700 flex items-center justify-center shadow-2xs transition-colors cursor-pointer"
+                    aria-label="Previous banner"
+                  >
+                    <AppIcon name="arrow_back" className="text-xs sm:text-sm" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveBannerIndex((prev) => (prev + 1) % homepageBanners.length)}
+                    className="w-8 h-8 rounded-full bg-white/90 hover:bg-white border border-slate-200 text-slate-700 flex items-center justify-center shadow-2xs transition-colors cursor-pointer"
+                    aria-label="Next banner"
+                  >
+                    <AppIcon name="arrow_forward" className="text-xs sm:text-sm" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
 
       </div>
     </div>

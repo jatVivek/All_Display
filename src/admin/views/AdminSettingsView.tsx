@@ -127,23 +127,6 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
     showToast('Default All Display logo restored!');
   };
 
-  const handleUploadRequirementImage = async (key: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const compressed = await compressImage(file, { maxWidth: 600, maxHeight: 450, quality: 0.85 });
-      const currentReqs = { ...(settings.requirementImages || {}) };
-      currentReqs[key] = compressed;
-      handleChange('requirementImages', currentReqs);
-      await storeManager.saveSettings({ ...settings, requirementImages: currentReqs });
-      showToast('Requirement card image updated and saved!');
-    } catch {
-      showToast('Could not process image.');
-    } finally {
-      e.target.value = '';
-    }
-  };
-
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (role !== 'Owner') {
@@ -349,66 +332,6 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
               className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
             />
             <span className="text-[10px] text-slate-500">Displays at the very top banner bar of all storefront pages.</span>
-          </div>
-
-          {/* Issue #12: Shop by Requirement Images Configuration */}
-          <div className="flex flex-col gap-3 pt-3 border-t border-slate-100">
-            <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                <AppIcon name="hub" className="text-orange-600 text-sm" />
-                Shop By Requirement Card Images
-              </h3>
-              <p className="text-[10px] text-slate-500 mt-0.5">
-                Upload or change images for each requirement segment on the homepage.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {[
-                { key: 'online-sellers', label: 'Online Sellers', defaultImg: '/assets/vinayak/req_online_sellers.png' },
-                { key: 'instagram-shop', label: 'Instagram Shop', defaultImg: '/assets/vinayak/req_instagram_shop.png' },
-                { key: 'new-jewellery', label: 'New Jewellery Sellers', defaultImg: '/assets/vinayak/req_new_jewellery.png' },
-                { key: 'retail-shops', label: 'Retail Shops', defaultImg: '/assets/vinayak/req_retail_shops.png' },
-              ].map((item) => {
-                const currentImg = settings.requirementImages?.[item.key] || item.defaultImg;
-                return (
-                  <div key={item.key} className="p-3 bg-white rounded-xl border border-slate-200 flex items-center gap-3">
-                    <img
-                      src={currentImg}
-                      alt={item.label}
-                      className="w-14 h-14 rounded-lg object-cover border border-slate-200 bg-slate-100 shrink-0"
-                    />
-                    <div className="flex flex-col gap-1 min-w-0 flex-1">
-                      <span className="text-xs font-bold text-slate-900 truncate">{item.label}</span>
-                      <label className="w-fit text-[11px] font-semibold text-orange-600 hover:text-orange-700 hover:underline cursor-pointer">
-                        <span>Upload Image</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleUploadRequirementImage(item.key, e)}
-                          className="sr-only"
-                        />
-                      </label>
-                      {settings.requirementImages?.[item.key] && (
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            const updated = { ...(settings.requirementImages || {}) };
-                            delete updated[item.key];
-                            handleChange('requirementImages', updated);
-                            await storeManager.saveSettings({ ...settings, requirementImages: updated });
-                            showToast(`Reset ${item.label} image to default.`);
-                          }}
-                          className="w-fit text-[10px] text-rose-500 hover:text-rose-700 cursor-pointer"
-                        >
-                          Reset to default
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </div>
         </div>
 

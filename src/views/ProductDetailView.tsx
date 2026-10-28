@@ -14,13 +14,6 @@ interface ProductDetailViewProps {
   onOpenReel?: () => void;
 }
 
-const REQUIREMENT_LABELS: Record<string, string> = {
-  'online-sellers': 'Online Sellers',
-  'instagram-shop': 'Instagram Shop',
-  'new-jewellery': 'New Jewellery Sellers',
-  'retail-shops': 'Retail Shops'
-};
-
 export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   product: initialProduct,
   onNavigate,
@@ -294,7 +287,24 @@ Please confirm stock availability and freight to my location.`;
               Catalog
             </button>
             <span>/</span>
-            <span className="text-slate-400">{currentProduct.category}</span>
+            <button
+              onClick={() => onNavigate('shop', `/shop?category=${encodeURIComponent(currentProduct.category)}`)}
+              className="hover:text-orange-600 transition-colors"
+            >
+              {currentProduct.category}
+            </button>
+            {currentProduct.subCategory && (
+              <>
+                <span>/</span>
+                <span className="text-slate-600">{currentProduct.subCategory}</span>
+              </>
+            )}
+            {currentProduct.childCategory && (
+              <>
+                <span>/</span>
+                <span className="text-slate-600">{currentProduct.childCategory}</span>
+              </>
+            )}
             <span>/</span>
             <span className="text-slate-800 font-medium truncate max-w-xs">{currentProduct.title}</span>
           </nav>
@@ -470,10 +480,20 @@ Please confirm stock availability and freight to my location.`;
             
             {/* Header info */}
             <div>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
                 <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2.5 py-0.5 rounded-md border border-orange-200 uppercase tracking-wide">
                   {currentProduct.category}
                 </span>
+                {currentProduct.subCategory && (
+                  <span className="text-xs font-semibold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200">
+                    {currentProduct.subCategory}
+                  </span>
+                )}
+                {currentProduct.childCategory && (
+                  <span className="text-xs font-semibold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-200">
+                    {currentProduct.childCategory}
+                  </span>
+                )}
                 <span className="text-xs text-slate-500 font-mono">
                   SKU: {currentProduct.code}
                 </span>
@@ -485,29 +505,6 @@ Please confirm stock availability and freight to my location.`;
                 {currentProduct.description}
               </p>
             </div>
-
-            {/* Requirements Tags (Shop by Requirement links) */}
-            {currentProduct.requirements && currentProduct.requirements.length > 0 && (
-              <div className="flex flex-col gap-2 p-3.5 rounded-xl bg-orange-50/50 border border-orange-100">
-                <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                  <AppIcon name="sell" className="text-orange-500 text-sm" />
-                  Recommended For Requirement:
-                </span>
-                <div className="flex flex-wrap gap-2">
-                  {currentProduct.requirements.map(reqKey => (
-                    <button
-                      key={reqKey}
-                      type="button"
-                      onClick={() => onNavigate('shop', `/shop?requirement=${reqKey}`)}
-                      className="px-2.5 py-1 rounded-lg bg-white border border-orange-200 text-orange-700 hover:bg-orange-600 hover:text-white hover:border-orange-600 transition-all text-xs font-semibold flex items-center gap-1 shadow-2xs cursor-pointer"
-                    >
-                      <span>{REQUIREMENT_LABELS[reqKey] || reqKey}</span>
-                      <AppIcon name="arrow_forward" className="text-[10px]" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Price section */}
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col gap-2">

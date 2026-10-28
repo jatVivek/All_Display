@@ -32,6 +32,19 @@ export interface ProductVariation {
   options: ProductVariationOption[];
 }
 
+export type CategoryLevel = 1 | 2 | 3;
+
+export interface AdminCategory {
+  id: string;
+  name: string;
+  description: string;
+  image?: string;
+  parentId?: string | null; // null for Level 1 Root Category; parent Category ID for Level 2 Sub-Category; parent Sub-Category ID for Level 3 Child Category
+  level?: CategoryLevel; // 1 = Category, 2 = Sub-Category, 3 = Child Category
+  createdAt?: string;
+  sortOrder?: number;
+}
+
 export interface Product {
   id: string;
   code: string;
@@ -44,6 +57,8 @@ export interface Product {
   reviewCount?: number;
   loadCapacity: string;
   category: string;
+  subCategory?: string; // Optional Level 2 Sub-Category
+  childCategory?: string; // Optional Level 3 Child Category
   finish: string;
   structuralProfile: string;
   dispatchReadiness: string;
