@@ -452,6 +452,31 @@ export function generateUniqueSku(products: { code?: string }[], prefix?: string
   }
 }
 
+export function isBannedProductGlobal(p: any): boolean {
+  if (!p || typeof p !== 'object' || typeof p.id !== 'string') return true;
+  if (p.id.startsWith('vp-') || p.id.startsWith('prod-test-')) return true;
+  if (p.code === 'AD-VS-450') return true;
+  if (typeof p.title === 'string' && p.title.toLowerCase().includes('royal emerald suede portrait necklace bust')) return true;
+  return false;
+}
+
+export function isBannedCategoryGlobal(c: any): boolean {
+  if (!c || typeof c !== 'object' || typeof c.id !== 'string') return true;
+  if (c.id.startsWith('cat-test-') || c.id === 'cat-necklaces' || c.id === 'cat-portrait-busts' || c.id === 'cat-suede-busts') return true;
+  return false;
+}
+
+export function sanitizeProductGlobal(p: Product): Product {
+  if (!p || typeof p !== 'object') return p;
+  if (!p.variations || p.variations.length === 0) {
+    if (p.finishes) {
+      const { finishes: _f, ...rest } = p;
+      return rest as Product;
+    }
+  }
+  return p;
+}
+
 class CentralStoreService {
   private listeners: Set<StoreListener> = new Set();
   private apiConfigured = false;
@@ -543,38 +568,18 @@ class CentralStoreService {
     });
   }
 
-  public isBannedProduct = (p: any): boolean => {
-    if (!p || typeof p !== 'object' || typeof p.id !== 'string') return true;
-    if (p.id.startsWith('vp-') || p.id.startsWith('prod-test-')) return true;
-    if (p.code === 'AD-VS-450') return true;
-    if (typeof p.title === 'string' && p.title.toLowerCase().includes('royal emerald suede portrait necklace bust')) return true;
-    return false;
-  };
+  public isBannedProduct = (p: any): boolean => isBannedProductGlobal(p);
 
-  public isBannedCategory = (c: any): boolean => {
-    if (!c || typeof c !== 'object' || typeof c.id !== 'string') return true;
-    if (c.id.startsWith('cat-test-') || c.id === 'cat-necklaces' || c.id === 'cat-portrait-busts' || c.id === 'cat-suede-busts') return true;
-    return false;
-  };
+  public isBannedCategory = (c: any): boolean => isBannedCategoryGlobal(c);
 
-  public sanitizeProduct = (p: Product): Product => {
-    if (!p || typeof p !== 'object') return p;
-    // Strip injected/legacy static finishes if product has no variations
-    if (!p.variations || p.variations.length === 0) {
-      if (p.finishes) {
-        const { finishes: _f, ...rest } = p;
-        return rest as Product;
-      }
-    }
-    return p;
-  };
+  public sanitizeProduct = (p: Product): Product => sanitizeProductGlobal(p);
 
   /**
    * Generates a guaranteed-new and unique SKU code that does not collide
    * with any existing product in the catalog.
    */
   public generateUniqueSku = (prefix?: string): string => {
-    return generateUniqueSku(this.state.products, prefix);
+    return generateUniqueSku(this.state?.products || [], prefix);
   };
 
   public loadCustomProducts(): Product[] {
@@ -584,8 +589,8 @@ class CentralStoreService {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
           return parsed
-            .map(this.sanitizeProduct)
-            .filter((p) => !this.isBannedProduct(p));
+            .map((p) => sanitizeProductGlobal(p))
+            .filter((p) => !isBannedProductGlobal(p));
         }
       }
     } catch {}
@@ -594,7 +599,7 @@ class CentralStoreService {
 
   public saveCustomProducts(custom: Product[]): void {
     try {
-      const sanitized = custom.map(this.sanitizeProduct);
+      const sanitized = custom.map((p) => sanitizeProductGlobal(p));
       localStorage.setItem(STORAGE_KEYS.CUSTOM_PRODUCTS, JSON.stringify(sanitized));
     } catch (e) {
       console.warn('Could not persist custom products locally:', e);
@@ -623,7 +628,7 @@ class CentralStoreService {
       const stored = localStorage.getItem(STORAGE_KEYS.CUSTOM_CATEGORIES);
       if (stored !== null) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) return parsed.filter((c) => !this.isBannedCategory(c));
+        if (Array.isArray(parsed)) return parsed.filter((c) => !isBannedCategoryGlobal(c));
       }
     } catch {}
     return [];
@@ -631,7 +636,7 @@ class CentralStoreService {
 
   public saveCustomCategories(custom: AdminCategory[]): void {
     try {
-      localStorage.setItem(STORAGE_KEYS.CUSTOM_CATEGORIES, JSON.stringify(custom.filter((c) => !this.isBannedCategory(c))));
+      localStorage.setItem(STORAGE_KEYS.CUSTOM_CATEGORIES, JSON.stringify(custom.filter((c) => !isBannedCategoryGlobal(c))));
     } catch (e) {
       console.warn('Could not persist custom categories locally:', e);
     }
@@ -664,7 +669,7 @@ class CentralStoreService {
       if (stored !== null) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
-          base = parsed.filter((p) => !this.isBannedProduct(p));
+          base = parsed.filter((p) => !isBannedProductGlobal(p));
         }
       }
     } catch {}
@@ -672,19 +677,19 @@ class CentralStoreService {
     const map = new Map<string, Product>();
     // Custom added/edited products have highest priority
     custom.forEach((p) => {
-      if (!deleted.has(p.id) && !this.isBannedProduct(p)) {
+      if (!deleted.has(p.id) && !isBannedProductGlobal(p)) {
         map.set(p.id, p);
       }
     });
     base.forEach((p) => {
-      if (!map.has(p.id) && !deleted.has(p.id) && !this.isBannedProduct(p)) {
+      if (!map.has(p.id) && !deleted.has(p.id) && !isBannedProductGlobal(p)) {
         map.set(p.id, p);
       }
     });
 
     if (map.size === 0) {
       INITIAL_PRODUCTS.forEach((p) => {
-        if (!deleted.has(p.id) && !this.isBannedProduct(p)) {
+        if (!deleted.has(p.id) && !isBannedProductGlobal(p)) {
           map.set(p.id, p);
         }
       });
@@ -706,26 +711,26 @@ class CentralStoreService {
       if (stored !== null) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
-          base = parsed.filter((c) => !this.isBannedCategory(c));
+          base = parsed.filter((c) => !isBannedCategoryGlobal(c));
         }
       }
     } catch {}
 
     const map = new Map<string, AdminCategory>();
     custom.forEach((c) => {
-      if (!deleted.has(c.id) && !this.isBannedCategory(c)) {
+      if (!deleted.has(c.id) && !isBannedCategoryGlobal(c)) {
         map.set(c.id, c);
       }
     });
     base.forEach((c) => {
-      if (!map.has(c.id) && !deleted.has(c.id) && !this.isBannedCategory(c)) {
+      if (!map.has(c.id) && !deleted.has(c.id) && !isBannedCategoryGlobal(c)) {
         map.set(c.id, c);
       }
     });
 
     if (map.size === 0) {
       INITIAL_CATEGORIES.forEach((c) => {
-        if (!deleted.has(c.id) && !this.isBannedCategory(c)) {
+        if (!deleted.has(c.id) && !isBannedCategoryGlobal(c)) {
           map.set(c.id, c);
         }
       });
@@ -974,26 +979,26 @@ class CentralStoreService {
       if (catalog && Array.isArray(catalog.products)) {
         // 1. Process categories with full deletedCategories filter
         const rawServerCategories = Array.isArray(catalog.categories) ? catalog.categories : [];
-        const cleanServerCategories = rawServerCategories.filter(c => c && !this.isBannedCategory(c) && !deletedCategories.has(c.id));
+        const cleanServerCategories = rawServerCategories.filter(c => c && !isBannedCategoryGlobal(c) && !deletedCategories.has(c.id));
 
         const catMap = new Map<string, AdminCategory>();
         customCategories.forEach((c) => {
-          if (!deletedCategories.has(c.id) && !this.isBannedCategory(c)) catMap.set(c.id, c);
+          if (!deletedCategories.has(c.id) && !isBannedCategoryGlobal(c)) catMap.set(c.id, c);
         });
         cleanServerCategories.forEach((c) => {
-          if (!catMap.has(c.id) && !deletedCategories.has(c.id) && !this.isBannedCategory(c)) {
+          if (!catMap.has(c.id) && !deletedCategories.has(c.id) && !isBannedCategoryGlobal(c)) {
             catMap.set(c.id, c);
           }
         });
         // Include in-memory categories from current session
         this.state.categories.forEach((c) => {
-          if (c && !catMap.has(c.id) && !deletedCategories.has(c.id) && !this.isBannedCategory(c)) {
+          if (c && !catMap.has(c.id) && !deletedCategories.has(c.id) && !isBannedCategoryGlobal(c)) {
             catMap.set(c.id, c);
           }
         });
         if (catMap.size === 0 && catalog.catalogCleared !== true) {
           INITIAL_CATEGORIES.forEach((c) => {
-            if (!deletedCategories.has(c.id) && !this.isBannedCategory(c)) {
+            if (!deletedCategories.has(c.id) && !isBannedCategoryGlobal(c)) {
               catMap.set(c.id, c);
             }
           });
@@ -1021,30 +1026,30 @@ class CentralStoreService {
 
         // 2. Process products with full deletedProducts filter and customProducts merge
         const rawServerProducts = Array.isArray(catalog.products) ? catalog.products : [];
-        const cleanServerProducts = rawServerProducts.filter(p => p && !this.isBannedProduct(p) && !deletedProducts.has(p.id));
+        const cleanServerProducts = rawServerProducts.filter(p => p && !isBannedProductGlobal(p) && !deletedProducts.has(p.id));
 
         // Merge server products with local custom products and in-memory products so products NEVER disappear
         const prodMap = new Map<string, Product>();
         customProducts.forEach((p) => {
-          if (!deletedProducts.has(p.id) && !this.isBannedProduct(p)) {
+          if (!deletedProducts.has(p.id) && !isBannedProductGlobal(p)) {
             prodMap.set(p.id, p);
           }
         });
         cleanServerProducts.forEach((p) => {
-          if (!prodMap.has(p.id) && !deletedProducts.has(p.id) && !this.isBannedProduct(p)) {
+          if (!prodMap.has(p.id) && !deletedProducts.has(p.id) && !isBannedProductGlobal(p)) {
             prodMap.set(p.id, p);
           }
         });
         // Include in-memory products from current session
         this.state.products.forEach((p) => {
-          if (p && !prodMap.has(p.id) && !deletedProducts.has(p.id) && !this.isBannedProduct(p)) {
+          if (p && !prodMap.has(p.id) && !deletedProducts.has(p.id) && !isBannedProductGlobal(p)) {
             prodMap.set(p.id, p);
           }
         });
 
         if (prodMap.size === 0 && catalog.catalogCleared !== true) {
           INITIAL_PRODUCTS.forEach((p) => {
-            if (!deletedProducts.has(p.id) && !this.isBannedProduct(p)) {
+            if (!deletedProducts.has(p.id) && !isBannedProductGlobal(p)) {
               prodMap.set(p.id, p);
             }
           });
@@ -1453,8 +1458,8 @@ class CentralStoreService {
     }
 
     const sanitized = products
-      .map(this.sanitizeProduct)
-      .filter((p) => !this.isBannedProduct(p));
+      .map((p) => sanitizeProductGlobal(p))
+      .filter((p) => !isBannedProductGlobal(p));
     const sorted = this.sortNewestProductsFirst(sanitized);
 
     // Enforce SKU code uniqueness across all products (never allow repeated SKUs)
@@ -1494,7 +1499,7 @@ class CentralStoreService {
     }
 
     // Identify and persist any custom products safely to dedicated storage key
-    const custom = indexed.filter(p => !this.isBannedProduct(p));
+    const custom = indexed.filter(p => !isBannedProductGlobal(p));
     this.saveCustomProducts(custom);
 
     this.state = { ...this.state, products: indexed };
@@ -1637,7 +1642,7 @@ class CentralStoreService {
       this.saveDeletedCategoryIds(deleted);
     }
 
-    const custom = indexed.filter(c => !this.isBannedCategory(c));
+    const custom = indexed.filter(c => !isBannedCategoryGlobal(c));
     this.saveCustomCategories(custom);
 
     this.state = { ...this.state, categories: indexed };
