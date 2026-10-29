@@ -390,6 +390,7 @@ export default function App() {
       {/* Global Header */}
       <Header
         activeView={activeView}
+        selectedCategoryName={bannerCategoryName}
         setActiveView={navigateToView}
         onNavigateToShop={navigateToShop}
         onNavigateToSection={navigateToHomeSection}
@@ -401,7 +402,7 @@ export default function App() {
       <AuthDialog />
 
       {/* Main Screen Router */}
-      <main className="flex-1 w-full pt-18 sm:pt-20 xl:pt-36">
+      <main className="flex-1 w-full pt-18 sm:pt-20 lg:pt-36">
         {activeView === 'home' && (
           <HomeView
             setActiveView={navigateToView}

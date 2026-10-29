@@ -8,8 +8,9 @@ import { storeManager } from '../services/storeManager';
 
 interface HeaderProps {
   activeView: ActiveView;
+  selectedCategoryName?: string;
   setActiveView: (view: ActiveView) => void;
-  onNavigateToShop: () => void;
+  onNavigateToShop: (category?: string) => void;
   onNavigateToSection: (sectionId: string) => void;
   cart: CartItem[];
   onSearch?: (query: string) => void;
@@ -20,6 +21,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   activeView,
+  selectedCategoryName,
   setActiveView,
   onNavigateToShop,
   onNavigateToSection,
@@ -143,8 +145,8 @@ export const Header: React.FC<HeaderProps> = ({
     setMobileMenuOpen(false);
   };
 
-  const navigateTo = (view: ActiveView) => {
-    if (view === 'shop') onNavigateToShop();
+  const navigateTo = (view: ActiveView, category?: string) => {
+    if (view === 'shop') onNavigateToShop(category);
     else setActiveView(view);
     setMobileMenuOpen(false);
     setMobileSearchOpen(false);
@@ -449,57 +451,70 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Secondary Category Navigation Strip (Desktop) */}
-        <nav className="hidden lg:block border-t border-slate-100 bg-white">
+        <nav className="hidden lg:block border-t border-slate-100 bg-white shadow-2xs">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between text-xs font-semibold text-slate-700">
-            <div className="flex items-center gap-6 py-2.5">
+            <div className="flex items-center gap-6 py-2.5 overflow-x-auto no-scrollbar">
               <button
                 type="button"
                 onClick={() => navigateTo('home')}
-                className={`transition-colors hover:text-orange-600 cursor-pointer ${
-                  activeView === 'home' ? 'text-orange-600 font-bold' : ''
+                className={`transition-colors hover:text-orange-600 cursor-pointer whitespace-nowrap py-1 ${
+                  activeView === 'home' ? 'text-orange-600 font-bold border-b-2 border-orange-500' : ''
                 }`}
               >
                 Home
               </button>
               <button
                 type="button"
-                onClick={() => navigateTo('shop')}
-                className={`transition-colors hover:text-orange-600 cursor-pointer ${
-                  activeView === 'shop' ? 'text-orange-600 font-bold' : ''
+                onClick={() => navigateTo('shop', 'All Categories')}
+                className={`transition-colors hover:text-orange-600 cursor-pointer whitespace-nowrap py-1 ${
+                  activeView === 'shop' && (!selectedCategoryName || selectedCategoryName === 'All Categories')
+                    ? 'text-orange-600 font-bold border-b-2 border-orange-500'
+                    : ''
                 }`}
               >
                 All Shop Categories
               </button>
-              {activeCategories.slice(0, 6).map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => {
-                    if (onSearch) onSearch('');
-                    navigateTo('shop');
-                  }}
-                  className="transition-colors hover:text-orange-600 cursor-pointer"
-                >
-                  {cat.name}
-                </button>
-              ))}
+              {activeCategories.slice(0, 8).map((cat) => {
+                const isCatActive = activeView === 'shop' && selectedCategoryName === cat.name;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => {
+                      if (onSearch) onSearch('');
+                      navigateTo('shop', cat.name);
+                    }}
+                    className={`transition-colors hover:text-orange-600 cursor-pointer whitespace-nowrap py-1 ${
+                      isCatActive
+                        ? 'text-orange-600 font-bold border-b-2 border-orange-500'
+                        : 'text-slate-700 font-semibold'
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                );
+              })}
               <button
                 type="button"
                 onClick={() => navigateTo('custom-quote')}
-                className="transition-colors hover:text-orange-600 cursor-pointer"
+                className={`transition-colors hover:text-orange-600 cursor-pointer whitespace-nowrap py-1 ${
+                  activeView === 'custom-quote' ? 'text-orange-600 font-bold border-b-2 border-orange-500' : ''
+                }`}
               >
                 Custom Branding &amp; Bulk
               </button>
               <button
                 type="button"
-                onClick={() => navigateToSection('contact-us')}
-                className="transition-colors hover:text-orange-600 cursor-pointer"
+                onClick={() => navigateTo('contact')}
+                className={`transition-colors hover:text-orange-600 cursor-pointer whitespace-nowrap py-1 ${
+                  activeView === 'contact' ? 'text-orange-600 font-bold border-b-2 border-orange-500' : ''
+                }`}
               >
                 Contact &amp; Showroom
               </button>
             </div>
 
-            <div className="flex items-center gap-2 text-slate-500 font-medium text-[11px]">
+            <div className="flex items-center gap-2 text-slate-500 font-medium text-[11px] shrink-0 pl-4">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
               <span>Feel Khana Depot Online</span>
             </div>
@@ -545,27 +560,39 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               </form>
 
-              <div className="flex flex-col gap-3 text-sm font-semibold text-slate-800">
-                <button onClick={() => navigateTo('home')} className="text-left py-2 hover:text-orange-600">Home</button>
-                <button onClick={() => navigateTo('shop')} className="text-left py-2 hover:text-orange-600">All Products</button>
-                <button onClick={() => { onOpenWishlist(); setMobileMenuOpen(false); }} className="text-left py-2 hover:text-orange-600 flex items-center justify-between">
+              <div className="flex flex-col gap-2.5 text-sm font-semibold text-slate-800">
+                <button onClick={() => navigateTo('home')} className="text-left py-1.5 hover:text-orange-600">Home</button>
+                <button onClick={() => navigateTo('shop', 'All Categories')} className="text-left py-1.5 hover:text-orange-600">All Products</button>
+                {activeCategories.slice(0, 6).map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => {
+                      if (onSearch) onSearch('');
+                      navigateTo('shop', cat.name);
+                    }}
+                    className="text-left py-1 pl-3 text-xs text-slate-600 hover:text-orange-600 border-l-2 border-orange-200"
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+                <button onClick={() => { onOpenWishlist(); setMobileMenuOpen(false); }} className="text-left py-1.5 hover:text-orange-600 flex items-center justify-between">
                   <span>My Wishlist</span>
                   <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full text-xs">{wishlistCount}</span>
                 </button>
-                <button onClick={() => { handleAccountClick(); setMobileMenuOpen(false); }} className="text-left py-2 hover:text-orange-600">
+                <button onClick={() => { handleAccountClick(); setMobileMenuOpen(false); }} className="text-left py-1.5 hover:text-orange-600">
                   {user ? `My Account (${user.name})` : 'Sign In'}
                 </button>
                 {user && (
                   <button
                     onClick={() => { logout(); setMobileMenuOpen(false); }}
-                    className="text-left py-2 text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1.5 cursor-pointer"
+                    className="text-left py-1.5 text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1.5 cursor-pointer"
                   >
                     <AppIcon name="logout" className="text-sm" />
                     <span>Sign Out ({user.name})</span>
                   </button>
                 )}
-                <button onClick={() => navigateTo('custom-quote')} className="text-left py-2 hover:text-orange-600">Custom Bulk Quotes</button>
-                <button onClick={() => navigateToSection('contact-us')} className="text-left py-2 hover:text-orange-600">Contact &amp; Feel Khana Depot</button>
+                <button onClick={() => navigateTo('custom-quote')} className="text-left py-1.5 hover:text-orange-600">Custom Bulk Quotes</button>
+                <button onClick={() => navigateTo('contact')} className="text-left py-1.5 hover:text-orange-600">Contact &amp; Showroom</button>
               </div>
             </div>
 
