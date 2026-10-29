@@ -29,7 +29,7 @@ The Express server serves the catalog API and the built React app from one origi
    Open `http://localhost:3000`. Vite proxies `/api` requests to Express on port `3001`. Express creates the users, auth-sessions, catalog, business-settings, and homepage-banner tables automatically at startup; `schema.sql` is also provided if you want to create them manually.
 5. Sign into `/admin` with the `ADMIN_PASSWORD` from `.env`.
 
-On the first successful admin sign-in, if the MySQL catalog is empty, the app copies the catalog saved in this browser into MySQL. If this browser has no saved catalog yet, the sample catalog is used. Existing business settings saved in the admin browser are also copied to MySQL if no shared settings exist. Other devices subsequently read the shared catalog and business settings.
+On first use, the server seeds the sample catalog into MySQL only when both catalog tables are empty. It records that initialization in `catalog_state`; after that, the shared catalog is authoritative, including when products or categories are intentionally empty. It will not refill a catalog from local or bundled sample data after an admin deletes items. Existing business settings saved in the admin browser are copied to MySQL if no shared settings exist. Other devices subsequently read the shared catalog and business settings.
 
 In the product editor, choose image files from the device or add an HTTP(S) image URL. Product videos can also be uploaded (MP4, WebM, or MOV, up to 50 MB) or linked by URL. Uploaded media is stored under `public/uploads` and its URL is saved with the product record. Back up this folder along with the MySQL database; database backups alone do not include uploaded images or videos.
 

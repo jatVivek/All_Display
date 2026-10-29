@@ -1402,13 +1402,24 @@ class CentralStoreService {
 
   private async loadSharedCatalog() {
     try {
-      const catalog = await this.apiRequest<{ products: Product[]; categories: AdminCategory[]; catalogCleared?: boolean }>('/api/catalog');
-      const customProducts = this.loadCustomProducts();
-      const deletedProducts = this.loadDeletedProductIds();
-      const customCategories = this.loadCustomCategories();
-      const deletedCategories = this.loadDeletedCategoryIds();
+      const catalog = await this.apiRequest<{
+        products: Product[];
+        categories: AdminCategory[];
+        catalogCleared?: boolean;
+        catalogInitialized?: boolean;
+      }>('/api/catalog');
+      const catalogIsAuthoritative = catalog.catalogInitialized === true;
+      const customProducts = catalogIsAuthoritative ? [] : this.loadCustomProducts();
+      const deletedProducts = catalogIsAuthoritative ? new Set<string>() : this.loadDeletedProductIds();
+      const customCategories = catalogIsAuthoritative ? [] : this.loadCustomCategories();
+      const deletedCategories = catalogIsAuthoritative ? new Set<string>() : this.loadDeletedCategoryIds();
 
       if (catalog && Array.isArray(catalog.products)) {
+        if (catalogIsAuthoritative) {
+          this.saveDeletedProductIds(new Set());
+          this.saveDeletedCategoryIds(new Set());
+        }
+
         // 1. Process categories with full deletedCategories filter
         const rawServerCategories = Array.isArray(catalog.categories) ? catalog.categories : [];
         const cleanServerCategories = rawServerCategories.filter(c => c && !isBannedCategoryGlobal(c) && !deletedCategories.has(c.id));
@@ -1423,12 +1434,14 @@ class CentralStoreService {
           }
         });
         // Include in-memory categories from current session
-        this.state.categories.forEach((c) => {
-          if (c && !catMap.has(c.id) && !deletedCategories.has(c.id) && !isBannedCategoryGlobal(c)) {
-            catMap.set(c.id, c);
-          }
-        });
-        if (catMap.size === 0 && catalog.catalogCleared !== true) {
+        if (!catalogIsAuthoritative) {
+          this.state.categories.forEach((c) => {
+            if (c && !catMap.has(c.id) && !deletedCategories.has(c.id) && !isBannedCategoryGlobal(c)) {
+              catMap.set(c.id, c);
+            }
+          });
+        }
+        if (!catalogIsAuthoritative && catMap.size === 0 && catalog.catalogCleared !== true) {
           INITIAL_CATEGORIES.forEach((c) => {
             if (!deletedCategories.has(c.id) && !isBannedCategoryGlobal(c)) {
               catMap.set(c.id, c);
@@ -1441,6 +1454,7 @@ class CentralStoreService {
           try {
             localStorage.setItem(STORAGE_KEYS.CATEGORIES_CLEARED, '1');
             localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify([]));
+            if (catalogIsAuthoritative) this.saveCustomCategories([]);
           } catch {}
         } else {
           try {
@@ -1451,7 +1465,8 @@ class CentralStoreService {
         }
 
         // If server had categories that were deleted locally, sync server immediately
-        const missingOnServerCategories = cleanServerCategories.length < rawServerCategories.length;
+        const missingOnServerCategories = !catalogIsAuthoritative &&
+          cleanServerCategories.length < rawServerCategories.length;
         if (missingOnServerCategories && this.adminAuthenticated) {
           void this.persistCatalog();
         }
@@ -1473,13 +1488,15 @@ class CentralStoreService {
           }
         });
         // Include in-memory products from current session
-        this.state.products.forEach((p) => {
-          if (p && !prodMap.has(p.id) && !deletedProducts.has(p.id) && !isBannedProductGlobal(p)) {
-            prodMap.set(p.id, p);
-          }
-        });
+        if (!catalogIsAuthoritative) {
+          this.state.products.forEach((p) => {
+            if (p && !prodMap.has(p.id) && !deletedProducts.has(p.id) && !isBannedProductGlobal(p)) {
+              prodMap.set(p.id, p);
+            }
+          });
+        }
 
-        if (prodMap.size === 0 && catalog.catalogCleared !== true) {
+        if (!catalogIsAuthoritative && prodMap.size === 0 && catalog.catalogCleared !== true) {
           INITIAL_PRODUCTS.forEach((p) => {
             if (!deletedProducts.has(p.id) && !isBannedProductGlobal(p)) {
               prodMap.set(p.id, p);
@@ -1493,6 +1510,7 @@ class CentralStoreService {
           try {
             localStorage.setItem(STORAGE_KEYS.CATALOG_CLEARED, '1');
             localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
+            if (catalogIsAuthoritative) this.saveCustomProducts([]);
           } catch {}
         } else {
           try {
@@ -1513,7 +1531,8 @@ class CentralStoreService {
 
         // If server is missing custom items (e.g. cold lambda worker), sync them to server immediately!
         const serverProdIds = new Set(cleanServerProducts.map(p => p.id));
-        const missingOnServer = sortedProducts.some(p => !serverProdIds.has(p.id));
+        const missingOnServer = !catalogIsAuthoritative &&
+          sortedProducts.some(p => !serverProdIds.has(p.id));
         if (missingOnServer && sortedProducts.length > 0) {
           void this.persistCatalog();
         }

@@ -326,6 +326,7 @@ const memoryStore = {
   users: [...SEED_USERS],
   sessions: new Map(),
   catalogCleared: false,
+  catalogInitialized: false,
 };
 
 function isBannedProduct(p) {
@@ -354,6 +355,7 @@ function loadDiskCatalog() {
         memoryStore.products = [];
         memoryStore.categories = [];
         memoryStore.catalogCleared = true;
+        memoryStore.catalogInitialized = true;
         return;
       }
       if (Array.isArray(data?.products)) {
@@ -363,6 +365,10 @@ function loadDiskCatalog() {
         memoryStore.categories = data.categories.filter(c => !isBannedCategory(c));
       }
       memoryStore.catalogCleared = Boolean(data?.catalogCleared);
+      memoryStore.catalogInitialized = data?.catalogInitialized === true ||
+        memoryStore.catalogCleared ||
+        (memoryStore.products || []).length > 0 ||
+        (memoryStore.categories || []).length > 0;
     }
   } catch {}
 }
@@ -372,6 +378,7 @@ function saveDiskCatalog() {
       products: memoryStore.products,
       categories: memoryStore.categories,
       catalogCleared: memoryStore.catalogCleared === true,
+      catalogInitialized: memoryStore.catalogInitialized === true,
     }, null, 2);
     writeFileSync(catalogDiskCachePath, payload);
     if (catalogSeedPath !== catalogDiskCachePath) {
@@ -1302,11 +1309,11 @@ app.get('/api/catalog', async (_request, response, next) => {
   response.setHeader('Expires', '0');
 
   if (!pool) {
-    if ((!memoryStore.products || memoryStore.products.length < 10 || !memoryStore.products.some(p => p.subCategory)) && memoryStore.catalogCleared !== true) {
+    if (!memoryStore.catalogInitialized) {
       loadDiskCatalog();
-    }
-    if ((!memoryStore.categories || memoryStore.categories.length < 30) && memoryStore.catalogCleared !== true) {
-      loadDiskCatalog();
+      memoryStore.catalogInitialized = Boolean(
+        memoryStore.products?.length || memoryStore.categories?.length || memoryStore.catalogCleared
+      );
     }
     const filteredProducts = (memoryStore.products || []).filter(p => !isBannedProduct(p));
     const filteredCategories = (memoryStore.categories || []).filter(c => !isBannedCategory(c));
@@ -1314,9 +1321,58 @@ app.get('/api/catalog', async (_request, response, next) => {
       products: sortNewestRecordsFirst(filteredProducts, 'prod-'),
       categories: sortNewestRecordsFirst(filteredCategories, 'cat-'),
       catalogCleared: memoryStore.catalogCleared === true,
+      catalogInitialized: memoryStore.catalogInitialized === true,
     });
   }
   try {
+    if (!(await schemaReady)) {
+      throw new Error('Database schema initialization failed.');
+    }
+
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+      await connection.query('INSERT IGNORE INTO catalog_state (id, initialized) VALUES (1, 0)');
+      const [stateRows] = await connection.query(
+        'SELECT initialized FROM catalog_state WHERE id = 1 FOR UPDATE'
+      );
+      if (Number(stateRows[0]?.initialized) !== 1) {
+        const [productCountRows] = await connection.query(
+          'SELECT COUNT(*) AS count FROM catalog_products'
+        );
+        const [categoryCountRows] = await connection.query(
+          'SELECT COUNT(*) AS count FROM catalog_categories'
+        );
+        const isNewCatalog = Number(productCountRows[0]?.count) === 0 &&
+          Number(categoryCountRows[0]?.count) === 0;
+
+        if (isNewCatalog) {
+          const seedProducts = (memoryStore.products || []).filter(p => !isBannedProduct(p));
+          const seedCategories = (memoryStore.categories || []).filter(c => !isBannedCategory(c));
+          if (seedProducts.length > 0) {
+            await connection.query(
+              'INSERT INTO catalog_products (id, data) VALUES ?',
+              [seedProducts.map(({ id, ...data }, index) => [id, JSON.stringify({ ...data, sortOrder: index })])]
+            );
+          }
+          if (seedCategories.length > 0) {
+            await connection.query(
+              'INSERT INTO catalog_categories (id, data) VALUES ?',
+              [seedCategories.map(({ id, ...data }, index) => [id, JSON.stringify({ ...data, sortOrder: index })])]
+            );
+          }
+        }
+
+        await connection.query('UPDATE catalog_state SET initialized = 1 WHERE id = 1');
+      }
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+
     const [products, categories] = await Promise.all([
       pool.query('SELECT id, data FROM catalog_products'),
       pool.query('SELECT id, data FROM catalog_categories'),
@@ -1335,27 +1391,6 @@ app.get('/api/catalog', async (_request, response, next) => {
       }
       return { ...data, id: row.id };
     }).filter(c => !isBannedCategory(c));
-
-    // If database was wiped or has less than the catalog seed products, merge and re-seed from disk cache!
-    if (parsedProducts.length < 10) {
-      if ((!memoryStore.products || memoryStore.products.length === 0) && memoryStore.catalogCleared !== true) {
-        loadDiskCatalog();
-      }
-      if (memoryStore.products && memoryStore.products.length > 0) {
-        const seedProducts = memoryStore.products.filter(p => !isBannedProduct(p));
-        const dbProductIds = new Set(parsedProducts.map(p => p.id));
-        const missingSeed = seedProducts.filter(p => !dbProductIds.has(p.id));
-        if (missingSeed.length > 0) {
-          parsedProducts = [...parsedProducts, ...missingSeed];
-          try {
-            const insertPayload = missingSeed.map(({ id, ...data }, index) => [id, JSON.stringify({ ...data, sortOrder: index })]);
-            if (insertPayload.length > 0) {
-              pool.query('INSERT INTO catalog_products (id, data) VALUES ? ON DUPLICATE KEY UPDATE data = VALUES(data)', [insertPayload]).catch(() => {});
-            }
-          } catch {}
-        }
-      }
-    }
 
     // Ensure products in database have subCategory and childCategory fields if missing
     if (parsedProducts.length > 0 && !parsedProducts.some(p => p.subCategory)) {
@@ -1386,31 +1421,11 @@ app.get('/api/catalog', async (_request, response, next) => {
       }
     }
 
-    // If database has fewer than the full categories hierarchy (63 categories), merge and re-seed from disk cache!
-    if (parsedCategories.length < 30) {
-      if (!memoryStore.categories || memoryStore.categories.length < 30) {
-        loadDiskCatalog();
-      }
-      if (memoryStore.categories && memoryStore.categories.length > 0) {
-        const seedCategories = memoryStore.categories.filter(c => !isBannedCategory(c));
-        const dbCatIds = new Set(parsedCategories.map(c => c.id));
-        const missingCats = seedCategories.filter(c => !dbCatIds.has(c.id));
-        if (missingCats.length > 0) {
-          parsedCategories = [...parsedCategories, ...missingCats];
-          try {
-            const insertCatPayload = missingCats.map(({ id, ...data }, index) => [id, JSON.stringify({ ...data, sortOrder: index })]);
-            if (insertCatPayload.length > 0) {
-              pool.query('INSERT INTO catalog_categories (id, data) VALUES ? ON DUPLICATE KEY UPDATE data = VALUES(data)', [insertCatPayload]).catch(() => {});
-            }
-          } catch {}
-        }
-      }
-    }
-
     response.json({
       products: sortNewestRecordsFirst(parsedProducts, 'prod-'),
       categories: sortNewestRecordsFirst(parsedCategories, 'cat-'),
-      catalogCleared: false,
+      catalogCleared: parsedProducts.length === 0 && parsedCategories.length === 0,
+      catalogInitialized: true,
     });
   } catch (error) {
     next(error);
@@ -2077,6 +2092,7 @@ app.put('/api/catalog', requireSameOrigin, requireAdmin, requireDatabase, async 
     memoryStore.products = uniqueProducts;
     memoryStore.categories = categories.filter(c => !isBannedCategory(c));
     memoryStore.catalogCleared = Boolean(request.body?.catalogCleared);
+    memoryStore.catalogInitialized = true;
     saveDiskCatalog();
     return response.json({ saved: true });
   }
@@ -2104,6 +2120,9 @@ app.put('/api/catalog', requireSameOrigin, requireAdmin, requireDatabase, async 
         await connection.query(`DELETE FROM ${table}`);
       }
     }
+    await connection.query(
+      'INSERT INTO catalog_state (id, initialized) VALUES (1, 1) ON DUPLICATE KEY UPDATE initialized = VALUES(initialized)'
+    );
     await connection.commit();
     response.json({ saved: true });
   } catch (error) {
@@ -2171,6 +2190,11 @@ if (pool) {
     CREATE TABLE IF NOT EXISTS catalog_categories (
       id VARCHAR(191) PRIMARY KEY,
       data JSON NOT NULL
+    ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
+  `)).then(() => pool.query(`
+    CREATE TABLE IF NOT EXISTS catalog_state (
+      id TINYINT UNSIGNED PRIMARY KEY,
+      initialized TINYINT(1) NOT NULL DEFAULT 0
     ) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
   `)).then(() => pool.query(`
     CREATE TABLE IF NOT EXISTS business_settings (
