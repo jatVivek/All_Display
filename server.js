@@ -2133,8 +2133,7 @@ if (existsSync(buildDirectory)) {
   });
 }
 
-const isMainScript = Boolean(process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]));
-if (!process.env.VERCEL && isMainScript) {
+if (!process.env.VERCEL) {
   app.listen(port, () => {
     console.log(`All Display API listening on port ${port}`);
   });
