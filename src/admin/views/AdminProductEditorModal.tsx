@@ -211,7 +211,8 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
       try {
         const formData = new FormData();
         formData.append('video', file);
-        const adminToken = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('alldisplay_admin_token') : null;
+        const adminToken = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('alldisplay_admin_token') : null)
+          || (typeof localStorage !== 'undefined' ? localStorage.getItem('alldisplay_admin_token') : null);
         const response = await fetch('/api/admin/video-uploads', {
           method: 'POST',
           credentials: 'same-origin',

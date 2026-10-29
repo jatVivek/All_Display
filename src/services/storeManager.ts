@@ -692,7 +692,6 @@ class CentralStoreService {
           try {
             localStorage.setItem(STORAGE_KEYS.CATEGORIES_CLEARED, '1');
             localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify([]));
-            localStorage.removeItem(STORAGE_KEYS.CUSTOM_CATEGORIES);
           } catch {}
         } else {
           try {
@@ -703,7 +702,8 @@ class CentralStoreService {
 
         // If server had categories that were deleted locally, sync server immediately
         const missingOnServerCategories = cleanServerCategories.length < rawServerCategories.length;
-        if (missingOnServerCategories && this.adminAuthenticated) {
+        const hasAdminAuth = this.adminAuthenticated || (typeof localStorage !== 'undefined' && Boolean(localStorage.getItem('alldisplay_admin_token')));
+        if (missingOnServerCategories && hasAdminAuth) {
           void this.persistCatalog();
         }
 
@@ -730,7 +730,6 @@ class CentralStoreService {
           try {
             localStorage.setItem(STORAGE_KEYS.CATALOG_CLEARED, '1');
             localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
-            localStorage.removeItem(STORAGE_KEYS.CUSTOM_PRODUCTS);
           } catch {}
         } else {
           try {
@@ -751,7 +750,7 @@ class CentralStoreService {
         // If server is missing custom items (e.g. cold lambda container), sync them to server immediately!
         const serverProdIds = new Set(cleanServerProducts.map(p => p.id));
         const missingOnServer = customProducts.some(p => !serverProdIds.has(p.id));
-        if (missingOnServer && sortedProducts.length > 0 && this.adminAuthenticated) {
+        if (missingOnServer && sortedProducts.length > 0 && hasAdminAuth) {
           void this.persistCatalog();
         }
       }
@@ -869,6 +868,12 @@ class CentralStoreService {
 
   private async refreshCatalog() {
     try {
+      const savedToken = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('alldisplay_admin_token') : null)
+        || (typeof localStorage !== 'undefined' ? localStorage.getItem('alldisplay_admin_token') : null);
+      if (savedToken) {
+        this.adminAuthenticated = true;
+        void this.getAdminRole();
+      }
       const status = await this.apiRequest<{ configured: boolean; connected: boolean; mode?: string }>('/api/health');
       this.apiConfigured = true;
       if (status.connected) {
@@ -890,7 +895,8 @@ class CentralStoreService {
   }
 
   private async apiRequest<T>(url: string, options: RequestInit = {}): Promise<T> {
-    const token = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('alldisplay_admin_token') : null;
+    const token = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('alldisplay_admin_token') : null)
+      || (typeof localStorage !== 'undefined' ? localStorage.getItem('alldisplay_admin_token') : null);
     const response = await fetch(url, {
       ...options,
       credentials: 'same-origin',
@@ -935,6 +941,7 @@ class CentralStoreService {
         body: JSON.stringify({
           products: this.state.products,
           categories: this.state.categories,
+          catalogCleared: this.state.products.length === 0,
         }),
       });
       this.state = { ...this.state, catalogSyncStatus: 'connected', catalogSyncError: null };
@@ -957,8 +964,13 @@ class CentralStoreService {
       headers: { 'X-Admin-Request': '1' },
       body: JSON.stringify({ password }),
     });
-    if (res?.token && typeof sessionStorage !== 'undefined') {
-      sessionStorage.setItem('alldisplay_admin_token', res.token);
+    if (res?.token) {
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.setItem('alldisplay_admin_token', res.token);
+      }
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('alldisplay_admin_token', res.token);
+      }
     }
     this.apiConfigured = true;
     this.adminAuthenticated = true;
@@ -1030,6 +1042,9 @@ class CentralStoreService {
     this.adminAuthenticated = false;
     if (typeof sessionStorage !== 'undefined') {
       sessionStorage.removeItem('alldisplay_admin_token');
+    }
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('alldisplay_admin_token');
     }
     await this.apiRequest('/api/admin/logout', {
       method: 'POST',

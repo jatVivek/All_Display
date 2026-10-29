@@ -201,7 +201,7 @@ function loadDiskCatalog() {
       if (Array.isArray(data?.categories)) {
         memoryStore.categories = data.categories;
       }
-      memoryStore.catalogCleared = (memoryStore.products.length === 0);
+      memoryStore.catalogCleared = Boolean(data?.catalogCleared);
     }
   } catch {}
 }
@@ -1094,7 +1094,7 @@ function sortNewestRecordsFirst(records, idPrefix = 'prod-') {
 
 app.get('/api/catalog', async (_request, response, next) => {
   if (!pool) {
-    if ((!memoryStore.products || memoryStore.products.length === 0) && !memoryStore.catalogCleared) {
+    if ((!memoryStore.products || memoryStore.products.length === 0) && memoryStore.catalogCleared !== true) {
       loadDiskCatalog();
     }
     return response.json({
@@ -1125,7 +1125,7 @@ app.get('/api/catalog', async (_request, response, next) => {
     response.json({
       products: sortNewestRecordsFirst(parsedProducts, 'prod-'),
       categories: sortNewestRecordsFirst(parsedCategories, 'cat-'),
-      catalogCleared: parsedProducts.length === 0,
+      catalogCleared: false,
     });
   } catch (error) {
     next(error);
@@ -1719,7 +1719,7 @@ app.put('/api/catalog', requireSameOrigin, requireAdmin, async (request, respons
   if (!pool) {
     memoryStore.products = products;
     memoryStore.categories = categories;
-    memoryStore.catalogCleared = (products.length === 0);
+    memoryStore.catalogCleared = Boolean(request.body?.catalogCleared);
     saveDiskCatalog();
     return response.json({ saved: true });
   }
