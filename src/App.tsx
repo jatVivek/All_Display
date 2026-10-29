@@ -96,6 +96,12 @@ export default function App() {
     defaultCategories[getRouteFromLocation().view] ||
     'All Categories'
   ));
+  const [bannerSubCategoryName, setBannerSubCategoryName] = useState(() => (
+    new URLSearchParams(window.location.search).get('subCategory') || ''
+  ));
+  const [bannerChildCategoryName, setBannerChildCategoryName] = useState(() => (
+    new URLSearchParams(window.location.search).get('childCategory') || ''
+  ));
   const [bannerProductId, setBannerProductId] = useState<string | null>(() => (
     new URLSearchParams(window.location.search).get('product')
   ));
@@ -182,6 +188,8 @@ export default function App() {
     pendingScrollPositionRef.current = null;
     const params = new URLSearchParams(path.split('?')[1] || '');
     setBannerCategoryName(params.get('category') || defaultCategories[view] || 'All Categories');
+    setBannerSubCategoryName(params.get('subCategory') || '');
+    setBannerChildCategoryName(params.get('childCategory') || '');
     setBannerProductId(params.get('product'));
     setActiveView(view);
   };
@@ -195,6 +203,8 @@ export default function App() {
         ? null
         : typeof event.state?.scrollY === 'number' ? event.state.scrollY : null;
       setBannerCategoryName(params.get('category') || defaultCategories[route.view] || 'All Categories');
+      setBannerSubCategoryName(params.get('subCategory') || '');
+      setBannerChildCategoryName(params.get('childCategory') || '');
       setBannerProductId(params.get('product'));
       setActiveView(route.view);
       if (route.view === 'pdp' && window.location.pathname.startsWith('/products/')) {
@@ -239,10 +249,17 @@ export default function App() {
     setActiveView('home');
   };
 
-  const navigateToShop = (category = 'All Categories') => {
+  const navigateToShop = (category = 'All Categories', subCategory = '', childCategory = '') => {
     setBannerCategoryName(category);
+    setBannerSubCategoryName(subCategory);
+    setBannerChildCategoryName(childCategory);
     setBannerProductId(null);
-    navigateToView('shop', category !== 'All Categories' ? `/shop?category=${encodeURIComponent(category)}` : '/shop');
+    const params = new URLSearchParams();
+    if (category && category !== 'All Categories') params.set('category', category);
+    if (subCategory) params.set('subCategory', subCategory);
+    if (childCategory) params.set('childCategory', childCategory);
+    const q = params.toString();
+    navigateToView('shop', q ? `/shop?${q}` : '/shop');
   };
 
   const handleSelectProduct = (product: Product) => {
@@ -427,6 +444,8 @@ export default function App() {
             cartCount={cart.length}
             cartSubtotal={rawSubtotal}
             initialCategoryName={bannerCategoryName}
+            initialSubCategoryName={bannerSubCategoryName}
+            initialChildCategoryName={bannerChildCategoryName}
             initialProductId={bannerProductId}
             showAllProducts={activeView === 'shop'}
           />

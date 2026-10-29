@@ -17,6 +17,11 @@ export const VideoReelModal: React.FC<VideoReelModalProps> = ({ reel, onClose })
 
   if (!reel) return null;
 
+  const hasEngagementMetrics = Boolean(reel.metrics.reach || reel.metrics.saves || reel.metrics.shares);
+  const hasFixtureSpecs = Boolean(
+    reel.specs || reel.metrics.racksInstalled || reel.metrics.capacity || reel.metrics.finishType
+  );
+
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200 touch-none"
@@ -94,28 +99,55 @@ export const VideoReelModal: React.FC<VideoReelModalProps> = ({ reel, onClose })
               {reel.description}
             </p>
 
-            {/* Spec Ledger */}
-            <div className="bg-black/40 rounded-xl p-3.5 flex flex-col gap-2 text-xs border border-white/10">
-              <span className="text-[10px] font-bold uppercase text-[#ffdf98] tracking-wider">
-                Store Fixture Specification Manifest
-              </span>
-              <div className="flex justify-between py-1 border-b border-white/5">
-                <span className="text-white/60">Floor Display Units:</span>
-                <span className="font-semibold text-white">{reel.specs?.floorUnits || reel.metrics?.racksInstalled || 'Standard'}</span>
+            {(!hasEngagementMetrics || hasFixtureSpecs) && (
+              <div className="bg-black/40 rounded-xl p-3.5 flex flex-col gap-2 text-xs border border-white/10">
+                <span className="text-[10px] font-bold uppercase text-[#ffdf98] tracking-wider">
+                  Store Fixture Specification Manifest
+                </span>
+                <div className="flex justify-between py-1 border-b border-white/5">
+                  <span className="text-white/60">Floor Display Units:</span>
+                  <span className="font-semibold text-white">{reel.specs?.floorUnits || reel.metrics.racksInstalled || 'Standard'}</span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-white/5">
+                  <span className="text-white/60">Wall Slot Channels:</span>
+                  <span className="font-semibold text-white">{reel.specs?.wallSlotChannels || reel.metrics.capacity || 'Standard'}</span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-white/5">
+                  <span className="text-white/60">Special Configuration:</span>
+                  <span className="font-semibold text-white">{reel.specs?.special || reel.metrics.finishType || 'Custom'}</span>
+                </div>
+                <div className="flex justify-between py-1">
+                  <span className="text-white/60">Turnkey Execution:</span>
+                  <span className="font-semibold text-[#25D366]">{reel.turnkeyTime}</span>
+                </div>
               </div>
-              <div className="flex justify-between py-1 border-b border-white/5">
-                <span className="text-white/60">Wall Slot Channels:</span>
-                <span className="font-semibold text-white">{reel.specs?.wallSlotChannels || reel.metrics?.capacity || 'Standard'}</span>
+            )}
+
+            {hasEngagementMetrics && (
+              <div className="bg-black/40 rounded-xl p-3.5 flex flex-col gap-2 text-xs border border-white/10">
+                <span className="text-[10px] font-bold uppercase text-[#ffdf98] tracking-wider">
+                  Reel Engagement
+                </span>
+                {reel.metrics.reach && (
+                  <div className="flex justify-between py-1 border-b border-white/5">
+                    <span className="text-white/60">Views:</span>
+                    <span className="font-semibold text-white">{reel.metrics.reach}</span>
+                  </div>
+                )}
+                {reel.metrics.saves && (
+                  <div className="flex justify-between py-1 border-b border-white/5">
+                    <span className="text-white/60">Saves:</span>
+                    <span className="font-semibold text-white">{reel.metrics.saves}</span>
+                  </div>
+                )}
+                {reel.metrics.shares && (
+                  <div className="flex justify-between py-1">
+                    <span className="text-white/60">Shares:</span>
+                    <span className="font-semibold text-white">{reel.metrics.shares}</span>
+                  </div>
+                )}
               </div>
-              <div className="flex justify-between py-1 border-b border-white/5">
-                <span className="text-white/60">Special Configuration:</span>
-                <span className="font-semibold text-white">{reel.specs?.special || reel.metrics?.finishType || 'Custom'}</span>
-              </div>
-              <div className="flex justify-between py-1">
-                <span className="text-white/60">Turnkey Execution:</span>
-                <span className="font-semibold text-[#25D366]">{reel.turnkeyTime}</span>
-              </div>
-            </div>
+            )}
 
             {/* Finish swatches */}
             <div className="flex items-center gap-3">

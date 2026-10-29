@@ -20,6 +20,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
     { id: 'bridal', label: 'Bridal & Heavy Ethnic' },
     { id: 'streetwear', label: "Men's Casual & Denim" },
     { id: 'boutiques', label: 'Designer Boutiques' },
+    { id: 'showrooms', label: 'Showrooms' },
     { id: 'wholesale', label: 'Wholesale Depots & Godowns' },
     { id: 'wall-channel', label: 'Wall Channel Fit-Outs' },
   ];

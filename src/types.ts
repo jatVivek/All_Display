@@ -135,17 +135,20 @@ export interface ProjectReel {
   area: string;
   duration: string;
   reelLikes?: string;
-  category: 'bridal' | 'streetwear' | 'boutiques' | 'wholesale' | 'wall-channel';
+  category: 'bridal' | 'streetwear' | 'boutiques' | 'showrooms' | 'wholesale' | 'wall-channel';
   categoryLabel: string;
   description: string;
   turnkeyTime: string;
   image: string;
   metrics: {
-    racksInstalled: string;
-    capacity: string;
-    finishType: string;
+    racksInstalled?: string;
+    capacity?: string;
+    finishType?: string;
+    reach?: string;
+    saves?: string;
+    shares?: string;
   };
-  clientQuote: string;
+  clientQuote?: string;
   specs?: {
     floorUnits: string;
     wallSlotChannels: string;

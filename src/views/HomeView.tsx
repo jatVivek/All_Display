@@ -147,6 +147,21 @@ export const HomeView: React.FC<HomeViewProps> = ({
     });
   }, [categories, products, initialCatIds]);
 
+  // Popular Sub-Categories for fast exploration
+  const popularSubCategories = useMemo(() => {
+    const subs = categories.filter((c) => c.level === 2);
+    return subs.map((sub) => {
+      const parent = categories.find((c) => c.id === sub.parentId);
+      const parentName = parent ? parent.name : '';
+      const count = products.filter((p) => p.subCategory && p.subCategory.toLowerCase() === sub.name.toLowerCase()).length;
+      return {
+        ...sub,
+        parentName,
+        count
+      };
+    }).filter(s => s.count > 0).slice(0, 12);
+  }, [categories, products]);
+
   // All Products List
   const allProductsList = products;
 
@@ -231,6 +246,32 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </button>
               ))}
             </div>
+
+            {/* Quick Sub-Categories Exploration Strip */}
+            {popularSubCategories.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-slate-200/60 flex items-center gap-2 overflow-x-auto no-scrollbar">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-1">
+                  <AppIcon name="filter_list" className="text-xs text-orange-500" />
+                  <span>Popular Sub-Categories:</span>
+                </span>
+                {popularSubCategories.map((sub) => (
+                  <button
+                    key={sub.id}
+                    type="button"
+                    onClick={() => {
+                      const params = new URLSearchParams();
+                      if (sub.parentName) params.set('category', sub.parentName);
+                      params.set('subCategory', sub.name);
+                      setActiveView('shop', `/shop?${params.toString()}`);
+                    }}
+                    className="shrink-0 px-3 py-1 rounded-full text-xs font-semibold bg-white hover:bg-orange-50 text-slate-700 hover:text-orange-600 border border-slate-200 hover:border-orange-300 transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
+                  >
+                    <span>{sub.name}</span>
+                    <span className="text-[10px] text-slate-400 font-bold">({sub.count})</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </section>
         )}
 

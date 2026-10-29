@@ -110,68 +110,500 @@ export interface AdminCategory {
 
 export const INITIAL_CATEGORIES: AdminCategory[] = [
   {
-    id: 'cat-1',
-    name: 'Display Bust',
-    description: 'Velvet and leatherette portrait busts for necklaces and bridal sets.',
-    image: '/assets/vinayak/cat_bust.png',
-    level: 1,
+    "id": "cat-1",
+    "name": "Display Bust",
+    "description": "Velvet and leatherette portrait busts for necklaces and bridal sets.",
+    "image": "/assets/vinayak/cat_bust.png",
+    "level": 1
   },
   {
-    id: 'cat-2',
-    name: 'Display Cards',
-    description: 'Earring cards, necklace tags, barcode cards and jewelry packaging.',
-    image: '/assets/vinayak/cat_card.png',
-    level: 1,
+    "id": "cat-2",
+    "name": "Display Cards",
+    "description": "Earring cards, necklace tags, barcode cards and jewelry packaging.",
+    "image": "/assets/vinayak/cat_card.png",
+    "level": 1
   },
   {
-    id: 'cat-3',
-    name: 'Display Stand',
-    description: 'Tiered wooden & metal stands for earrings, chains and pendants.',
-    image: '/assets/vinayak/cat_stand.png',
-    level: 1,
+    "id": "cat-3",
+    "name": "Display Stand",
+    "description": "Tiered wooden & metal stands for earrings, chains and pendants.",
+    "image": "/assets/vinayak/cat_stand.png",
+    "level": 1
   },
   {
-    id: 'cat-4',
-    name: 'Display Tray',
-    description: 'Stackable velvet trays, ring pads, and flat counter showcase inserts.',
-    image: '/assets/vinayak/cat_tray.png',
-    level: 1,
+    "id": "cat-4",
+    "name": "Display Tray",
+    "description": "Stackable velvet trays, ring pads, and flat counter showcase inserts.",
+    "image": "/assets/vinayak/cat_tray.png",
+    "level": 1
   },
   {
-    id: 'cat-5',
-    name: 'Bangle & Bracelet Display Stand',
-    description: 'Single and multi-tier cylinders for bangles, watches, and bracelets.',
-    image: '/assets/vinayak/cat_stand.png',
-    level: 1,
+    "id": "cat-5",
+    "name": "Bangle & Bracelet Display Stand",
+    "description": "Single and multi-tier cylinders for bangles, watches, and bracelets.",
+    "image": "/assets/vinayak/cat_stand.png",
+    "level": 1
   },
   {
-    id: 'cat-6',
-    name: 'Storage Box',
-    description: 'Velvet gift boxes, organizer chests, and acrylic storage boxes.',
-    image: '/assets/vinayak/cat_box.png',
-    level: 1,
+    "id": "cat-6",
+    "name": "Storage Box",
+    "description": "Velvet gift boxes, organizer chests, and acrylic storage boxes.",
+    "image": "/assets/vinayak/cat_box.png",
+    "level": 1
   },
   {
-    id: 'cat-7',
-    name: 'Mannequin Stand',
-    description: 'Full form mannequin busts, sculpted heads, and torso models.',
-    image: '/assets/vinayak/cat_mannequin.png',
-    level: 1,
+    "id": "cat-7",
+    "name": "Mannequin Stand",
+    "description": "Full form mannequin busts, sculpted heads, and torso models.",
+    "image": "/assets/vinayak/cat_mannequin.png",
+    "level": 1
   },
   {
-    id: 'cat-8',
-    name: 'Packaging Tools',
-    description: 'Tape dispensers, clear wonder tapes, barcode sticker rolls, and sealers.',
-    image: '/assets/vinayak/cat_bag.png',
-    level: 1,
+    "id": "cat-8",
+    "name": "Packaging Tools",
+    "description": "Tape dispensers, clear wonder tapes, barcode sticker rolls, and sealers.",
+    "image": "/assets/vinayak/cat_bag.png",
+    "level": 1
   },
   {
-    id: 'cat-9',
-    name: 'Jewellery Display Cloth',
-    description: 'Seamless suede and velvet counter fabrics for showcase flatlays.',
-    image: '/assets/vinayak/prod_suede_velvet.png',
-    level: 1,
+    "id": "cat-9",
+    "name": "Jewellery Display Cloth",
+    "description": "Seamless suede and velvet counter fabrics for showcase flatlays.",
+    "image": "/assets/vinayak/prod_suede_velvet.png",
+    "level": 1
   },
+  {
+    "id": "sub-db-1",
+    "name": "Velvet Portrait Busts",
+    "parentId": "cat-1",
+    "level": 2,
+    "image": "/assets/vinayak/cat_bust.png",
+    "description": "Plush velvet portrait busts for boutique counters and showcases."
+  },
+  {
+    "id": "sub-db-2",
+    "name": "Leatherette & Acrylic Busts",
+    "parentId": "cat-1",
+    "level": 2,
+    "image": "/assets/vinayak/cat_bust.png",
+    "description": "Modern leatherette and acrylic necklace displays."
+  },
+  {
+    "id": "sub-dc-1",
+    "name": "Earring & Stud Cards",
+    "parentId": "cat-2",
+    "level": 2,
+    "image": "/assets/vinayak/cat_card.png",
+    "description": "Hanging and counter cards for stud, hoop, and dangle earrings."
+  },
+  {
+    "id": "sub-dc-2",
+    "name": "Tags & Packaging Cards",
+    "parentId": "cat-2",
+    "level": 2,
+    "image": "/assets/vinayak/cat_card.png",
+    "description": "Necklace cards, barcode tags, and branding backer cards."
+  },
+  {
+    "id": "sub-ds-1",
+    "name": "Wooden & Tiered Stands",
+    "parentId": "cat-3",
+    "level": 2,
+    "image": "/assets/vinayak/cat_stand.png",
+    "description": "Solid wood multi-layer stands for earrings and sets."
+  },
+  {
+    "id": "sub-ds-2",
+    "name": "Metal & Acrylic Displays",
+    "parentId": "cat-3",
+    "level": 2,
+    "image": "/assets/vinayak/cat_stand.png",
+    "description": "T-bar brass and acrylic stepped risers for pendants."
+  },
+  {
+    "id": "sub-tr-1",
+    "name": "Velvet Showcase Trays",
+    "parentId": "cat-4",
+    "level": 2,
+    "image": "/assets/vinayak/cat_tray.png",
+    "description": "Stackable velvet trays for rings, earrings, and pendants."
+  },
+  {
+    "id": "sub-tr-2",
+    "name": "Lockable & Glass Trays",
+    "parentId": "cat-4",
+    "level": 2,
+    "image": "/assets/vinayak/cat_tray.png",
+    "description": "Glass-lid lockable showcase inserts and counter flatlay trays."
+  },
+  {
+    "id": "sub-bs-1",
+    "name": "Cylinder & Roll Stands",
+    "parentId": "cat-5",
+    "level": 2,
+    "image": "/assets/vinayak/cat_stand.png",
+    "description": "Single and multi-tier velvet cylinders for bangles."
+  },
+  {
+    "id": "sub-bs-2",
+    "name": "T-Bar & Wooden Holders",
+    "parentId": "cat-5",
+    "level": 2,
+    "image": "/assets/vinayak/cat_stand.png",
+    "description": "T-bar bracelet holders and carved wooden bangle organizers."
+  },
+  {
+    "id": "sub-bx-1",
+    "name": "Presentation Gift Boxes",
+    "parentId": "cat-6",
+    "level": 2,
+    "image": "/assets/vinayak/cat_box.png",
+    "description": "Velvet gift boxes with golden hinges and magnetic clasps."
+  },
+  {
+    "id": "sub-bx-2",
+    "name": "Organizer Chests & Cases",
+    "parentId": "cat-6",
+    "level": 2,
+    "image": "/assets/vinayak/cat_box.png",
+    "description": "Sales briefcases and multi-drawer storage organizers."
+  },
+  {
+    "id": "sub-mn-1",
+    "name": "Full Form Mannequin Busts",
+    "parentId": "cat-7",
+    "level": 2,
+    "image": "/assets/vinayak/cat_mannequin.png",
+    "description": "Full shoulder velvet busts and linen counter torso forms."
+  },
+  {
+    "id": "sub-mn-2",
+    "name": "Sculpted Heads & Forms",
+    "parentId": "cat-7",
+    "level": 2,
+    "image": "/assets/vinayak/cat_mannequin.png",
+    "description": "Head & neck displays for maang tikka, earrings, and sets."
+  },
+  {
+    "id": "sub-tl-1",
+    "name": "Tapes & Dispensers",
+    "parentId": "cat-8",
+    "level": 2,
+    "image": "/assets/vinayak/cat_bag.png",
+    "description": "Heavy duty cast iron tape dispensers and ultra-clear tapes."
+  },
+  {
+    "id": "sub-tl-2",
+    "name": "Tagging & Sealing Equipment",
+    "parentId": "cat-8",
+    "level": 2,
+    "image": "/assets/vinayak/cat_bag.png",
+    "description": "Barcode labels, tagging guns, and heat sealers."
+  },
+  {
+    "id": "sub-cl-1",
+    "name": "Showcase Flatlay Mats",
+    "parentId": "cat-9",
+    "level": 2,
+    "image": "/assets/vinayak/prod_suede_velvet.png",
+    "description": "Seamless microfiber and reversible suede photography mats."
+  },
+  {
+    "id": "sub-cl-2",
+    "name": "Countertop Drape Runners",
+    "parentId": "cat-9",
+    "level": 2,
+    "image": "/assets/vinayak/prod_suede_velvet.png",
+    "description": "Royal velvet runners and crushed velvet drape cloths."
+  },
+  {
+    "id": "ch-db-1",
+    "name": "Necklace & Choker Busts",
+    "parentId": "sub-db-1",
+    "level": 3,
+    "image": "/assets/vinayak/cat_bust.png",
+    "description": "Portrait busts tailored for choker and bridal necklace sets."
+  },
+  {
+    "id": "ch-db-2",
+    "name": "Pendant Portrait Stands",
+    "parentId": "sub-db-1",
+    "level": 3,
+    "image": "/assets/vinayak/cat_bust.png",
+    "description": "Compact portrait busts for single chains and pendants."
+  },
+  {
+    "id": "ch-db-3",
+    "name": "Bridal Suite Collar Forms",
+    "parentId": "sub-db-2",
+    "level": 3,
+    "image": "/assets/vinayak/cat_bust.png",
+    "description": "Leatherette wide collar forms for luxury bridal suites."
+  },
+  {
+    "id": "ch-db-4",
+    "name": "Countertop Neck Blocks",
+    "parentId": "sub-db-2",
+    "level": 3,
+    "image": "/assets/vinayak/cat_bust.png",
+    "description": "Minimalist acrylic and leatherette neck display blocks."
+  },
+  {
+    "id": "ch-dc-1",
+    "name": "Matte Cardstock Cards",
+    "parentId": "sub-dc-1",
+    "level": 3,
+    "image": "/assets/vinayak/cat_card.png",
+    "description": "High-density matte cards for earrings."
+  },
+  {
+    "id": "ch-dc-2",
+    "name": "Foil Stamped & Embossed Cards",
+    "parentId": "sub-dc-1",
+    "level": 3,
+    "image": "/assets/vinayak/cat_card.png",
+    "description": "Gold foil and embossed luxury jewellery cards."
+  },
+  {
+    "id": "ch-dc-3",
+    "name": "Kraft Paper Eco Cards",
+    "parentId": "sub-dc-2",
+    "level": 3,
+    "image": "/assets/vinayak/cat_card.png",
+    "description": "Recycled brown kraft backing cards."
+  },
+  {
+    "id": "ch-dc-4",
+    "name": "Necklace & Bracelet Backers",
+    "parentId": "sub-dc-2",
+    "level": 3,
+    "image": "/assets/vinayak/cat_card.png",
+    "description": "Folded cards and barcode hang tags."
+  },
+  {
+    "id": "ch-ds-1",
+    "name": "Multi-Layer Earring Stands",
+    "parentId": "sub-ds-1",
+    "level": 3,
+    "image": "/assets/vinayak/cat_stand.png",
+    "description": "Tiered wooden racks for displaying dozens of earring pairs."
+  },
+  {
+    "id": "ch-ds-2",
+    "name": "Solid Teakwood Racks",
+    "parentId": "sub-ds-1",
+    "level": 3,
+    "image": "/assets/vinayak/cat_stand.png",
+    "description": "Natural grain teakwood display risers and pedestals."
+  },
+  {
+    "id": "ch-ds-3",
+    "name": "T-Bar Hanging Stands",
+    "parentId": "sub-ds-2",
+    "level": 3,
+    "image": "/assets/vinayak/cat_stand.png",
+    "description": "Metallic T-bar stands for danglers and drops."
+  },
+  {
+    "id": "ch-ds-4",
+    "name": "Rotating Carousel Racks",
+    "parentId": "sub-ds-2",
+    "level": 3,
+    "image": "/assets/vinayak/cat_stand.png",
+    "description": "360-degree rotating carousels for retail counters."
+  },
+  {
+    "id": "ch-tr-1",
+    "name": "Ring Display Pads",
+    "parentId": "sub-tr-1",
+    "level": 3,
+    "image": "/assets/vinayak/cat_tray.png",
+    "description": "Slotted foam and velvet inserts for rings."
+  },
+  {
+    "id": "ch-tr-2",
+    "name": "Compartment Organizer Trays",
+    "parentId": "sub-tr-1",
+    "level": 3,
+    "image": "/assets/vinayak/cat_tray.png",
+    "description": "12, 24, and 30-slot grid showcase inserts."
+  },
+  {
+    "id": "ch-tr-3",
+    "name": "Glass-Lid Presentation Trays",
+    "parentId": "sub-tr-2",
+    "level": 3,
+    "image": "/assets/vinayak/cat_tray.png",
+    "description": "Lockable glass showcase trays with velvet base."
+  },
+  {
+    "id": "ch-tr-4",
+    "name": "Flatlay Counter Trays",
+    "parentId": "sub-tr-2",
+    "level": 3,
+    "image": "/assets/vinayak/cat_tray.png",
+    "description": "Round and octagonal trays for high-value customer viewing."
+  },
+  {
+    "id": "ch-bs-1",
+    "name": "Single Tier Bangle Rolls",
+    "parentId": "sub-bs-1",
+    "level": 3,
+    "image": "/assets/vinayak/cat_stand.png",
+    "description": "Detachable single bar cylinders for bracelets and watches."
+  },
+  {
+    "id": "ch-bs-2",
+    "name": "Multi-Tier Stepped Stands",
+    "parentId": "sub-bs-1",
+    "level": 3,
+    "image": "/assets/vinayak/cat_stand.png",
+    "description": "2 and 3-tier stepped bangle display stands."
+  },
+  {
+    "id": "ch-bs-3",
+    "name": "T-Bar Bracelet Displays",
+    "parentId": "sub-bs-2",
+    "level": 3,
+    "image": "/assets/vinayak/cat_stand.png",
+    "description": "Heavy base T-bars for wrist jewellery."
+  },
+  {
+    "id": "ch-bs-4",
+    "name": "Curved Bangle Organizers",
+    "parentId": "sub-bs-2",
+    "level": 3,
+    "image": "/assets/vinayak/cat_stand.png",
+    "description": "Ergonomic curved holders for bridal bangles."
+  },
+  {
+    "id": "ch-bx-1",
+    "name": "Velvet Ring & Earring Boxes",
+    "parentId": "sub-bx-1",
+    "level": 3,
+    "image": "/assets/vinayak/cat_box.png",
+    "description": "Luxury gift boxes for rings and tops."
+  },
+  {
+    "id": "ch-bx-2",
+    "name": "Necklace Presentation Boxes",
+    "parentId": "sub-bx-1",
+    "level": 3,
+    "image": "/assets/vinayak/cat_box.png",
+    "description": "Large format clamshell and magnetic gift boxes."
+  },
+  {
+    "id": "ch-bx-3",
+    "name": "Drawer Storage Chests",
+    "parentId": "sub-bx-2",
+    "level": 3,
+    "image": "/assets/vinayak/cat_box.png",
+    "description": "Multi-layer dustproof jewellery organizer chests."
+  },
+  {
+    "id": "ch-bx-4",
+    "name": "Sales Travel Cases",
+    "parentId": "sub-bx-2",
+    "level": 3,
+    "image": "/assets/vinayak/cat_box.png",
+    "description": "Lockable briefcase carriers for jewellers on the move."
+  },
+  {
+    "id": "ch-mn-1",
+    "name": "Velvet Shoulder Mannequins",
+    "parentId": "sub-mn-1",
+    "level": 3,
+    "image": "/assets/vinayak/cat_mannequin.png",
+    "description": "Full form velvet bridal suite mannequins."
+  },
+  {
+    "id": "ch-mn-2",
+    "name": "Torso & Linen Models",
+    "parentId": "sub-mn-1",
+    "level": 3,
+    "image": "/assets/vinayak/cat_mannequin.png",
+    "description": "Counter torso forms in natural linen fabric."
+  },
+  {
+    "id": "ch-mn-3",
+    "name": "Maang Tikka & Earring Heads",
+    "parentId": "sub-mn-2",
+    "level": 3,
+    "image": "/assets/vinayak/cat_mannequin.png",
+    "description": "Sculpted head displays for forehead and ear ornaments."
+  },
+  {
+    "id": "ch-mn-4",
+    "name": "Fiberglass Designer Models",
+    "parentId": "sub-mn-2",
+    "level": 3,
+    "image": "/assets/vinayak/cat_mannequin.png",
+    "description": "Modern matte fiberglass display forms."
+  },
+  {
+    "id": "ch-tl-1",
+    "name": "Desktop Tape Dispensers",
+    "parentId": "sub-tl-1",
+    "level": 3,
+    "image": "/assets/vinayak/cat_bag.png",
+    "description": "Cast iron heavy-weight tape dispensers."
+  },
+  {
+    "id": "ch-tl-2",
+    "name": "Ultra Clear Wonder Tapes",
+    "parentId": "sub-tl-1",
+    "level": 3,
+    "image": "/assets/vinayak/cat_bag.png",
+    "description": "Residue-free crystal clear wonder tapes."
+  },
+  {
+    "id": "ch-tl-3",
+    "name": "Barcode & Price Stickers",
+    "parentId": "sub-tl-2",
+    "level": 3,
+    "image": "/assets/vinayak/cat_bag.png",
+    "description": "Adhesive jewellery labels and barcode tags."
+  },
+  {
+    "id": "ch-tl-4",
+    "name": "Tagging Guns & Heat Sealers",
+    "parentId": "sub-tl-2",
+    "level": 3,
+    "image": "/assets/vinayak/cat_bag.png",
+    "description": "Professional tagging guns and plastic pouch sealers."
+  },
+  {
+    "id": "ch-cl-1",
+    "name": "Microfiber Suede Mats",
+    "parentId": "sub-cl-1",
+    "level": 3,
+    "image": "/assets/vinayak/prod_suede_velvet.png",
+    "description": "Anti-scratch suede counter mats."
+  },
+  {
+    "id": "ch-cl-2",
+    "name": "Reversible Photography Mats",
+    "parentId": "sub-cl-1",
+    "level": 3,
+    "image": "/assets/vinayak/prod_suede_velvet.png",
+    "description": "Dual-tone photography background mats."
+  },
+  {
+    "id": "ch-cl-3",
+    "name": "Royal Velvet Showcase Runners",
+    "parentId": "sub-cl-2",
+    "level": 3,
+    "image": "/assets/vinayak/prod_suede_velvet.png",
+    "description": "Plush velvet table and counter runners."
+  },
+  {
+    "id": "ch-cl-4",
+    "name": "Crushed Velvet Drape Fabrics",
+    "parentId": "sub-cl-2",
+    "level": 3,
+    "image": "/assets/vinayak/prod_suede_velvet.png",
+    "description": "Rich crushed velvet fabrics for showroom showcase interiors."
+  }
 ];
 
 const INITIAL_HOMEPAGE_BANNERS: HomepageBanner[] = [

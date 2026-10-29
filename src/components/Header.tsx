@@ -10,7 +10,7 @@ interface HeaderProps {
   activeView: ActiveView;
   selectedCategoryName?: string;
   setActiveView: (view: ActiveView) => void;
-  onNavigateToShop: (category?: string) => void;
+  onNavigateToShop: (category?: string, subCategory?: string, childCategory?: string) => void;
   onNavigateToSection: (sectionId: string) => void;
   cart: CartItem[];
   onSearch?: (query: string) => void;
@@ -40,11 +40,26 @@ export const Header: React.FC<HeaderProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   const [wishlistCount, setWishlistCount] = useState(() => storeManager.getWishlist().length);
   const [settings, setSettings] = useState(() => storeManager.getSettings());
+  const [expandedMobileCats, setExpandedMobileCats] = useState<Record<string, boolean>>({});
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const { user, openAuthDialog, logout } = useAuth();
 
   const categories = storeManager.getCategories();
   const products = storeManager.getProducts();
+
+  // Root categories (Level 1)
+  const rootCategories = React.useMemo(() => {
+    return categories.filter((c) => (!c.level || c.level === 1) && (!c.parentId || c.parentId === null));
+  }, [categories]);
+
+  // Helper functions for Sub & Child categories
+  const getCategorySubCategories = (rootId: string) => {
+    return categories.filter((c) => c.level === 2 && c.parentId === rootId);
+  };
+
+  const getSubCategoryChildren = (subId: string) => {
+    return categories.filter((c) => c.level === 3 && c.parentId === subId);
+  };
 
   // Filter categories to only those with at least 1 active product
   const activeCategories = React.useMemo(() => {
@@ -145,8 +160,8 @@ export const Header: React.FC<HeaderProps> = ({
     setMobileMenuOpen(false);
   };
 
-  const navigateTo = (view: ActiveView, category?: string) => {
-    if (view === 'shop') onNavigateToShop(category);
+  const navigateTo = (view: ActiveView, category?: string, subCategory?: string, childCategory?: string) => {
+    if (view === 'shop') onNavigateToShop(category, subCategory, childCategory);
     else setActiveView(view);
     setMobileMenuOpen(false);
     setMobileSearchOpen(false);
@@ -253,16 +268,27 @@ export const Header: React.FC<HeaderProps> = ({
           <div ref={searchContainerRef} className="hidden md:flex flex-1 max-w-2xl relative">
             <form onSubmit={handleSearchSubmit} className="w-full">
               <div className="flex items-center w-full bg-slate-50 hover:bg-slate-100/80 focus-within:bg-white rounded-full border border-slate-200 focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-100 transition-all p-1">
-                {/* Category Dropdown (Excludes empty categories) */}
+                {/* Category Dropdown with Sub-Categories */}
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="bg-transparent text-xs text-slate-700 font-medium pl-3 pr-2 py-1.5 border-r border-slate-200 focus:outline-none cursor-pointer shrink-0 max-w-[130px] truncate"
+                  className="bg-transparent text-xs text-slate-700 font-medium pl-3 pr-2 py-1.5 border-r border-slate-200 focus:outline-none cursor-pointer shrink-0 max-w-[145px] truncate"
                 >
                   <option value="All categories">All categories</option>
-                  {activeCategories.map((c) => (
-                    <option key={c.id} value={c.name}>{c.name}</option>
-                  ))}
+                  {rootCategories.map((c) => {
+                    const subs = getCategorySubCategories(c.id);
+                    if (subs.length === 0) {
+                      return <option key={c.id} value={c.name}>{c.name}</option>;
+                    }
+                    return (
+                      <optgroup key={c.id} label={c.name}>
+                        <option value={c.name}>All {c.name}</option>
+                        {subs.map((sub) => (
+                          <option key={sub.id} value={sub.name}>– {sub.name}</option>
+                        ))}
+                      </optgroup>
+                    );
+                  })}
                 </select>
 
                 {/* Search Text Input */}
@@ -451,9 +477,9 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Secondary Category Navigation Strip (Desktop) */}
-        <nav className="hidden lg:block border-t border-slate-100 bg-white shadow-2xs">
+        <nav className="hidden lg:block border-t border-slate-100 bg-white shadow-2xs relative z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between text-xs font-semibold text-slate-700">
-            <div className="flex items-center gap-6 py-2.5 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-5 py-2.5">
               <button
                 type="button"
                 onClick={() => navigateTo('home')}
@@ -474,24 +500,76 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 All Shop Categories
               </button>
-              {activeCategories.slice(0, 8).map((cat) => {
+              {rootCategories.slice(0, 7).map((cat) => {
                 const isCatActive = activeView === 'shop' && selectedCategoryName === cat.name;
+                const subs = getCategorySubCategories(cat.id);
+
                 return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => {
-                      if (onSearch) onSearch('');
-                      navigateTo('shop', cat.name);
-                    }}
-                    className={`transition-colors hover:text-orange-600 cursor-pointer whitespace-nowrap py-1 ${
-                      isCatActive
-                        ? 'text-orange-600 font-bold border-b-2 border-orange-500'
-                        : 'text-slate-700 font-semibold'
-                    }`}
-                  >
-                    {cat.name}
-                  </button>
+                  <div key={cat.id} className="relative group/cat py-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onSearch) onSearch('');
+                        navigateTo('shop', cat.name);
+                      }}
+                      className={`flex items-center gap-1 transition-colors hover:text-orange-600 cursor-pointer whitespace-nowrap ${
+                        isCatActive
+                          ? 'text-orange-600 font-bold border-b-2 border-orange-500'
+                          : 'text-slate-700 font-semibold'
+                      }`}
+                    >
+                      <span>{cat.name}</span>
+                      {subs.length > 0 && (
+                        <AppIcon name="expand_more" className="text-[13px] text-slate-400 group-hover/cat:text-orange-600 transition-transform group-hover/cat:rotate-180" />
+                      )}
+                    </button>
+
+                    {/* Flyout Mega Dropdown for Sub-Categories & Child-Categories */}
+                    {subs.length > 0 && (
+                      <div className="absolute top-full left-0 hidden group-hover/cat:flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200/90 p-4 min-w-[340px] max-w-md z-50 animate-in fade-in slide-in-from-top-1 duration-150">
+                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+                          <span className="text-[11px] font-bold text-slate-900 uppercase tracking-wider">{cat.name} Sub-Categories</span>
+                          <button
+                            type="button"
+                            onClick={() => navigateTo('shop', cat.name)}
+                            className="text-[11px] text-orange-600 hover:underline font-bold cursor-pointer"
+                          >
+                            View All {cat.name} →
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-1">
+                          {subs.map((sub) => {
+                            const children = getSubCategoryChildren(sub.id);
+                            return (
+                              <div key={sub.id} className="flex flex-col gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => navigateTo('shop', cat.name, sub.name)}
+                                  className="text-left font-bold text-xs text-slate-800 hover:text-orange-600 transition-colors cursor-pointer"
+                                >
+                                  {sub.name}
+                                </button>
+                                {children.length > 0 && (
+                                  <div className="flex flex-col gap-0.5 pl-1.5 border-l-2 border-amber-200">
+                                    {children.slice(0, 4).map((ch) => (
+                                      <button
+                                        key={ch.id}
+                                        type="button"
+                                        onClick={() => navigateTo('shop', cat.name, sub.name, ch.name)}
+                                        className="text-left text-[10px] text-slate-500 hover:text-amber-800 transition-colors truncate cursor-pointer"
+                                      >
+                                        • {ch.name}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 );
               })}
               <button
@@ -560,39 +638,99 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               </form>
 
-              <div className="flex flex-col gap-2.5 text-sm font-semibold text-slate-800">
-                <button onClick={() => navigateTo('home')} className="text-left py-1.5 hover:text-orange-600">Home</button>
-                <button onClick={() => navigateTo('shop', 'All Categories')} className="text-left py-1.5 hover:text-orange-600">All Products</button>
-                {activeCategories.slice(0, 6).map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => {
-                      if (onSearch) onSearch('');
-                      navigateTo('shop', cat.name);
-                    }}
-                    className="text-left py-1 pl-3 text-xs text-slate-600 hover:text-orange-600 border-l-2 border-orange-200"
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-                <button onClick={() => { onOpenWishlist(); setMobileMenuOpen(false); }} className="text-left py-1.5 hover:text-orange-600 flex items-center justify-between">
+              <div className="flex flex-col gap-2 text-sm font-semibold text-slate-800">
+                <button onClick={() => navigateTo('home')} className="text-left py-1 hover:text-orange-600 cursor-pointer">Home</button>
+                <button onClick={() => navigateTo('shop', 'All Categories')} className="text-left py-1 hover:text-orange-600 cursor-pointer">All Products</button>
+                
+                {/* Category Accordions with Sub-Categories & Child-Categories */}
+                <div className="flex flex-col gap-1 py-1 border-y border-slate-100">
+                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Browse by Category</span>
+                  {rootCategories.map((cat) => {
+                    const subs = getCategorySubCategories(cat.id);
+                    const isExpanded = Boolean(expandedMobileCats[cat.id]);
+
+                    return (
+                      <div key={cat.id} className="flex flex-col">
+                        <div className="flex items-center justify-between py-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (onSearch) onSearch('');
+                              navigateTo('shop', cat.name);
+                            }}
+                            className="text-left text-xs font-semibold text-slate-700 hover:text-orange-600 flex-1 truncate cursor-pointer"
+                          >
+                            {cat.name}
+                          </button>
+                          {subs.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setExpandedMobileCats(prev => ({ ...prev, [cat.id]: !prev[cat.id] }));
+                              }}
+                              className="p-1 text-slate-400 hover:text-orange-600 cursor-pointer"
+                            >
+                              <AppIcon name={isExpanded ? 'expand_less' : 'expand_more'} className="text-xs" />
+                            </button>
+                          )}
+                        </div>
+
+                        {isExpanded && subs.length > 0 && (
+                          <div className="flex flex-col pl-3 py-1 gap-1 border-l-2 border-orange-200 ml-2">
+                            {subs.map((sub) => {
+                              const children = getSubCategoryChildren(sub.id);
+                              return (
+                                <div key={sub.id} className="flex flex-col">
+                                  <button
+                                    type="button"
+                                    onClick={() => navigateTo('shop', cat.name, sub.name)}
+                                    className="text-left text-[11px] font-medium text-slate-600 hover:text-orange-600 py-0.5 truncate cursor-pointer"
+                                  >
+                                    {sub.name}
+                                  </button>
+                                  {children.length > 0 && (
+                                    <div className="flex flex-col pl-2 gap-0.5 border-l border-amber-200 ml-1">
+                                      {children.map(ch => (
+                                        <button
+                                          key={ch.id}
+                                          type="button"
+                                          onClick={() => navigateTo('shop', cat.name, sub.name, ch.name)}
+                                          className="text-left text-[10px] text-slate-400 hover:text-amber-700 py-0.2 truncate cursor-pointer"
+                                        >
+                                          • {ch.name}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <button onClick={() => { onOpenWishlist(); setMobileMenuOpen(false); }} className="text-left py-1 hover:text-orange-600 flex items-center justify-between cursor-pointer">
                   <span>My Wishlist</span>
-                  <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full text-xs">{wishlistCount}</span>
+                  <span className="bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full text-xs font-bold">{wishlistCount}</span>
                 </button>
-                <button onClick={() => { handleAccountClick(); setMobileMenuOpen(false); }} className="text-left py-1.5 hover:text-orange-600">
+                <button onClick={() => { handleAccountClick(); setMobileMenuOpen(false); }} className="text-left py-1 hover:text-orange-600 cursor-pointer">
                   {user ? `My Account (${user.name})` : 'Sign In'}
                 </button>
                 {user && (
                   <button
                     onClick={() => { logout(); setMobileMenuOpen(false); }}
-                    className="text-left py-1.5 text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1.5 cursor-pointer"
+                    className="text-left py-1 text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1.5 cursor-pointer"
                   >
                     <AppIcon name="logout" className="text-sm" />
                     <span>Sign Out ({user.name})</span>
                   </button>
                 )}
-                <button onClick={() => navigateTo('custom-quote')} className="text-left py-1.5 hover:text-orange-600">Custom Bulk Quotes</button>
-                <button onClick={() => navigateTo('contact')} className="text-left py-1.5 hover:text-orange-600">Contact &amp; Showroom</button>
+                <button onClick={() => navigateTo('custom-quote')} className="text-left py-1 hover:text-orange-600 cursor-pointer">Custom Bulk Quotes</button>
+                <button onClick={() => navigateTo('contact')} className="text-left py-1 hover:text-orange-600 cursor-pointer">Contact &amp; Showroom</button>
               </div>
             </div>
 

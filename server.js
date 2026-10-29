@@ -1276,7 +1276,10 @@ app.get('/api/catalog', async (_request, response, next) => {
   response.setHeader('Expires', '0');
 
   if (!pool) {
-    if ((!memoryStore.products || memoryStore.products.length < 10) && memoryStore.catalogCleared !== true) {
+    if ((!memoryStore.products || memoryStore.products.length < 10 || !memoryStore.products.some(p => p.subCategory)) && memoryStore.catalogCleared !== true) {
+      loadDiskCatalog();
+    }
+    if ((!memoryStore.categories || memoryStore.categories.length < 30) && memoryStore.catalogCleared !== true) {
       loadDiskCatalog();
     }
     const filteredProducts = (memoryStore.products || []).filter(p => !isBannedProduct(p));
@@ -1327,8 +1330,39 @@ app.get('/api/catalog', async (_request, response, next) => {
         }
       }
     }
-    if (parsedCategories.length < 5) {
-      if ((!memoryStore.categories || memoryStore.categories.length === 0)) {
+
+    // Ensure products in database have subCategory and childCategory fields if missing
+    if (parsedProducts.length > 0 && !parsedProducts.some(p => p.subCategory)) {
+      if (!memoryStore.products || memoryStore.products.length === 0 || !memoryStore.products.some(p => p.subCategory)) {
+        loadDiskCatalog();
+      }
+      const diskProductMap = new Map((memoryStore.products || []).map(p => [p.id, p]));
+      let hasProductUpdates = false;
+      parsedProducts = parsedProducts.map(p => {
+        const diskP = diskProductMap.get(p.id);
+        if (diskP && (!p.subCategory || !p.childCategory)) {
+          hasProductUpdates = true;
+          return {
+            ...p,
+            subCategory: p.subCategory || diskP.subCategory,
+            childCategory: p.childCategory || diskP.childCategory
+          };
+        }
+        return p;
+      });
+      if (hasProductUpdates) {
+        try {
+          const updatePayload = parsedProducts.map(({ id, ...data }, index) => [id, JSON.stringify({ ...data, sortOrder: index })]);
+          if (updatePayload.length > 0) {
+            pool.query('INSERT INTO catalog_products (id, data) VALUES ? ON DUPLICATE KEY UPDATE data = VALUES(data)', [updatePayload]).catch(() => {});
+          }
+        } catch {}
+      }
+    }
+
+    // If database has fewer than the full categories hierarchy (63 categories), merge and re-seed from disk cache!
+    if (parsedCategories.length < 30) {
+      if (!memoryStore.categories || memoryStore.categories.length < 30) {
         loadDiskCatalog();
       }
       if (memoryStore.categories && memoryStore.categories.length > 0) {

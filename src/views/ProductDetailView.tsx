@@ -308,20 +308,30 @@ Please confirm stock availability and freight to my location.`;
             <span>/</span>
             <button
               onClick={() => onNavigate('shop', `/shop?category=${encodeURIComponent(currentProduct.category)}`)}
-              className="hover:text-orange-600 transition-colors"
+              className="hover:text-orange-600 transition-colors cursor-pointer"
             >
               {currentProduct.category}
             </button>
             {currentProduct.subCategory && (
               <>
                 <span>/</span>
-                <span className="text-slate-600">{currentProduct.subCategory}</span>
+                <button
+                  onClick={() => onNavigate('shop', `/shop?category=${encodeURIComponent(currentProduct.category)}&subCategory=${encodeURIComponent(currentProduct.subCategory)}`)}
+                  className="hover:text-orange-600 transition-colors cursor-pointer"
+                >
+                  {currentProduct.subCategory}
+                </button>
               </>
             )}
             {currentProduct.childCategory && (
               <>
                 <span>/</span>
-                <span className="text-slate-600">{currentProduct.childCategory}</span>
+                <button
+                  onClick={() => onNavigate('shop', `/shop?category=${encodeURIComponent(currentProduct.category)}&subCategory=${encodeURIComponent(currentProduct.subCategory)}&childCategory=${encodeURIComponent(currentProduct.childCategory)}`)}
+                  className="hover:text-orange-600 transition-colors cursor-pointer"
+                >
+                  {currentProduct.childCategory}
+                </button>
               </>
             )}
             <span>/</span>
@@ -500,18 +510,33 @@ Please confirm stock availability and freight to my location.`;
             {/* Header info */}
             <div>
               <div className="flex flex-wrap items-center gap-2 mb-2">
-                <span className="text-xs font-bold text-orange-600 bg-orange-50 px-2.5 py-0.5 rounded-md border border-orange-200 uppercase tracking-wide">
+                <button
+                  type="button"
+                  onClick={() => onNavigate('shop', `/shop?category=${encodeURIComponent(currentProduct.category)}`)}
+                  className="text-xs font-bold text-orange-600 hover:text-white bg-orange-50 hover:bg-orange-600 px-2.5 py-0.5 rounded-md border border-orange-200 uppercase tracking-wide transition-colors cursor-pointer"
+                  title={`View all in ${currentProduct.category}`}
+                >
                   {currentProduct.category}
-                </span>
+                </button>
                 {currentProduct.subCategory && (
-                  <span className="text-xs font-semibold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-md border border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('shop', `/shop?category=${encodeURIComponent(currentProduct.category)}&subCategory=${encodeURIComponent(currentProduct.subCategory)}`)}
+                    className="text-xs font-semibold text-slate-700 hover:text-orange-600 bg-slate-100 hover:bg-orange-50 px-2.5 py-0.5 rounded-md border border-slate-200 hover:border-orange-200 transition-colors cursor-pointer"
+                    title={`View all in ${currentProduct.subCategory}`}
+                  >
                     {currentProduct.subCategory}
-                  </span>
+                  </button>
                 )}
                 {currentProduct.childCategory && (
-                  <span className="text-xs font-semibold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-200">
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('shop', `/shop?category=${encodeURIComponent(currentProduct.category)}&subCategory=${encodeURIComponent(currentProduct.subCategory)}&childCategory=${encodeURIComponent(currentProduct.childCategory)}`)}
+                    className="text-xs font-semibold text-amber-800 hover:text-orange-600 bg-amber-50 hover:bg-orange-50 px-2.5 py-0.5 rounded-md border border-amber-200 hover:border-orange-200 transition-colors cursor-pointer"
+                    title={`View all in ${currentProduct.childCategory}`}
+                  >
                     {currentProduct.childCategory}
-                  </span>
+                  </button>
                 )}
                 <span className="text-xs text-slate-500 font-mono">
                   SKU: {currentProduct.code}

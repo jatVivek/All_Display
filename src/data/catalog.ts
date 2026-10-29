@@ -84,7 +84,9 @@ export const INITIAL_PRODUCTS: Product[] = [
           }
         ]
       }
-    ]
+    ],
+    "subCategory": "Velvet Portrait Busts",
+    "childCategory": "Necklace & Choker Busts"
   },
   {
     "id": "ad-prod-002",
@@ -168,7 +170,1055 @@ export const INITIAL_PRODUCTS: Product[] = [
           }
         ]
       }
-    ]
+    ],
+    "subCategory": "Velvet Portrait Busts",
+    "childCategory": "Necklace & Choker Busts"
+  },
+  {
+    "id": "ad-prod-003",
+    "code": "AD-DB-003",
+    "title": "Classic Black Velvet Pendant & Chain Neck Display (8 Inch)",
+    "description": "Classic Black Velvet Pendant & Chain Neck Display (8 Inch). Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
+    "price": 260,
+    "originalPrice": 330,
+    "unit": "piece",
+    "rating": 4.7,
+    "reviewCount": 72,
+    "loadCapacity": "Pedestal Bust Standard Load",
+    "category": "Display Bust",
+    "finish": "Linen Standard Finish",
+    "structuralProfile": "Pedestal Bust",
+    "dispatchReadiness": "Same-Day Dispatch",
+    "stockStatus": "In Stock (Chennai Depot)",
+    "moq": "MOQ: 1 Unit",
+    "badge": "Hot Wholesale",
+    "badgeType": "success",
+    "image": "/assets/vinayak/cat_bust.png",
+    "images": [
+      "/assets/vinayak/cat_bust.png",
+      "/assets/vinayak/req_online_sellers.png",
+      "/assets/vinayak/req_retail_shops.png"
+    ],
+    "finishes": [
+      {
+        "name": "Midnight Black",
+        "color": "#0F172A"
+      },
+      {
+        "name": "Emerald Teal",
+        "color": "#0D9488"
+      },
+      {
+        "name": "Royal Maroon",
+        "color": "#881337"
+      },
+      {
+        "name": "Pure White",
+        "color": "#F8FAFC"
+      }
+    ],
+    "requirements": [
+      "retail-shops",
+      "online-sellers",
+      "instagram-shop"
+    ],
+    "material": "Linen",
+    "specs": {
+      "dimensions": "Standard Commercial Dimensions",
+      "weight": "343 grams",
+      "color": "Multicolor Options Available"
+    },
+    "variations": [
+      {
+        "id": "var-finish-ad-prod-003",
+        "name": "Color / Finish",
+        "options": [
+          {
+            "id": "opt-blk-ad-prod-003",
+            "name": "Midnight Black",
+            "price": 260,
+            "inStock": true
+          },
+          {
+            "id": "opt-teal-ad-prod-003",
+            "name": "Emerald Teal",
+            "price": 260,
+            "inStock": true
+          },
+          {
+            "id": "opt-mrn-ad-prod-003",
+            "name": "Royal Maroon",
+            "price": 280,
+            "inStock": true
+          },
+          {
+            "id": "opt-wht-ad-prod-003",
+            "name": "Pure White",
+            "price": 260,
+            "inStock": true
+          }
+        ]
+      }
+    ],
+    "subCategory": "Velvet Portrait Busts",
+    "childCategory": "Pendant Portrait Stands"
+  },
+  {
+    "id": "ad-prod-004",
+    "code": "AD-DB-004",
+    "title": "Luxury Emerald Velvet Heavy Collar Necklace Bust (12 Inch)",
+    "description": "Luxury Emerald Velvet Heavy Collar Necklace Bust (12 Inch). Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
+    "price": 310,
+    "originalPrice": 390,
+    "unit": "piece",
+    "rating": 4.9,
+    "reviewCount": 91,
+    "loadCapacity": "Slender Portrait Form Standard Load",
+    "category": "Display Bust",
+    "finish": "Wood Base Standard Finish",
+    "structuralProfile": "Slender Portrait Form",
+    "dispatchReadiness": "Same-Day Dispatch",
+    "stockStatus": "In Stock (Chennai Depot)",
+    "moq": "MOQ: 1 Unit",
+    "image": "/assets/vinayak/req_online_sellers.png",
+    "images": [
+      "/assets/vinayak/req_online_sellers.png",
+      "/assets/vinayak/req_retail_shops.png",
+      "/assets/vinayak/prod_10in_bust.png"
+    ],
+    "finishes": [
+      {
+        "name": "Midnight Black",
+        "color": "#0F172A"
+      },
+      {
+        "name": "Emerald Teal",
+        "color": "#0D9488"
+      },
+      {
+        "name": "Royal Maroon",
+        "color": "#881337"
+      },
+      {
+        "name": "Pure White",
+        "color": "#F8FAFC"
+      }
+    ],
+    "requirements": [
+      "online-sellers",
+      "instagram-shop"
+    ],
+    "material": "Wood Base",
+    "specs": {
+      "dimensions": "Standard Commercial Dimensions",
+      "weight": "374 grams",
+      "color": "Multicolor Options Available"
+    },
+    "variations": [
+      {
+        "id": "var-finish-ad-prod-004",
+        "name": "Color / Finish",
+        "options": [
+          {
+            "id": "opt-blk-ad-prod-004",
+            "name": "Midnight Black",
+            "price": 310,
+            "inStock": true
+          },
+          {
+            "id": "opt-teal-ad-prod-004",
+            "name": "Emerald Teal",
+            "price": 310,
+            "inStock": true
+          },
+          {
+            "id": "opt-mrn-ad-prod-004",
+            "name": "Royal Maroon",
+            "price": 330,
+            "inStock": true
+          },
+          {
+            "id": "opt-wht-ad-prod-004",
+            "name": "Pure White",
+            "price": 310,
+            "inStock": true
+          }
+        ]
+      }
+    ],
+    "subCategory": "Velvet Portrait Busts",
+    "childCategory": "Necklace & Choker Busts"
+  },
+  {
+    "id": "ad-prod-005",
+    "code": "AD-DB-005",
+    "title": "Smooth Beige Leatherette Pendant Display Stand",
+    "description": "Smooth Beige Leatherette Pendant Display Stand. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
+    "price": 360,
+    "originalPrice": 450,
+    "unit": "piece",
+    "rating": 4.6,
+    "reviewCount": 110,
+    "loadCapacity": "Shoulder Bust Standard Load",
+    "category": "Display Bust",
+    "finish": "Suede Standard Finish",
+    "structuralProfile": "Shoulder Bust",
+    "dispatchReadiness": "Same-Day Dispatch",
+    "stockStatus": "In Stock (Chennai Depot)",
+    "moq": "MOQ: 1 Unit",
+    "image": "/assets/vinayak/req_retail_shops.png",
+    "images": [
+      "/assets/vinayak/req_retail_shops.png",
+      "/assets/vinayak/prod_10in_bust.png",
+      "/assets/vinayak/prod_velvet_necklace.png"
+    ],
+    "finishes": [
+      {
+        "name": "Midnight Black",
+        "color": "#0F172A"
+      },
+      {
+        "name": "Emerald Teal",
+        "color": "#0D9488"
+      },
+      {
+        "name": "Royal Maroon",
+        "color": "#881337"
+      },
+      {
+        "name": "Pure White",
+        "color": "#F8FAFC"
+      }
+    ],
+    "requirements": [
+      "instagram-shop",
+      "new-jewellery"
+    ],
+    "material": "Suede",
+    "specs": {
+      "dimensions": "Standard Commercial Dimensions",
+      "weight": "405 grams",
+      "color": "Multicolor Options Available"
+    },
+    "variations": [
+      {
+        "id": "var-finish-ad-prod-005",
+        "name": "Color / Finish",
+        "options": [
+          {
+            "id": "opt-blk-ad-prod-005",
+            "name": "Midnight Black",
+            "price": 360,
+            "inStock": true
+          },
+          {
+            "id": "opt-teal-ad-prod-005",
+            "name": "Emerald Teal",
+            "price": 360,
+            "inStock": true
+          },
+          {
+            "id": "opt-mrn-ad-prod-005",
+            "name": "Royal Maroon",
+            "price": 380,
+            "inStock": true
+          },
+          {
+            "id": "opt-wht-ad-prod-005",
+            "name": "Pure White",
+            "price": 360,
+            "inStock": true
+          }
+        ]
+      }
+    ],
+    "subCategory": "Leatherette & Acrylic Busts",
+    "childCategory": "Countertop Neck Blocks"
+  },
+  {
+    "id": "ad-prod-006",
+    "code": "AD-DB-006",
+    "title": "Minimalist Linen Neck Form for Boutique Counter",
+    "description": "Minimalist Linen Neck Form for Boutique Counter. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
+    "price": 400,
+    "originalPrice": 500,
+    "unit": "piece",
+    "rating": 4.8,
+    "reviewCount": 129,
+    "loadCapacity": "Neckline Stand Standard Load",
+    "category": "Display Bust",
+    "finish": "Velvet Standard Finish",
+    "structuralProfile": "Neckline Stand",
+    "dispatchReadiness": "Same-Day Dispatch",
+    "stockStatus": "In Stock (Chennai Depot)",
+    "moq": "MOQ: 1 Unit",
+    "badge": "Best Seller",
+    "badgeType": "neutral",
+    "image": "/assets/vinayak/prod_10in_bust.png",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "images": [
+      "/assets/vinayak/prod_10in_bust.png",
+      "/assets/vinayak/prod_velvet_necklace.png",
+      "/assets/vinayak/cat_bust.png"
+    ],
+    "finishes": [
+      {
+        "name": "Midnight Black",
+        "color": "#0F172A"
+      },
+      {
+        "name": "Emerald Teal",
+        "color": "#0D9488"
+      },
+      {
+        "name": "Royal Maroon",
+        "color": "#881337"
+      },
+      {
+        "name": "Pure White",
+        "color": "#F8FAFC"
+      }
+    ],
+    "requirements": [
+      "new-jewellery",
+      "retail-shops",
+      "online-sellers"
+    ],
+    "material": "Velvet",
+    "specs": {
+      "dimensions": "Standard Commercial Dimensions",
+      "weight": "436 grams",
+      "color": "Multicolor Options Available"
+    },
+    "variations": [
+      {
+        "id": "var-finish-ad-prod-006",
+        "name": "Color / Finish",
+        "options": [
+          {
+            "id": "opt-blk-ad-prod-006",
+            "name": "Midnight Black",
+            "price": 400,
+            "inStock": true
+          },
+          {
+            "id": "opt-teal-ad-prod-006",
+            "name": "Emerald Teal",
+            "price": 400,
+            "inStock": true
+          },
+          {
+            "id": "opt-mrn-ad-prod-006",
+            "name": "Royal Maroon",
+            "price": 420,
+            "inStock": true
+          },
+          {
+            "id": "opt-wht-ad-prod-006",
+            "name": "Pure White",
+            "price": 400,
+            "inStock": true
+          }
+        ]
+      }
+    ],
+    "subCategory": "Velvet Portrait Busts",
+    "childCategory": "Pendant Portrait Stands"
+  },
+  {
+    "id": "ad-prod-007",
+    "code": "AD-DB-007",
+    "title": "Tiered Graduated 3-Piece Necklace Bust Suite",
+    "description": "Tiered Graduated 3-Piece Necklace Bust Suite. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
+    "price": 450,
+    "originalPrice": 560,
+    "unit": "piece",
+    "rating": 5,
+    "reviewCount": 148,
+    "loadCapacity": "Pedestal Bust Standard Load",
+    "category": "Display Bust",
+    "finish": "Leatherette Standard Finish",
+    "structuralProfile": "Pedestal Bust",
+    "dispatchReadiness": "Same-Day Dispatch",
+    "stockStatus": "In Stock (Chennai Depot)",
+    "moq": "MOQ: 1 Unit",
+    "image": "/assets/vinayak/prod_velvet_necklace.png",
+    "images": [
+      "/assets/vinayak/prod_velvet_necklace.png",
+      "/assets/vinayak/cat_bust.png",
+      "/assets/vinayak/req_online_sellers.png"
+    ],
+    "finishes": [
+      {
+        "name": "Midnight Black",
+        "color": "#0F172A"
+      },
+      {
+        "name": "Emerald Teal",
+        "color": "#0D9488"
+      },
+      {
+        "name": "Royal Maroon",
+        "color": "#881337"
+      },
+      {
+        "name": "Pure White",
+        "color": "#F8FAFC"
+      }
+    ],
+    "requirements": [
+      "retail-shops",
+      "online-sellers"
+    ],
+    "material": "Leatherette",
+    "specs": {
+      "dimensions": "Standard Commercial Dimensions",
+      "weight": "467 grams",
+      "color": "Multicolor Options Available"
+    },
+    "variations": [
+      {
+        "id": "var-finish-ad-prod-007",
+        "name": "Color / Finish",
+        "options": [
+          {
+            "id": "opt-blk-ad-prod-007",
+            "name": "Midnight Black",
+            "price": 450,
+            "inStock": true
+          },
+          {
+            "id": "opt-teal-ad-prod-007",
+            "name": "Emerald Teal",
+            "price": 450,
+            "inStock": true
+          },
+          {
+            "id": "opt-mrn-ad-prod-007",
+            "name": "Royal Maroon",
+            "price": 470,
+            "inStock": true
+          },
+          {
+            "id": "opt-wht-ad-prod-007",
+            "name": "Pure White",
+            "price": 450,
+            "inStock": true
+          }
+        ]
+      }
+    ],
+    "subCategory": "Velvet Portrait Busts",
+    "childCategory": "Necklace & Choker Busts"
+  },
+  {
+    "id": "ad-prod-008",
+    "code": "AD-DB-008",
+    "title": "Maroon Velvet Royal Bridal Necklace & Earring Combination Bust",
+    "description": "Maroon Velvet Royal Bridal Necklace & Earring Combination Bust. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
+    "price": 500,
+    "originalPrice": 630,
+    "unit": "piece",
+    "rating": 4.7,
+    "reviewCount": 167,
+    "loadCapacity": "Slender Portrait Form Standard Load",
+    "category": "Display Bust",
+    "finish": "Linen Standard Finish",
+    "structuralProfile": "Slender Portrait Form",
+    "dispatchReadiness": "Same-Day Dispatch",
+    "stockStatus": "In Stock (Chennai Depot)",
+    "moq": "MOQ: 1 Unit",
+    "image": "/assets/vinayak/cat_bust.png",
+    "images": [
+      "/assets/vinayak/cat_bust.png",
+      "/assets/vinayak/req_online_sellers.png",
+      "/assets/vinayak/req_retail_shops.png"
+    ],
+    "finishes": [
+      {
+        "name": "Midnight Black",
+        "color": "#0F172A"
+      },
+      {
+        "name": "Emerald Teal",
+        "color": "#0D9488"
+      },
+      {
+        "name": "Royal Maroon",
+        "color": "#881337"
+      },
+      {
+        "name": "Pure White",
+        "color": "#F8FAFC"
+      }
+    ],
+    "requirements": [
+      "online-sellers",
+      "instagram-shop"
+    ],
+    "material": "Linen",
+    "specs": {
+      "dimensions": "Standard Commercial Dimensions",
+      "weight": "498 grams",
+      "color": "Multicolor Options Available"
+    },
+    "variations": [
+      {
+        "id": "var-finish-ad-prod-008",
+        "name": "Color / Finish",
+        "options": [
+          {
+            "id": "opt-blk-ad-prod-008",
+            "name": "Midnight Black",
+            "price": 500,
+            "inStock": true
+          },
+          {
+            "id": "opt-teal-ad-prod-008",
+            "name": "Emerald Teal",
+            "price": 500,
+            "inStock": true
+          },
+          {
+            "id": "opt-mrn-ad-prod-008",
+            "name": "Royal Maroon",
+            "price": 520,
+            "inStock": true
+          },
+          {
+            "id": "opt-wht-ad-prod-008",
+            "name": "Pure White",
+            "price": 500,
+            "inStock": true
+          }
+        ]
+      }
+    ],
+    "subCategory": "Velvet Portrait Busts",
+    "childCategory": "Necklace & Choker Busts"
+  },
+  {
+    "id": "ad-prod-009",
+    "code": "AD-DB-009",
+    "title": "Peacock Teal Velvet High-Neck Jewellery Display Stand",
+    "description": "Peacock Teal Velvet High-Neck Jewellery Display Stand. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
+    "price": 540,
+    "originalPrice": 680,
+    "unit": "piece",
+    "rating": 4.9,
+    "reviewCount": 186,
+    "loadCapacity": "Shoulder Bust Standard Load",
+    "category": "Display Bust",
+    "finish": "Wood Base Standard Finish",
+    "structuralProfile": "Shoulder Bust",
+    "dispatchReadiness": "Same-Day Dispatch",
+    "stockStatus": "In Stock (Chennai Depot)",
+    "moq": "MOQ: 1 Unit",
+    "badge": "Hot Wholesale",
+    "badgeType": "secondary",
+    "image": "/assets/vinayak/req_online_sellers.png",
+    "images": [
+      "/assets/vinayak/req_online_sellers.png",
+      "/assets/vinayak/req_retail_shops.png",
+      "/assets/vinayak/prod_10in_bust.png"
+    ],
+    "finishes": [
+      {
+        "name": "Midnight Black",
+        "color": "#0F172A"
+      },
+      {
+        "name": "Emerald Teal",
+        "color": "#0D9488"
+      },
+      {
+        "name": "Royal Maroon",
+        "color": "#881337"
+      },
+      {
+        "name": "Pure White",
+        "color": "#F8FAFC"
+      }
+    ],
+    "requirements": [
+      "instagram-shop",
+      "new-jewellery",
+      "retail-shops"
+    ],
+    "material": "Wood Base",
+    "specs": {
+      "dimensions": "Standard Commercial Dimensions",
+      "weight": "529 grams",
+      "color": "Multicolor Options Available"
+    },
+    "variations": [
+      {
+        "id": "var-finish-ad-prod-009",
+        "name": "Color / Finish",
+        "options": [
+          {
+            "id": "opt-blk-ad-prod-009",
+            "name": "Midnight Black",
+            "price": 540,
+            "inStock": true
+          },
+          {
+            "id": "opt-teal-ad-prod-009",
+            "name": "Emerald Teal",
+            "price": 540,
+            "inStock": true
+          },
+          {
+            "id": "opt-mrn-ad-prod-009",
+            "name": "Royal Maroon",
+            "price": 560,
+            "inStock": true
+          },
+          {
+            "id": "opt-wht-ad-prod-009",
+            "name": "Pure White",
+            "price": 540,
+            "inStock": true
+          }
+        ]
+      }
+    ],
+    "subCategory": "Velvet Portrait Busts",
+    "childCategory": "Pendant Portrait Stands"
+  },
+  {
+    "id": "ad-prod-010",
+    "code": "AD-DB-010",
+    "title": "Matte Black Slimline Counter Choker Display Bust",
+    "description": "Matte Black Slimline Counter Choker Display Bust. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
+    "price": 590,
+    "originalPrice": 740,
+    "unit": "piece",
+    "rating": 4.6,
+    "reviewCount": 205,
+    "loadCapacity": "Neckline Stand Standard Load",
+    "category": "Display Bust",
+    "finish": "Suede Standard Finish",
+    "structuralProfile": "Neckline Stand",
+    "dispatchReadiness": "Same-Day Dispatch",
+    "stockStatus": "In Stock (Chennai Depot)",
+    "moq": "MOQ: 1 Unit",
+    "image": "/assets/vinayak/req_retail_shops.png",
+    "images": [
+      "/assets/vinayak/req_retail_shops.png",
+      "/assets/vinayak/prod_10in_bust.png",
+      "/assets/vinayak/prod_velvet_necklace.png"
+    ],
+    "finishes": [
+      {
+        "name": "Midnight Black",
+        "color": "#0F172A"
+      },
+      {
+        "name": "Emerald Teal",
+        "color": "#0D9488"
+      },
+      {
+        "name": "Royal Maroon",
+        "color": "#881337"
+      },
+      {
+        "name": "Pure White",
+        "color": "#F8FAFC"
+      }
+    ],
+    "requirements": [
+      "new-jewellery",
+      "retail-shops"
+    ],
+    "material": "Suede",
+    "specs": {
+      "dimensions": "Standard Commercial Dimensions",
+      "weight": "560 grams",
+      "color": "Multicolor Options Available"
+    },
+    "variations": [
+      {
+        "id": "var-finish-ad-prod-010",
+        "name": "Color / Finish",
+        "options": [
+          {
+            "id": "opt-blk-ad-prod-010",
+            "name": "Midnight Black",
+            "price": 590,
+            "inStock": true
+          },
+          {
+            "id": "opt-teal-ad-prod-010",
+            "name": "Emerald Teal",
+            "price": 590,
+            "inStock": true
+          },
+          {
+            "id": "opt-mrn-ad-prod-010",
+            "name": "Royal Maroon",
+            "price": 610,
+            "inStock": true
+          },
+          {
+            "id": "opt-wht-ad-prod-010",
+            "name": "Pure White",
+            "price": 590,
+            "inStock": true
+          }
+        ]
+      }
+    ],
+    "subCategory": "Velvet Portrait Busts",
+    "childCategory": "Necklace & Choker Busts"
+  },
+  {
+    "id": "ad-prod-011",
+    "code": "AD-DB-011",
+    "title": "Sculpted Curved Bust for Mangalsutra & Daily Wear Chains",
+    "description": "Sculpted Curved Bust for Mangalsutra & Daily Wear Chains. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
+    "price": 640,
+    "originalPrice": 800,
+    "unit": "piece",
+    "rating": 4.8,
+    "reviewCount": 224,
+    "loadCapacity": "Pedestal Bust Standard Load",
+    "category": "Display Bust",
+    "finish": "Velvet Standard Finish",
+    "structuralProfile": "Pedestal Bust",
+    "dispatchReadiness": "Same-Day Dispatch",
+    "stockStatus": "In Stock (Chennai Depot)",
+    "moq": "MOQ: 1 Unit",
+    "image": "/assets/vinayak/prod_10in_bust.png",
+    "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+    "images": [
+      "/assets/vinayak/prod_10in_bust.png",
+      "/assets/vinayak/prod_velvet_necklace.png",
+      "/assets/vinayak/cat_bust.png"
+    ],
+    "finishes": [
+      {
+        "name": "Midnight Black",
+        "color": "#0F172A"
+      },
+      {
+        "name": "Emerald Teal",
+        "color": "#0D9488"
+      },
+      {
+        "name": "Royal Maroon",
+        "color": "#881337"
+      },
+      {
+        "name": "Pure White",
+        "color": "#F8FAFC"
+      }
+    ],
+    "requirements": [
+      "retail-shops",
+      "online-sellers"
+    ],
+    "material": "Velvet",
+    "specs": {
+      "dimensions": "Standard Commercial Dimensions",
+      "weight": "591 grams",
+      "color": "Multicolor Options Available"
+    },
+    "variations": [
+      {
+        "id": "var-finish-ad-prod-011",
+        "name": "Color / Finish",
+        "options": [
+          {
+            "id": "opt-blk-ad-prod-011",
+            "name": "Midnight Black",
+            "price": 640,
+            "inStock": true
+          },
+          {
+            "id": "opt-teal-ad-prod-011",
+            "name": "Emerald Teal",
+            "price": 640,
+            "inStock": true
+          },
+          {
+            "id": "opt-mrn-ad-prod-011",
+            "name": "Royal Maroon",
+            "price": 660,
+            "inStock": true
+          },
+          {
+            "id": "opt-wht-ad-prod-011",
+            "name": "Pure White",
+            "price": 640,
+            "inStock": true
+          }
+        ]
+      }
+    ],
+    "subCategory": "Velvet Portrait Busts",
+    "childCategory": "Pendant Portrait Stands"
+  },
+  {
+    "id": "ad-prod-012",
+    "code": "AD-DB-012",
+    "title": "Gold Border Velvet Display Bust for Luxury Showrooms",
+    "description": "Gold Border Velvet Display Bust for Luxury Showrooms. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
+    "price": 680,
+    "originalPrice": 850,
+    "unit": "piece",
+    "rating": 5,
+    "reviewCount": 243,
+    "loadCapacity": "Slender Portrait Form Standard Load",
+    "category": "Display Bust",
+    "finish": "Leatherette Standard Finish",
+    "structuralProfile": "Slender Portrait Form",
+    "dispatchReadiness": "Same-Day Dispatch",
+    "stockStatus": "In Stock (Chennai Depot)",
+    "moq": "MOQ: 1 Unit",
+    "badge": "Best Seller",
+    "badgeType": "primary",
+    "image": "/assets/vinayak/prod_velvet_necklace.png",
+    "images": [
+      "/assets/vinayak/prod_velvet_necklace.png",
+      "/assets/vinayak/cat_bust.png",
+      "/assets/vinayak/req_online_sellers.png"
+    ],
+    "finishes": [
+      {
+        "name": "Midnight Black",
+        "color": "#0F172A"
+      },
+      {
+        "name": "Emerald Teal",
+        "color": "#0D9488"
+      },
+      {
+        "name": "Royal Maroon",
+        "color": "#881337"
+      },
+      {
+        "name": "Pure White",
+        "color": "#F8FAFC"
+      }
+    ],
+    "requirements": [
+      "online-sellers",
+      "instagram-shop",
+      "new-jewellery"
+    ],
+    "material": "Leatherette",
+    "specs": {
+      "dimensions": "Standard Commercial Dimensions",
+      "weight": "622 grams",
+      "color": "Multicolor Options Available"
+    },
+    "variations": [
+      {
+        "id": "var-finish-ad-prod-012",
+        "name": "Color / Finish",
+        "options": [
+          {
+            "id": "opt-blk-ad-prod-012",
+            "name": "Midnight Black",
+            "price": 680,
+            "inStock": true
+          },
+          {
+            "id": "opt-teal-ad-prod-012",
+            "name": "Emerald Teal",
+            "price": 680,
+            "inStock": true
+          },
+          {
+            "id": "opt-mrn-ad-prod-012",
+            "name": "Royal Maroon",
+            "price": 700,
+            "inStock": true
+          },
+          {
+            "id": "opt-wht-ad-prod-012",
+            "name": "Pure White",
+            "price": 680,
+            "inStock": true
+          }
+        ]
+      }
+    ],
+    "subCategory": "Velvet Portrait Busts",
+    "childCategory": "Pendant Portrait Stands"
+  },
+  {
+    "id": "ad-prod-013",
+    "code": "AD-DB-013",
+    "title": "Ultra-Plush Suede Collar Display Stand with Rear Clasp Fastener",
+    "description": "Ultra-Plush Suede Collar Display Stand with Rear Clasp Fastener. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
+    "price": 730,
+    "originalPrice": 910,
+    "unit": "piece",
+    "rating": 4.7,
+    "reviewCount": 22,
+    "loadCapacity": "Shoulder Bust Standard Load",
+    "category": "Display Bust",
+    "finish": "Linen Standard Finish",
+    "structuralProfile": "Shoulder Bust",
+    "dispatchReadiness": "Same-Day Dispatch",
+    "stockStatus": "In Stock (Chennai Depot)",
+    "moq": "MOQ: 1 Unit",
+    "image": "/assets/vinayak/cat_bust.png",
+    "images": [
+      "/assets/vinayak/cat_bust.png",
+      "/assets/vinayak/req_online_sellers.png",
+      "/assets/vinayak/req_retail_shops.png"
+    ],
+    "finishes": [
+      {
+        "name": "Midnight Black",
+        "color": "#0F172A"
+      },
+      {
+        "name": "Emerald Teal",
+        "color": "#0D9488"
+      },
+      {
+        "name": "Royal Maroon",
+        "color": "#881337"
+      },
+      {
+        "name": "Pure White",
+        "color": "#F8FAFC"
+      }
+    ],
+    "requirements": [
+      "instagram-shop",
+      "new-jewellery"
+    ],
+    "material": "Linen",
+    "specs": {
+      "dimensions": "Standard Commercial Dimensions",
+      "weight": "653 grams",
+      "color": "Multicolor Options Available"
+    },
+    "variations": [
+      {
+        "id": "var-finish-ad-prod-013",
+        "name": "Color / Finish",
+        "options": [
+          {
+            "id": "opt-blk-ad-prod-013",
+            "name": "Midnight Black",
+            "price": 730,
+            "inStock": true
+          },
+          {
+            "id": "opt-teal-ad-prod-013",
+            "name": "Emerald Teal",
+            "price": 730,
+            "inStock": true
+          },
+          {
+            "id": "opt-mrn-ad-prod-013",
+            "name": "Royal Maroon",
+            "price": 750,
+            "inStock": true
+          },
+          {
+            "id": "opt-wht-ad-prod-013",
+            "name": "Pure White",
+            "price": 730,
+            "inStock": true
+          }
+        ]
+      }
+    ],
+    "subCategory": "Velvet Portrait Busts",
+    "childCategory": "Necklace & Choker Busts"
+  },
+  {
+    "id": "ad-prod-014",
+    "code": "AD-DB-014",
+    "title": "Heavy Base Velvet Portrait Model for Showcase Display",
+    "description": "Heavy Base Velvet Portrait Model for Showcase Display. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
+    "price": 780,
+    "originalPrice": 980,
+    "unit": "piece",
+    "rating": 4.9,
+    "reviewCount": 41,
+    "loadCapacity": "Neckline Stand Standard Load",
+    "category": "Display Bust",
+    "finish": "Wood Base Standard Finish",
+    "structuralProfile": "Neckline Stand",
+    "dispatchReadiness": "Same-Day Dispatch",
+    "stockStatus": "In Stock (Chennai Depot)",
+    "moq": "MOQ: 1 Unit",
+    "image": "/assets/vinayak/req_online_sellers.png",
+    "images": [
+      "/assets/vinayak/req_online_sellers.png",
+      "/assets/vinayak/req_retail_shops.png",
+      "/assets/vinayak/prod_10in_bust.png"
+    ],
+    "finishes": [
+      {
+        "name": "Midnight Black",
+        "color": "#0F172A"
+      },
+      {
+        "name": "Emerald Teal",
+        "color": "#0D9488"
+      },
+      {
+        "name": "Royal Maroon",
+        "color": "#881337"
+      },
+      {
+        "name": "Pure White",
+        "color": "#F8FAFC"
+      }
+    ],
+    "requirements": [
+      "new-jewellery",
+      "retail-shops"
+    ],
+    "material": "Wood Base",
+    "specs": {
+      "dimensions": "Standard Commercial Dimensions",
+      "weight": "684 grams",
+      "color": "Multicolor Options Available"
+    },
+    "variations": [
+      {
+        "id": "var-finish-ad-prod-014",
+        "name": "Color / Finish",
+        "options": [
+          {
+            "id": "opt-blk-ad-prod-014",
+            "name": "Midnight Black",
+            "price": 780,
+            "inStock": true
+          },
+          {
+            "id": "opt-teal-ad-prod-014",
+            "name": "Emerald Teal",
+            "price": 780,
+            "inStock": true
+          },
+          {
+            "id": "opt-mrn-ad-prod-014",
+            "name": "Royal Maroon",
+            "price": 800,
+            "inStock": true
+          },
+          {
+            "id": "opt-wht-ad-prod-014",
+            "name": "Pure White",
+            "price": 780,
+            "inStock": true
+          }
+        ]
+      }
+    ],
+    "subCategory": "Velvet Portrait Busts",
+    "childCategory": "Pendant Portrait Stands"
   },
   {
     "id": "ad-prod-015",
@@ -255,7 +1305,9 @@ export const INITIAL_PRODUCTS: Product[] = [
           }
         ]
       }
-    ]
+    ],
+    "subCategory": "Earring & Stud Cards",
+    "childCategory": "Matte Cardstock Cards"
   },
   {
     "id": "ad-prod-016",
@@ -339,30 +1391,32 @@ export const INITIAL_PRODUCTS: Product[] = [
           }
         ]
       }
-    ]
+    ],
+    "subCategory": "Tags & Packaging Cards",
+    "childCategory": "Kraft Paper Eco Cards"
   },
   {
-    "id": "ad-prod-029",
-    "code": "AD-DS-029",
-    "title": "Premium 4-Layer Wooden Earring Display Stand (48 Pairs)",
-    "description": "Premium 4-Layer Wooden Earring Display Stand (48 Pairs). Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
-    "price": 1480,
-    "originalPrice": 1850,
-    "unit": "piece",
-    "rating": 4.9,
-    "reviewCount": 86,
-    "loadCapacity": "Tiered Counter Stand Standard Load",
-    "category": "Display Stand",
-    "finish": "Solid Pine Wood Standard Finish",
-    "structuralProfile": "Tiered Counter Stand",
+    "id": "ad-prod-017",
+    "code": "AD-DC-017",
+    "title": "Luxury 3x3 Inch Foil Stamped Jewellery Backing Cards",
+    "description": "Luxury 3x3 Inch Foil Stamped Jewellery Backing Cards. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
+    "price": 920,
+    "originalPrice": 1150,
+    "unit": "pack",
+    "rating": 5,
+    "reviewCount": 98,
+    "loadCapacity": "Combo Necklace Card Standard Load",
+    "category": "Display Cards",
+    "finish": "Velvet Coated Paper Standard Finish",
+    "structuralProfile": "Combo Necklace Card",
     "dispatchReadiness": "Same-Day Dispatch",
     "stockStatus": "In Stock (Chennai Depot)",
-    "moq": "MOQ: 1 Unit",
-    "image": "/assets/vinayak/prod_earring_stand.png",
+    "moq": "MOQ: 1 Pack (100 Pcs)",
+    "image": "/assets/vinayak/prod_elite_cards.png",
     "images": [
-      "/assets/vinayak/prod_earring_stand.png",
-      "/assets/vinayak/cat_stand.png",
-      "/assets/vinayak/deal_left_banner.png"
+      "/assets/vinayak/prod_elite_cards.png",
+      "/assets/vinayak/prod_pink_cards.png",
+      "/assets/vinayak/cat_card.png"
     ],
     "finishes": [
       {
@@ -386,69 +1440,71 @@ export const INITIAL_PRODUCTS: Product[] = [
       "instagram-shop",
       "new-jewellery"
     ],
-    "material": "Solid Pine Wood",
+    "material": "Velvet Coated Paper",
     "specs": {
       "dimensions": "Standard Commercial Dimensions",
-      "weight": "499 grams",
+      "weight": "777 grams",
       "color": "Multicolor Options Available"
     },
     "variations": [
       {
-        "id": "var-finish-ad-prod-029",
+        "id": "var-finish-ad-prod-017",
         "name": "Color / Finish",
         "options": [
           {
-            "id": "opt-blk-ad-prod-029",
+            "id": "opt-blk-ad-prod-017",
             "name": "Midnight Black",
-            "price": 1480,
+            "price": 920,
             "inStock": true
           },
           {
-            "id": "opt-teal-ad-prod-029",
+            "id": "opt-teal-ad-prod-017",
             "name": "Emerald Teal",
-            "price": 1480,
+            "price": 920,
             "inStock": true
           },
           {
-            "id": "opt-mrn-ad-prod-029",
+            "id": "opt-mrn-ad-prod-017",
             "name": "Royal Maroon",
-            "price": 1500,
+            "price": 940,
             "inStock": true
           },
           {
-            "id": "opt-wht-ad-prod-029",
+            "id": "opt-wht-ad-prod-017",
             "name": "Pure White",
-            "price": 1480,
+            "price": 920,
             "inStock": true
           }
         ]
       }
-    ]
+    ],
+    "subCategory": "Earring & Stud Cards",
+    "childCategory": "Foil Stamped & Embossed Cards"
   },
   {
-    "id": "ad-prod-030",
-    "code": "AD-DS-030",
-    "title": "6-Tier Rotating Counter Earring Tree Carousel",
-    "description": "6-Tier Rotating Counter Earring Tree Carousel. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
-    "price": 1530,
-    "originalPrice": 1910,
-    "unit": "piece",
-    "rating": 4.6,
-    "reviewCount": 105,
-    "loadCapacity": "Rotating Carousel Standard Load",
-    "category": "Display Stand",
-    "finish": "Powder Coated Metal Standard Finish",
-    "structuralProfile": "Rotating Carousel",
+    "id": "ad-prod-018",
+    "code": "AD-DC-018",
+    "title": "Elite White Gold Embossed Necklace & Earring Cards (Pack of 200)",
+    "description": "Elite White Gold Embossed Necklace & Earring Cards (Pack of 200). Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
+    "price": 970,
+    "originalPrice": 1210,
+    "unit": "pack",
+    "rating": 4.7,
+    "reviewCount": 117,
+    "loadCapacity": "Foldover Card Standard Load",
+    "category": "Display Cards",
+    "finish": "Ivory Sheet Standard Finish",
+    "structuralProfile": "Foldover Card",
     "dispatchReadiness": "Same-Day Dispatch",
     "stockStatus": "In Stock (Chennai Depot)",
-    "moq": "MOQ: 1 Unit",
+    "moq": "MOQ: 1 Pack (100 Pcs)",
     "badge": "Best Seller",
     "badgeType": "neutral",
-    "image": "/assets/vinayak/cat_stand.png",
+    "image": "/assets/vinayak/prod_pink_cards.png",
     "images": [
-      "/assets/vinayak/cat_stand.png",
-      "/assets/vinayak/deal_left_banner.png",
-      "/assets/vinayak/req_retail_shops.png"
+      "/assets/vinayak/prod_pink_cards.png",
+      "/assets/vinayak/cat_card.png",
+      "/assets/vinayak/prod_3x3_cards.png"
     ],
     "finishes": [
       {
@@ -473,1061 +1529,46 @@ export const INITIAL_PRODUCTS: Product[] = [
       "retail-shops",
       "online-sellers"
     ],
-    "material": "Powder Coated Metal",
+    "material": "Ivory Sheet",
     "specs": {
       "dimensions": "Standard Commercial Dimensions",
-      "weight": "530 grams",
+      "weight": "808 grams",
       "color": "Multicolor Options Available"
     },
     "variations": [
       {
-        "id": "var-finish-ad-prod-030",
+        "id": "var-finish-ad-prod-018",
         "name": "Color / Finish",
         "options": [
           {
-            "id": "opt-blk-ad-prod-030",
+            "id": "opt-blk-ad-prod-018",
             "name": "Midnight Black",
-            "price": 1530,
+            "price": 970,
             "inStock": true
           },
           {
-            "id": "opt-teal-ad-prod-030",
+            "id": "opt-teal-ad-prod-018",
             "name": "Emerald Teal",
-            "price": 1530,
+            "price": 970,
             "inStock": true
           },
           {
-            "id": "opt-mrn-ad-prod-030",
+            "id": "opt-mrn-ad-prod-018",
             "name": "Royal Maroon",
-            "price": 1550,
+            "price": 990,
             "inStock": true
           },
           {
-            "id": "opt-wht-ad-prod-030",
+            "id": "opt-wht-ad-prod-018",
             "name": "Pure White",
-            "price": 1530,
+            "price": 970,
             "inStock": true
           }
         ]
       }
-    ]
-  },
-  {
-    "id": "ad-prod-043",
-    "code": "AD-TR-043",
-    "title": "Premium Round Velvet Flatlay Presentation Tray (8 Inch)",
-    "description": "Premium Round Velvet Flatlay Presentation Tray (8 Inch). Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
-    "price": 340,
-    "originalPrice": 430,
-    "unit": "piece",
-    "rating": 4.7,
-    "reviewCount": 112,
-    "loadCapacity": "Stackable Circular Tray Standard Load",
-    "category": "Display Tray",
-    "finish": "Plush Velvet Standard Finish",
-    "structuralProfile": "Stackable Circular Tray",
-    "dispatchReadiness": "Same-Day Dispatch",
-    "stockStatus": "In Stock (Chennai Depot)",
-    "moq": "MOQ: 1 Unit",
-    "image": "/assets/vinayak/prod_round_tray.png",
-    "images": [
-      "/assets/vinayak/prod_round_tray.png",
-      "/assets/vinayak/cat_tray.png",
-      "/assets/vinayak/req_instagram_shop.png"
     ],
-    "finishes": [
-      {
-        "name": "Midnight Black",
-        "color": "#0F172A"
-      },
-      {
-        "name": "Emerald Teal",
-        "color": "#0D9488"
-      },
-      {
-        "name": "Royal Maroon",
-        "color": "#881337"
-      },
-      {
-        "name": "Pure White",
-        "color": "#F8FAFC"
-      }
-    ],
-    "requirements": [
-      "retail-shops",
-      "online-sellers"
-    ],
-    "material": "Plush Velvet",
-    "specs": {
-      "dimensions": "Standard Commercial Dimensions",
-      "weight": "283 grams",
-      "color": "Multicolor Options Available"
-    },
-    "variations": [
-      {
-        "id": "var-finish-ad-prod-043",
-        "name": "Color / Finish",
-        "options": [
-          {
-            "id": "opt-blk-ad-prod-043",
-            "name": "Midnight Black",
-            "price": 340,
-            "inStock": true
-          },
-          {
-            "id": "opt-teal-ad-prod-043",
-            "name": "Emerald Teal",
-            "price": 340,
-            "inStock": true
-          },
-          {
-            "id": "opt-mrn-ad-prod-043",
-            "name": "Royal Maroon",
-            "price": 360,
-            "inStock": true
-          },
-          {
-            "id": "opt-wht-ad-prod-043",
-            "name": "Pure White",
-            "price": 340,
-            "inStock": true
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "ad-prod-044",
-    "code": "AD-TR-044",
-    "title": "24-Compartment Velvet Ring & Earring Showcase Insert Tray",
-    "description": "24-Compartment Velvet Ring & Earring Showcase Insert Tray. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
-    "price": 390,
-    "originalPrice": 490,
-    "unit": "piece",
-    "rating": 4.9,
-    "reviewCount": 131,
-    "loadCapacity": "24-Grid Compartment Tray Standard Load",
-    "category": "Display Tray",
-    "finish": "PU Leatherette Standard Finish",
-    "structuralProfile": "24-Grid Compartment Tray",
-    "dispatchReadiness": "Same-Day Dispatch",
-    "stockStatus": "In Stock (Chennai Depot)",
-    "moq": "MOQ: 1 Unit",
-    "image": "/assets/vinayak/cat_tray.png",
-    "images": [
-      "/assets/vinayak/cat_tray.png",
-      "/assets/vinayak/req_instagram_shop.png",
-      "/assets/vinayak/shop_banner.png"
-    ],
-    "finishes": [
-      {
-        "name": "Midnight Black",
-        "color": "#0F172A"
-      },
-      {
-        "name": "Emerald Teal",
-        "color": "#0D9488"
-      },
-      {
-        "name": "Royal Maroon",
-        "color": "#881337"
-      },
-      {
-        "name": "Pure White",
-        "color": "#F8FAFC"
-      }
-    ],
-    "requirements": [
-      "online-sellers",
-      "instagram-shop"
-    ],
-    "material": "PU Leatherette",
-    "specs": {
-      "dimensions": "Standard Commercial Dimensions",
-      "weight": "314 grams",
-      "color": "Multicolor Options Available"
-    },
-    "variations": [
-      {
-        "id": "var-finish-ad-prod-044",
-        "name": "Color / Finish",
-        "options": [
-          {
-            "id": "opt-blk-ad-prod-044",
-            "name": "Midnight Black",
-            "price": 390,
-            "inStock": true
-          },
-          {
-            "id": "opt-teal-ad-prod-044",
-            "name": "Emerald Teal",
-            "price": 390,
-            "inStock": true
-          },
-          {
-            "id": "opt-mrn-ad-prod-044",
-            "name": "Royal Maroon",
-            "price": 410,
-            "inStock": true
-          },
-          {
-            "id": "opt-wht-ad-prod-044",
-            "name": "Pure White",
-            "price": 390,
-            "inStock": true
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "ad-prod-057",
-    "code": "AD-BS-057",
-    "title": "Single Tier Velvet Bangle & Watch Display Roll (12 Inch)",
-    "description": "Single Tier Velvet Bangle & Watch Display Roll (12 Inch). Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
-    "price": 1000,
-    "originalPrice": 1250,
-    "unit": "piece",
-    "rating": 5,
-    "reviewCount": 138,
-    "loadCapacity": "Single Cylinder Roll Standard Load",
-    "category": "Bangle & Bracelet Display Stand",
-    "finish": "Velvet Cylinder Standard Finish",
-    "structuralProfile": "Single Cylinder Roll",
-    "dispatchReadiness": "Same-Day Dispatch",
-    "stockStatus": "In Stock (Chennai Depot)",
-    "moq": "MOQ: 1 Unit",
-    "badge": "Hot Wholesale",
-    "badgeType": "secondary",
-    "image": "/assets/vinayak/cat_stand.png",
-    "images": [
-      "/assets/vinayak/cat_stand.png",
-      "/assets/vinayak/prod_earring_stand.png",
-      "/assets/vinayak/req_instagram_shop.png"
-    ],
-    "finishes": [
-      {
-        "name": "Midnight Black",
-        "color": "#0F172A"
-      },
-      {
-        "name": "Emerald Teal",
-        "color": "#0D9488"
-      },
-      {
-        "name": "Royal Maroon",
-        "color": "#881337"
-      },
-      {
-        "name": "Pure White",
-        "color": "#F8FAFC"
-      }
-    ],
-    "requirements": [
-      "instagram-shop",
-      "new-jewellery",
-      "retail-shops"
-    ],
-    "material": "Velvet Cylinder",
-    "specs": {
-      "dimensions": "Standard Commercial Dimensions",
-      "weight": "717 grams",
-      "color": "Multicolor Options Available"
-    },
-    "variations": [
-      {
-        "id": "var-finish-ad-prod-057",
-        "name": "Color / Finish",
-        "options": [
-          {
-            "id": "opt-blk-ad-prod-057",
-            "name": "Midnight Black",
-            "price": 1000,
-            "inStock": true
-          },
-          {
-            "id": "opt-teal-ad-prod-057",
-            "name": "Emerald Teal",
-            "price": 1000,
-            "inStock": true
-          },
-          {
-            "id": "opt-mrn-ad-prod-057",
-            "name": "Royal Maroon",
-            "price": 1020,
-            "inStock": true
-          },
-          {
-            "id": "opt-wht-ad-prod-057",
-            "name": "Pure White",
-            "price": 1000,
-            "inStock": true
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "ad-prod-058",
-    "code": "AD-BS-058",
-    "title": "Double Tier Velvet Stepped Bangle Holder Stand",
-    "description": "Double Tier Velvet Stepped Bangle Holder Stand. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
-    "price": 1050,
-    "originalPrice": 1310,
-    "unit": "piece",
-    "rating": 4.7,
-    "reviewCount": 157,
-    "loadCapacity": "2-Tier Bangle Ramp Standard Load",
-    "category": "Bangle & Bracelet Display Stand",
-    "finish": "PU Leatherette Standard Finish",
-    "structuralProfile": "2-Tier Bangle Ramp",
-    "dispatchReadiness": "Same-Day Dispatch",
-    "stockStatus": "In Stock (Chennai Depot)",
-    "moq": "MOQ: 1 Unit",
-    "image": "/assets/vinayak/prod_earring_stand.png",
-    "images": [
-      "/assets/vinayak/prod_earring_stand.png",
-      "/assets/vinayak/req_instagram_shop.png",
-      "/assets/vinayak/req_new_jewellery.png"
-    ],
-    "finishes": [
-      {
-        "name": "Midnight Black",
-        "color": "#0F172A"
-      },
-      {
-        "name": "Emerald Teal",
-        "color": "#0D9488"
-      },
-      {
-        "name": "Royal Maroon",
-        "color": "#881337"
-      },
-      {
-        "name": "Pure White",
-        "color": "#F8FAFC"
-      }
-    ],
-    "requirements": [
-      "new-jewellery",
-      "retail-shops"
-    ],
-    "material": "PU Leatherette",
-    "specs": {
-      "dimensions": "Standard Commercial Dimensions",
-      "weight": "748 grams",
-      "color": "Multicolor Options Available"
-    },
-    "variations": [
-      {
-        "id": "var-finish-ad-prod-058",
-        "name": "Color / Finish",
-        "options": [
-          {
-            "id": "opt-blk-ad-prod-058",
-            "name": "Midnight Black",
-            "price": 1050,
-            "inStock": true
-          },
-          {
-            "id": "opt-teal-ad-prod-058",
-            "name": "Emerald Teal",
-            "price": 1050,
-            "inStock": true
-          },
-          {
-            "id": "opt-mrn-ad-prod-058",
-            "name": "Royal Maroon",
-            "price": 1070,
-            "inStock": true
-          },
-          {
-            "id": "opt-wht-ad-prod-058",
-            "name": "Pure White",
-            "price": 1050,
-            "inStock": true
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "ad-prod-070",
-    "code": "AD-BX-070",
-    "title": "Luxury Velvet Octagonal Engagement Ring Box with Golden Hinge",
-    "description": "Luxury Velvet Octagonal Engagement Ring Box with Golden Hinge. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
-    "price": 1610,
-    "originalPrice": 2010,
-    "unit": "piece",
-    "rating": 4.6,
-    "reviewCount": 145,
-    "loadCapacity": "Magnetic Ring Box Standard Load",
-    "category": "Storage Box",
-    "finish": "Velvet Wrapped Cardboard Standard Finish",
-    "structuralProfile": "Magnetic Ring Box",
-    "dispatchReadiness": "Same-Day Dispatch",
-    "stockStatus": "In Stock (Chennai Depot)",
-    "moq": "MOQ: 1 Unit",
-    "image": "/assets/vinayak/cat_box.png",
-    "images": [
-      "/assets/vinayak/cat_box.png",
-      "/assets/vinayak/prod_round_tray.png",
-      "/assets/vinayak/deal_left_banner.png"
-    ],
-    "finishes": [
-      {
-        "name": "Midnight Black",
-        "color": "#0F172A"
-      },
-      {
-        "name": "Emerald Teal",
-        "color": "#0D9488"
-      },
-      {
-        "name": "Royal Maroon",
-        "color": "#881337"
-      },
-      {
-        "name": "Pure White",
-        "color": "#F8FAFC"
-      }
-    ],
-    "requirements": [
-      "new-jewellery",
-      "retail-shops"
-    ],
-    "material": "Velvet Wrapped Cardboard",
-    "specs": {
-      "dimensions": "Standard Commercial Dimensions",
-      "weight": "470 grams",
-      "color": "Multicolor Options Available"
-    },
-    "variations": [
-      {
-        "id": "var-finish-ad-prod-070",
-        "name": "Color / Finish",
-        "options": [
-          {
-            "id": "opt-blk-ad-prod-070",
-            "name": "Midnight Black",
-            "price": 1610,
-            "inStock": true
-          },
-          {
-            "id": "opt-teal-ad-prod-070",
-            "name": "Emerald Teal",
-            "price": 1610,
-            "inStock": true
-          },
-          {
-            "id": "opt-mrn-ad-prod-070",
-            "name": "Royal Maroon",
-            "price": 1630,
-            "inStock": true
-          },
-          {
-            "id": "opt-wht-ad-prod-070",
-            "name": "Pure White",
-            "price": 1610,
-            "inStock": true
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "ad-prod-071",
-    "code": "AD-BX-071",
-    "title": "Clear Acrylic 5-Drawer Dustproof Jewellery Storage Organizer",
-    "description": "Clear Acrylic 5-Drawer Dustproof Jewellery Storage Organizer. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
-    "price": 1660,
-    "originalPrice": 2080,
-    "unit": "piece",
-    "rating": 4.8,
-    "reviewCount": 164,
-    "loadCapacity": "Glass Showcase Chest Standard Load",
-    "category": "Storage Box",
-    "finish": "Acrylic Glass Standard Finish",
-    "structuralProfile": "Glass Showcase Chest",
-    "dispatchReadiness": "Same-Day Dispatch",
-    "stockStatus": "In Stock (Chennai Depot)",
-    "moq": "MOQ: 1 Unit",
-    "image": "/assets/vinayak/prod_round_tray.png",
-    "images": [
-      "/assets/vinayak/prod_round_tray.png",
-      "/assets/vinayak/deal_left_banner.png",
-      "/assets/vinayak/req_new_jewellery.png"
-    ],
-    "finishes": [
-      {
-        "name": "Midnight Black",
-        "color": "#0F172A"
-      },
-      {
-        "name": "Emerald Teal",
-        "color": "#0D9488"
-      },
-      {
-        "name": "Royal Maroon",
-        "color": "#881337"
-      },
-      {
-        "name": "Pure White",
-        "color": "#F8FAFC"
-      }
-    ],
-    "requirements": [
-      "retail-shops",
-      "online-sellers"
-    ],
-    "material": "Acrylic Glass",
-    "specs": {
-      "dimensions": "Standard Commercial Dimensions",
-      "weight": "501 grams",
-      "color": "Multicolor Options Available"
-    },
-    "variations": [
-      {
-        "id": "var-finish-ad-prod-071",
-        "name": "Color / Finish",
-        "options": [
-          {
-            "id": "opt-blk-ad-prod-071",
-            "name": "Midnight Black",
-            "price": 1660,
-            "inStock": true
-          },
-          {
-            "id": "opt-teal-ad-prod-071",
-            "name": "Emerald Teal",
-            "price": 1660,
-            "inStock": true
-          },
-          {
-            "id": "opt-mrn-ad-prod-071",
-            "name": "Royal Maroon",
-            "price": 1680,
-            "inStock": true
-          },
-          {
-            "id": "opt-wht-ad-prod-071",
-            "name": "Pure White",
-            "price": 1660,
-            "inStock": true
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "ad-prod-083",
-    "code": "AD-MN-083",
-    "title": "Full Shoulder Velvet Mannequin Bust for Heavy Bridal Sets",
-    "description": "Full Shoulder Velvet Mannequin Bust for Heavy Bridal Sets. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
-    "price": 420,
-    "originalPrice": 530,
-    "unit": "piece",
-    "rating": 4.7,
-    "reviewCount": 152,
-    "loadCapacity": "Full Form Torso Standard Load",
-    "category": "Mannequin Stand",
-    "finish": "Fiberglass Core Standard Finish",
-    "structuralProfile": "Full Form Torso",
-    "dispatchReadiness": "Same-Day Dispatch",
-    "stockStatus": "In Stock (Chennai Depot)",
-    "moq": "MOQ: 1 Unit",
-    "image": "/assets/vinayak/cat_mannequin.png",
-    "images": [
-      "/assets/vinayak/cat_mannequin.png",
-      "/assets/vinayak/cat_bust.png",
-      "/assets/vinayak/req_retail_shops.png"
-    ],
-    "finishes": [
-      {
-        "name": "Midnight Black",
-        "color": "#0F172A"
-      },
-      {
-        "name": "Emerald Teal",
-        "color": "#0D9488"
-      },
-      {
-        "name": "Royal Maroon",
-        "color": "#881337"
-      },
-      {
-        "name": "Pure White",
-        "color": "#F8FAFC"
-      }
-    ],
-    "requirements": [
-      "retail-shops",
-      "online-sellers"
-    ],
-    "material": "Fiberglass Core",
-    "specs": {
-      "dimensions": "Standard Commercial Dimensions",
-      "weight": "873 grams",
-      "color": "Multicolor Options Available"
-    },
-    "variations": [
-      {
-        "id": "var-finish-ad-prod-083",
-        "name": "Color / Finish",
-        "options": [
-          {
-            "id": "opt-blk-ad-prod-083",
-            "name": "Midnight Black",
-            "price": 420,
-            "inStock": true
-          },
-          {
-            "id": "opt-teal-ad-prod-083",
-            "name": "Emerald Teal",
-            "price": 420,
-            "inStock": true
-          },
-          {
-            "id": "opt-mrn-ad-prod-083",
-            "name": "Royal Maroon",
-            "price": 440,
-            "inStock": true
-          },
-          {
-            "id": "opt-wht-ad-prod-083",
-            "name": "Pure White",
-            "price": 420,
-            "inStock": true
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "ad-prod-084",
-    "code": "AD-MN-084",
-    "title": "Sculpted Velvet Head & Neck Display for Maang Tikka & Earrings",
-    "description": "Sculpted Velvet Head & Neck Display for Maang Tikka & Earrings. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
-    "price": 470,
-    "originalPrice": 590,
-    "unit": "piece",
-    "rating": 4.9,
-    "reviewCount": 171,
-    "loadCapacity": "Sculpted Head & Neck Standard Load",
-    "category": "Mannequin Stand",
-    "finish": "Velvet Fabric Standard Finish",
-    "structuralProfile": "Sculpted Head & Neck",
-    "dispatchReadiness": "Same-Day Dispatch",
-    "stockStatus": "In Stock (Chennai Depot)",
-    "moq": "MOQ: 1 Unit",
-    "badge": "Best Seller",
-    "badgeType": "primary",
-    "image": "/assets/vinayak/cat_bust.png",
-    "images": [
-      "/assets/vinayak/cat_bust.png",
-      "/assets/vinayak/req_retail_shops.png",
-      "/assets/vinayak/prod_10in_bust.png"
-    ],
-    "finishes": [
-      {
-        "name": "Midnight Black",
-        "color": "#0F172A"
-      },
-      {
-        "name": "Emerald Teal",
-        "color": "#0D9488"
-      },
-      {
-        "name": "Royal Maroon",
-        "color": "#881337"
-      },
-      {
-        "name": "Pure White",
-        "color": "#F8FAFC"
-      }
-    ],
-    "requirements": [
-      "online-sellers",
-      "instagram-shop",
-      "new-jewellery"
-    ],
-    "material": "Velvet Fabric",
-    "specs": {
-      "dimensions": "Standard Commercial Dimensions",
-      "weight": "254 grams",
-      "color": "Multicolor Options Available"
-    },
-    "variations": [
-      {
-        "id": "var-finish-ad-prod-084",
-        "name": "Color / Finish",
-        "options": [
-          {
-            "id": "opt-blk-ad-prod-084",
-            "name": "Midnight Black",
-            "price": 470,
-            "inStock": true
-          },
-          {
-            "id": "opt-teal-ad-prod-084",
-            "name": "Emerald Teal",
-            "price": 470,
-            "inStock": true
-          },
-          {
-            "id": "opt-mrn-ad-prod-084",
-            "name": "Royal Maroon",
-            "price": 490,
-            "inStock": true
-          },
-          {
-            "id": "opt-wht-ad-prod-084",
-            "name": "Pure White",
-            "price": 470,
-            "inStock": true
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "ad-prod-096",
-    "code": "AD-TL-096",
-    "title": "Heavy Duty 3-Inch Core Cast Iron Desktop Tape Dispenser",
-    "description": "Heavy Duty 3-Inch Core Cast Iron Desktop Tape Dispenser. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
-    "price": 1030,
-    "originalPrice": 1290,
-    "unit": "piece",
-    "rating": 4.8,
-    "reviewCount": 159,
-    "loadCapacity": "Heavy Cast Dispenser Standard Load",
-    "category": "Packaging Tools",
-    "finish": "Cast Iron Standard Finish",
-    "structuralProfile": "Heavy Cast Dispenser",
-    "dispatchReadiness": "Same-Day Dispatch",
-    "stockStatus": "In Stock (Chennai Depot)",
-    "moq": "MOQ: 1 Unit",
-    "badge": "Best Seller",
-    "badgeType": "primary",
-    "image": "/assets/vinayak/prod_tape_dispenser.png",
-    "images": [
-      "/assets/vinayak/prod_tape_dispenser.png",
-      "/assets/vinayak/prod_wonder_tape.png",
-      "/assets/vinayak/prod_price_sticker.png"
-    ],
-    "finishes": [
-      {
-        "name": "Midnight Black",
-        "color": "#0F172A"
-      },
-      {
-        "name": "Emerald Teal",
-        "color": "#0D9488"
-      },
-      {
-        "name": "Royal Maroon",
-        "color": "#881337"
-      },
-      {
-        "name": "Pure White",
-        "color": "#F8FAFC"
-      }
-    ],
-    "requirements": [
-      "online-sellers",
-      "instagram-shop",
-      "new-jewellery"
-    ],
-    "material": "Cast Iron",
-    "specs": {
-      "dimensions": "Standard Commercial Dimensions",
-      "weight": "626 grams",
-      "color": "Multicolor Options Available"
-    },
-    "variations": [
-      {
-        "id": "var-finish-ad-prod-096",
-        "name": "Color / Finish",
-        "options": [
-          {
-            "id": "opt-blk-ad-prod-096",
-            "name": "Midnight Black",
-            "price": 1030,
-            "inStock": true
-          },
-          {
-            "id": "opt-teal-ad-prod-096",
-            "name": "Emerald Teal",
-            "price": 1030,
-            "inStock": true
-          },
-          {
-            "id": "opt-mrn-ad-prod-096",
-            "name": "Royal Maroon",
-            "price": 1050,
-            "inStock": true
-          },
-          {
-            "id": "opt-wht-ad-prod-096",
-            "name": "Pure White",
-            "price": 1030,
-            "inStock": true
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "ad-prod-097",
-    "code": "AD-TL-097",
-    "title": "Ultra Clear Wonder Tape Rolls for Jewellery Cards (Pack of 12)",
-    "description": "Ultra Clear Wonder Tape Rolls for Jewellery Cards (Pack of 12). Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
-    "price": 1080,
-    "originalPrice": 1350,
-    "unit": "roll",
-    "rating": 5,
-    "reviewCount": 178,
-    "loadCapacity": "Adhesive Roll Standard Load",
-    "category": "Packaging Tools",
-    "finish": "High-Grade Polycarbonate Standard Finish",
-    "structuralProfile": "Adhesive Roll",
-    "dispatchReadiness": "Same-Day Dispatch",
-    "stockStatus": "In Stock (Chennai Depot)",
-    "moq": "MOQ: 5 Rolls",
-    "image": "/assets/vinayak/prod_wonder_tape.png",
-    "images": [
-      "/assets/vinayak/prod_wonder_tape.png",
-      "/assets/vinayak/prod_price_sticker.png",
-      "/assets/vinayak/cat_bag.png"
-    ],
-    "finishes": [
-      {
-        "name": "Midnight Black",
-        "color": "#0F172A"
-      },
-      {
-        "name": "Emerald Teal",
-        "color": "#0D9488"
-      },
-      {
-        "name": "Royal Maroon",
-        "color": "#881337"
-      },
-      {
-        "name": "Pure White",
-        "color": "#F8FAFC"
-      }
-    ],
-    "requirements": [
-      "instagram-shop",
-      "new-jewellery"
-    ],
-    "material": "High-Grade Polycarbonate",
-    "specs": {
-      "dimensions": "Standard Commercial Dimensions",
-      "weight": "657 grams",
-      "color": "Multicolor Options Available"
-    },
-    "variations": [
-      {
-        "id": "var-finish-ad-prod-097",
-        "name": "Color / Finish",
-        "options": [
-          {
-            "id": "opt-blk-ad-prod-097",
-            "name": "Midnight Black",
-            "price": 1080,
-            "inStock": true
-          },
-          {
-            "id": "opt-teal-ad-prod-097",
-            "name": "Emerald Teal",
-            "price": 1080,
-            "inStock": true
-          },
-          {
-            "id": "opt-mrn-ad-prod-097",
-            "name": "Royal Maroon",
-            "price": 1100,
-            "inStock": true
-          },
-          {
-            "id": "opt-wht-ad-prod-097",
-            "name": "Pure White",
-            "price": 1080,
-            "inStock": true
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "ad-prod-109",
-    "code": "AD-CL-109",
-    "title": "Seamless Microfiber Suede Showcase Counter Mat (1 × 1.5 Meter)",
-    "description": "Seamless Microfiber Suede Showcase Counter Mat (1 × 1.5 Meter). Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
-    "price": 1640,
-    "originalPrice": 2050,
-    "unit": "meter",
-    "rating": 4.9,
-    "reviewCount": 166,
-    "loadCapacity": "Seamless Flatlay Mat Standard Load",
-    "category": "Jewellery Display Cloth",
-    "finish": "Microfiber Suede Standard Finish",
-    "structuralProfile": "Seamless Flatlay Mat",
-    "dispatchReadiness": "Same-Day Dispatch",
-    "stockStatus": "In Stock (Chennai Depot)",
-    "moq": "MOQ: 1 Piece",
-    "image": "/assets/vinayak/prod_suede_velvet.png",
-    "images": [
-      "/assets/vinayak/prod_suede_velvet.png",
-      "/assets/vinayak/prod_round_tray.png",
-      "/assets/vinayak/shop_banner.png"
-    ],
-    "finishes": [
-      {
-        "name": "Midnight Black",
-        "color": "#0F172A"
-      },
-      {
-        "name": "Emerald Teal",
-        "color": "#0D9488"
-      },
-      {
-        "name": "Royal Maroon",
-        "color": "#881337"
-      },
-      {
-        "name": "Pure White",
-        "color": "#F8FAFC"
-      }
-    ],
-    "requirements": [
-      "instagram-shop",
-      "new-jewellery"
-    ],
-    "material": "Microfiber Suede",
-    "specs": {
-      "dimensions": "Standard Commercial Dimensions",
-      "weight": "379 grams",
-      "color": "Multicolor Options Available"
-    },
-    "variations": [
-      {
-        "id": "var-finish-ad-prod-109",
-        "name": "Color / Finish",
-        "options": [
-          {
-            "id": "opt-blk-ad-prod-109",
-            "name": "Midnight Black",
-            "price": 1640,
-            "inStock": true
-          },
-          {
-            "id": "opt-teal-ad-prod-109",
-            "name": "Emerald Teal",
-            "price": 1640,
-            "inStock": true
-          },
-          {
-            "id": "opt-mrn-ad-prod-109",
-            "name": "Royal Maroon",
-            "price": 1660,
-            "inStock": true
-          },
-          {
-            "id": "opt-wht-ad-prod-109",
-            "name": "Pure White",
-            "price": 1640,
-            "inStock": true
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "ad-prod-110",
-    "code": "AD-CL-110",
-    "title": "Deep Royal Velvet Countertop Showcase Flatlay Drape Cloth",
-    "description": "Deep Royal Velvet Countertop Showcase Flatlay Drape Cloth. Direct factory wholesale supplies for boutique owners, retail jewellers, and online ecommerce sellers. Superior craftsmanship, scratch-resistant coating, and immediate dispatch from Chennai Sowcarpet central depot.",
-    "price": 1690,
-    "originalPrice": 2110,
-    "unit": "meter",
-    "rating": 4.6,
-    "reviewCount": 185,
-    "loadCapacity": "Countertop Runner Standard Load",
-    "category": "Jewellery Display Cloth",
-    "finish": "Plush Royal Velvet Standard Finish",
-    "structuralProfile": "Countertop Runner",
-    "dispatchReadiness": "Same-Day Dispatch",
-    "stockStatus": "In Stock (Chennai Depot)",
-    "moq": "MOQ: 1 Piece",
-    "image": "/assets/vinayak/prod_round_tray.png",
-    "images": [
-      "/assets/vinayak/prod_round_tray.png",
-      "/assets/vinayak/shop_banner.png",
-      "/assets/vinayak/prod_suede_velvet.png"
-    ],
-    "finishes": [
-      {
-        "name": "Midnight Black",
-        "color": "#0F172A"
-      },
-      {
-        "name": "Emerald Teal",
-        "color": "#0D9488"
-      },
-      {
-        "name": "Royal Maroon",
-        "color": "#881337"
-      },
-      {
-        "name": "Pure White",
-        "color": "#F8FAFC"
-      }
-    ],
-    "requirements": [
-      "new-jewellery",
-      "retail-shops"
-    ],
-    "material": "Plush Royal Velvet",
-    "specs": {
-      "dimensions": "Standard Commercial Dimensions",
-      "weight": "410 grams",
-      "color": "Multicolor Options Available"
-    },
-    "variations": [
-      {
-        "id": "var-finish-ad-prod-110",
-        "name": "Color / Finish",
-        "options": [
-          {
-            "id": "opt-blk-ad-prod-110",
-            "name": "Midnight Black",
-            "price": 1690,
-            "inStock": true
-          },
-          {
-            "id": "opt-teal-ad-prod-110",
-            "name": "Emerald Teal",
-            "price": 1690,
-            "inStock": true
-          },
-          {
-            "id": "opt-mrn-ad-prod-110",
-            "name": "Royal Maroon",
-            "price": 1710,
-            "inStock": true
-          },
-          {
-            "id": "opt-wht-ad-prod-110",
-            "name": "Pure White",
-            "price": 1690,
-            "inStock": true
-          }
-        ]
-      }
-    ]
+    "subCategory": "Earring & Stud Cards",
+    "childCategory": "Foil Stamped & Embossed Cards"
   }
 ];
 
