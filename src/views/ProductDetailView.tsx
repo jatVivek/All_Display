@@ -520,9 +520,11 @@ Please confirm stock availability and freight to my location.`;
               <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-snug">
                 {currentProduct.title}
               </h1>
-              <p className="text-sm text-slate-600 mt-2 leading-relaxed">
-                {currentProduct.description}
-              </p>
+              {currentProduct.description && (
+                <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+                  {currentProduct.description}
+                </p>
+              )}
             </div>
 
             {/* Price section */}

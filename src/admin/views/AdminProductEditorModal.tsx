@@ -30,6 +30,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
   const [modalError, setModalError] = useState<string | null>(null);
   const [title, setTitle] = useState(isNew ? '' : product.title);
   const [code, setCode] = useState(isNew ? 'AD-NEW-001' : product.code);
+  const [description, setDescription] = useState(isNew ? '' : (product.description || ''));
 
   const allCategories = storeManager.getCategories();
   const rootCategories = allCategories.filter((c) => !c.parentId || (c.level || 1) === 1);
@@ -275,7 +276,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
         id: `prod-${Date.now()}`,
         code,
         title,
-        description: 'Premium jewellery display and packaging solution manufactured with high-quality velvet, acrylic, and precision finish.',
+        description: description.trim() || 'Premium jewellery display and packaging solution manufactured with high-quality velvet, acrylic, and precision finish.',
         price,
         originalPrice,
         unit,
@@ -305,6 +306,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
         ...p,
         title,
         code,
+        description: description.trim(),
         category,
         subCategory: subCategory.trim() || undefined,
         childCategory: childCategory.trim() || undefined,
@@ -391,6 +393,21 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
               />
             </div>
+          </div>
+
+          {/* Product Description */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-semibold text-slate-800 flex items-center justify-between">
+              <span>Product Description</span>
+              <span className="text-[10px] text-slate-400 font-normal">Displayed on product detail page &amp; customer view</span>
+            </label>
+            <textarea
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="e.g. Factory-direct handcrafted jewellery display stand with plush anti-scratch velvet finish."
+              className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all leading-relaxed resize-y"
+            />
           </div>
 
           {/* Category Hierarchy: Main Category, Sub-Category (Optional), Child Category (Optional) */}
