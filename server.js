@@ -1736,8 +1736,30 @@ app.put('/api/catalog', requireSameOrigin, requireAdmin, async (request, respons
     return response.status(400).json({ error: 'Every catalog item must be an object with a valid string id.' });
   }
 
+  // Ensure SKU codes are unique across products (never allow repeated SKUs)
+  const seenSkus = new Set();
+  const uniqueProducts = products
+    .filter(p => !isBannedProduct(p))
+    .map(p => {
+      let code = (p && typeof p.code === 'string' ? p.code.trim().toUpperCase() : '');
+      if (!code) {
+        code = `AD-${Date.now().toString(36).toUpperCase()}`;
+      } else if (seenSkus.has(code)) {
+        let suffix = 2;
+        while (seenSkus.has(`${code}-${suffix}`)) {
+          suffix++;
+        }
+        code = `${code}-${suffix}`;
+      }
+      seenSkus.add(code);
+      return {
+        ...p,
+        code
+      };
+    });
+
   if (!pool) {
-    memoryStore.products = products.filter(p => !isBannedProduct(p));
+    memoryStore.products = uniqueProducts;
     memoryStore.categories = categories.filter(c => !isBannedCategory(c));
     memoryStore.catalogCleared = Boolean(request.body?.catalogCleared);
     saveDiskCatalog();
@@ -1749,7 +1771,7 @@ app.put('/api/catalog', requireSameOrigin, requireAdmin, async (request, respons
     connection = await pool.getConnection();
     await connection.beginTransaction();
     for (const [table, records] of [
-      ['catalog_products', products],
+      ['catalog_products', uniqueProducts],
       ['catalog_categories', categories],
     ]) {
       if (records.length) {

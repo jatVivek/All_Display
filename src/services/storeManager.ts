@@ -206,6 +206,51 @@ export interface CentralStoreState {
 
 type StoreListener = (state: CentralStoreState) => void;
 
+/**
+ * Generates an always-new, guaranteed unique SKU code that does not collide
+ * with any existing product in the catalog.
+ */
+export function generateUniqueSku(products: { code?: string }[], prefix?: string): string {
+  const existingCodes = new Set(
+    (products || [])
+      .map(p => (p && typeof p.code === 'string' ? p.code.trim().toUpperCase() : ''))
+      .filter(Boolean)
+  );
+
+  let hasAdNew = false;
+  let maxSeq = 0;
+
+  for (const p of products || []) {
+    const c = (p && typeof p.code === 'string' ? p.code.trim().toUpperCase() : '');
+    if (c.startsWith('AD-NEW-')) hasAdNew = true;
+
+    // Look for numbers in code (e.g. AD-NEW-001 -> 1, AD-002 -> 2, AD-FS-101 -> 101)
+    const matches = c.match(/(\d+)/g);
+    if (matches) {
+      for (const m of matches) {
+        const val = parseInt(m, 10);
+        if (!isNaN(val) && val > maxSeq && val < 100000) {
+          maxSeq = val;
+        }
+      }
+    }
+  }
+
+  const basePrefix = prefix
+    ? (prefix.endsWith('-') ? prefix.toUpperCase() : `${prefix.toUpperCase()}-`)
+    : (hasAdNew ? 'AD-NEW-' : 'AD-');
+
+  let candidateNum = maxSeq + 1;
+  while (true) {
+    const padded = String(candidateNum).padStart(3, '0');
+    const candidate = `${basePrefix}${padded}`;
+    if (!existingCodes.has(candidate.toUpperCase())) {
+      return candidate;
+    }
+    candidateNum++;
+  }
+}
+
 class CentralStoreService {
   private listeners: Set<StoreListener> = new Set();
   private apiConfigured = false;
@@ -321,6 +366,14 @@ class CentralStoreService {
       }
     }
     return p;
+  };
+
+  /**
+   * Generates a guaranteed-new and unique SKU code that does not collide
+   * with any existing product in the catalog.
+   */
+  public generateUniqueSku = (prefix?: string): string => {
+    return generateUniqueSku(this.state.products, prefix);
   };
 
   public loadCustomProducts(): Product[] {
@@ -1108,11 +1161,30 @@ class CentralStoreService {
       .map(this.sanitizeProduct)
       .filter((p) => !this.isBannedProduct(p));
     const sorted = this.sortNewestProductsFirst(sanitized);
-    const indexed = sorted.map((p, index) => ({
-      ...p,
-      sortOrder: index,
-      createdAt: p.createdAt || (p.id.startsWith('prod-') ? new Date(Number(p.id.replace('prod-', '')) || Date.now()).toISOString() : undefined)
-    }));
+
+    // Enforce SKU code uniqueness across all products (never allow repeated SKUs)
+    const seenSkus = new Set<string>();
+    const indexed = sorted.map((p, index) => {
+      let currentCode = (p.code || '').trim().toUpperCase();
+      if (!currentCode) {
+        currentCode = generateUniqueSku(sorted);
+      } else if (seenSkus.has(currentCode)) {
+        // Disambiguate duplicate SKU
+        const base = currentCode;
+        let suffix = 2;
+        while (seenSkus.has(`${base}-${suffix}`)) {
+          suffix++;
+        }
+        currentCode = `${base}-${suffix}`;
+      }
+      seenSkus.add(currentCode);
+      return {
+        ...p,
+        code: currentCode,
+        sortOrder: index,
+        createdAt: p.createdAt || (p.id.startsWith('prod-') ? new Date(Number(p.id.replace('prod-', '')) || Date.now()).toISOString() : undefined)
+      };
+    });
 
     const deleted = this.loadDeletedProductIds();
     let deletedChanged = false;

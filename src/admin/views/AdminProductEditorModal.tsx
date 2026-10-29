@@ -29,8 +29,21 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
   const isNew = product === 'new';
   const [modalError, setModalError] = useState<string | null>(null);
   const [title, setTitle] = useState(isNew ? '' : product.title);
-  const [code, setCode] = useState(isNew ? 'AD-NEW-001' : product.code);
+  const [code, setCode] = useState(() => (isNew ? storeManager.generateUniqueSku() : product.code));
   const [description, setDescription] = useState(isNew ? '' : (product.description || ''));
+
+  const existingProducts = storeManager.getProducts();
+  const normalizedCode = code.trim().toUpperCase();
+  const duplicateProduct = existingProducts.find(
+    (p) => (!isNew ? p.id !== product.id : true) && (p.code || '').trim().toUpperCase() === normalizedCode
+  );
+  const isSkuValidAndUnique = Boolean(normalizedCode && !duplicateProduct);
+
+  const handleRegenerateSku = () => {
+    const freshSku = storeManager.generateUniqueSku();
+    setCode(freshSku);
+    setModalError(null);
+  };
 
   const allCategories = storeManager.getCategories();
   const rootCategories = allCategories.filter((c) => !c.parentId || (c.level || 1) === 1);
@@ -266,6 +279,22 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
       onError('Add at least one product photo before saving.');
       return;
     }
+
+    const finalSku = code.trim().toUpperCase();
+    if (!finalSku) {
+      const msg = 'Product SKU code is required.';
+      setModalError(msg);
+      onError(msg);
+      return;
+    }
+
+    if (duplicateProduct) {
+      const msg = `Cannot save: SKU code "${finalSku}" is already used by product "${duplicateProduct.title}". Each product must have a unique SKU code.`;
+      setModalError(msg);
+      onError(msg);
+      return;
+    }
+
     const products = storeManager.getProducts();
     const primaryImage = images[0];
     let saved: boolean;
@@ -274,7 +303,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
       const now = new Date().toISOString();
       const newProduct: Product = {
         id: `prod-${Date.now()}`,
-        code,
+        code: finalSku,
         title,
         description: description.trim() || 'Premium jewellery display and packaging solution manufactured with high-quality velvet, acrylic, and precision finish.',
         price,
@@ -305,7 +334,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
       const updated = products.map((p) => (p.id === product.id ? {
         ...p,
         title,
-        code,
+        code: finalSku,
         description: description.trim(),
         category,
         subCategory: subCategory.trim() || undefined,
@@ -383,15 +412,62 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-800">SKU Code</label>
-              <input
-                type="text"
-                required
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="e.g. VP-EDS-401"
-                className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
-              />
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                  <span>SKU Code</span>
+                  <span className="text-[10px] text-orange-600 font-bold bg-orange-50 px-1.5 py-0.2 rounded border border-orange-200/60">Unique</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={handleRegenerateSku}
+                  title="Generate a brand new unique SKU code"
+                  className="text-[11px] text-orange-600 hover:text-orange-700 font-semibold flex items-center gap-1 hover:underline cursor-pointer"
+                >
+                  <AppIcon name="refresh" className="text-xs" />
+                  <span>Auto-generate New SKU</span>
+                </button>
+              </div>
+              <div className="relative flex items-center">
+                <input
+                  type="text"
+                  required
+                  value={code}
+                  onChange={(e) => {
+                    setCode(e.target.value.toUpperCase());
+                    if (modalError) setModalError(null);
+                  }}
+                  placeholder="e.g. AD-002"
+                  className={`w-full p-3 pr-9 rounded-xl border text-xs font-mono font-bold uppercase transition-all ${
+                    duplicateProduct
+                      ? 'border-red-500 bg-red-50/50 text-red-900 focus:ring-2 focus:ring-red-200'
+                      : isSkuValidAndUnique
+                      ? 'border-emerald-500 bg-emerald-50/20 text-slate-900 focus:ring-2 focus:ring-emerald-100'
+                      : 'border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white'
+                  }`}
+                />
+                <div className="absolute right-3 flex items-center pointer-events-none">
+                  {duplicateProduct ? (
+                    <AppIcon name="error" className="text-base text-red-600" />
+                  ) : isSkuValidAndUnique ? (
+                    <AppIcon name="check_circle" className="text-base text-emerald-600" />
+                  ) : null}
+                </div>
+              </div>
+
+              {/* Live Duplicate vs Available Feedback */}
+              {duplicateProduct ? (
+                <span className="text-[11px] text-red-600 font-medium flex items-center gap-1">
+                  <AppIcon name="error" className="text-xs shrink-0" />
+                  <span>
+                    SKU <strong>{normalizedCode}</strong> is already taken by <strong>"{duplicateProduct.title}"</strong>.
+                  </span>
+                </span>
+              ) : isSkuValidAndUnique ? (
+                <span className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
+                  <AppIcon name="check" className="text-xs shrink-0" />
+                  <span>SKU is available and unique.</span>
+                </span>
+              ) : null}
             </div>
           </div>
 
