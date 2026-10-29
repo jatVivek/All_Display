@@ -239,10 +239,10 @@ class CentralStoreService {
   private handleStorageChange = (event: StorageEvent) => {
     if (event.storageArea && event.storageArea !== window.localStorage) return;
 
-    if (!this.apiConfigured && (event.key === null || event.key === STORAGE_KEYS.PRODUCTS)) {
+    if (event.key === null || event.key === STORAGE_KEYS.PRODUCTS || event.key === STORAGE_KEYS.CUSTOM_PRODUCTS) {
       this.state = { ...this.state, products: this.loadProducts() };
     }
-    if (!this.apiConfigured && (event.key === null || event.key === STORAGE_KEYS.CATEGORIES)) {
+    if (event.key === null || event.key === STORAGE_KEYS.CATEGORIES || event.key === STORAGE_KEYS.CUSTOM_CATEGORIES) {
       this.state = { ...this.state, categories: this.loadCategories() };
     }
     if (event.key === null || event.key === STORAGE_KEYS.HOMEPAGE) {
@@ -297,6 +297,20 @@ class CentralStoreService {
     });
   }
 
+  public isBannedProduct = (p: any): boolean => {
+    if (!p || typeof p !== 'object' || typeof p.id !== 'string') return true;
+    if (p.id.startsWith('ad-prod-') || p.id.startsWith('vp-') || p.id.startsWith('prod-test-')) return true;
+    if (p.code === 'AD-VS-450') return true;
+    if (typeof p.title === 'string' && p.title.toLowerCase().includes('royal emerald suede portrait necklace bust')) return true;
+    return false;
+  };
+
+  public isBannedCategory = (c: any): boolean => {
+    if (!c || typeof c !== 'object' || typeof c.id !== 'string') return true;
+    if (c.id.startsWith('cat-test-') || c.id === 'cat-necklaces' || c.id === 'cat-portrait-busts' || c.id === 'cat-suede-busts') return true;
+    return false;
+  };
+
   public sanitizeProduct = (p: Product): Product => {
     if (!p || typeof p !== 'object') return p;
     // Strip injected/legacy static finishes if product has no variations
@@ -317,7 +331,7 @@ class CentralStoreService {
         if (Array.isArray(parsed)) {
           return parsed
             .map(this.sanitizeProduct)
-            .filter((p) => p && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-'));
+            .filter((p) => !this.isBannedProduct(p));
         }
       }
     } catch {}
@@ -355,7 +369,7 @@ class CentralStoreService {
       const stored = localStorage.getItem(STORAGE_KEYS.CUSTOM_CATEGORIES);
       if (stored !== null) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) return parsed.filter((c) => !this.isBannedCategory(c));
       }
     } catch {}
     return [];
@@ -363,7 +377,7 @@ class CentralStoreService {
 
   public saveCustomCategories(custom: AdminCategory[]): void {
     try {
-      localStorage.setItem(STORAGE_KEYS.CUSTOM_CATEGORIES, JSON.stringify(custom));
+      localStorage.setItem(STORAGE_KEYS.CUSTOM_CATEGORIES, JSON.stringify(custom.filter((c) => !this.isBannedCategory(c))));
     } catch (e) {
       console.warn('Could not persist custom categories locally:', e);
     }
@@ -408,7 +422,7 @@ class CentralStoreService {
       if (stored !== null) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
-          base = parsed.filter((p) => p && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-'));
+          base = parsed.filter((p) => !this.isBannedProduct(p));
         }
       }
     } catch {}
@@ -416,12 +430,12 @@ class CentralStoreService {
     const map = new Map<string, Product>();
     // Custom added/edited products have highest priority
     custom.forEach((p) => {
-      if (!deleted.has(p.id) && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-')) {
+      if (!deleted.has(p.id) && !this.isBannedProduct(p)) {
         map.set(p.id, p);
       }
     });
     base.forEach((p) => {
-      if (!map.has(p.id) && !deleted.has(p.id) && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-')) {
+      if (!map.has(p.id) && !deleted.has(p.id) && !this.isBannedProduct(p)) {
         map.set(p.id, p);
       }
     });
@@ -450,16 +464,20 @@ class CentralStoreService {
       const stored = localStorage.getItem(STORAGE_KEYS.CATEGORIES);
       if (stored !== null) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) base = parsed.filter(c => c && !deleted.has(c.id));
+        if (Array.isArray(parsed)) {
+          base = parsed.filter((c) => !this.isBannedCategory(c));
+        }
       }
     } catch {}
 
     const map = new Map<string, AdminCategory>();
     custom.forEach((c) => {
-      if (!deleted.has(c.id)) map.set(c.id, c);
+      if (!deleted.has(c.id) && !this.isBannedCategory(c)) {
+        map.set(c.id, c);
+      }
     });
     base.forEach((c) => {
-      if (!map.has(c.id) && !deleted.has(c.id)) {
+      if (!map.has(c.id) && !deleted.has(c.id) && !this.isBannedCategory(c)) {
         map.set(c.id, c);
       }
     });
@@ -675,14 +693,20 @@ class CentralStoreService {
       if (catalog && Array.isArray(catalog.products)) {
         // 1. Process categories with full deletedCategories filter
         const rawServerCategories = Array.isArray(catalog.categories) ? catalog.categories : [];
-        const cleanServerCategories = rawServerCategories.filter(c => c && !deletedCategories.has(c.id));
+        const cleanServerCategories = rawServerCategories.filter(c => c && !this.isBannedCategory(c) && !deletedCategories.has(c.id));
 
         const catMap = new Map<string, AdminCategory>();
         customCategories.forEach((c) => {
-          if (!deletedCategories.has(c.id)) catMap.set(c.id, c);
+          if (!deletedCategories.has(c.id) && !this.isBannedCategory(c)) catMap.set(c.id, c);
         });
         cleanServerCategories.forEach((c) => {
-          if (!catMap.has(c.id) && !deletedCategories.has(c.id)) {
+          if (!catMap.has(c.id) && !deletedCategories.has(c.id) && !this.isBannedCategory(c)) {
+            catMap.set(c.id, c);
+          }
+        });
+        // Include in-memory categories from current session
+        this.state.categories.forEach((c) => {
+          if (c && !catMap.has(c.id) && !deletedCategories.has(c.id) && !this.isBannedCategory(c)) {
             catMap.set(c.id, c);
           }
         });
@@ -697,29 +721,35 @@ class CentralStoreService {
           try {
             localStorage.removeItem(STORAGE_KEYS.CATEGORIES_CLEARED);
             localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(sortedCategories));
+            this.saveCustomCategories(sortedCategories);
           } catch {}
         }
 
         // If server had categories that were deleted locally, sync server immediately
         const missingOnServerCategories = cleanServerCategories.length < rawServerCategories.length;
-        const hasAdminAuth = this.adminAuthenticated || (typeof localStorage !== 'undefined' && Boolean(localStorage.getItem('alldisplay_admin_token')));
-        if (missingOnServerCategories && hasAdminAuth) {
+        if (missingOnServerCategories && this.adminAuthenticated) {
           void this.persistCatalog();
         }
 
         // 2. Process products with full deletedProducts filter and customProducts merge
         const rawServerProducts = Array.isArray(catalog.products) ? catalog.products : [];
-        const cleanServerProducts = rawServerProducts.filter(p => p && !deletedProducts.has(p.id) && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-'));
+        const cleanServerProducts = rawServerProducts.filter(p => p && !this.isBannedProduct(p) && !deletedProducts.has(p.id));
 
-        // Merge server products with local custom products so custom products NEVER disappear
+        // Merge server products with local custom products and in-memory products so products NEVER disappear
         const prodMap = new Map<string, Product>();
         customProducts.forEach((p) => {
-          if (!deletedProducts.has(p.id) && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-')) {
+          if (!deletedProducts.has(p.id) && !this.isBannedProduct(p)) {
             prodMap.set(p.id, p);
           }
         });
         cleanServerProducts.forEach((p) => {
-          if (!prodMap.has(p.id) && !deletedProducts.has(p.id)) {
+          if (!prodMap.has(p.id) && !deletedProducts.has(p.id) && !this.isBannedProduct(p)) {
+            prodMap.set(p.id, p);
+          }
+        });
+        // Include in-memory products from current session
+        this.state.products.forEach((p) => {
+          if (p && !prodMap.has(p.id) && !deletedProducts.has(p.id) && !this.isBannedProduct(p)) {
             prodMap.set(p.id, p);
           }
         });
@@ -735,6 +765,7 @@ class CentralStoreService {
           try {
             localStorage.removeItem(STORAGE_KEYS.CATALOG_CLEARED);
             localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(sortedProducts));
+            this.saveCustomProducts(sortedProducts);
           } catch {}
         }
 
@@ -747,10 +778,10 @@ class CentralStoreService {
         };
         this.notify();
 
-        // If server is missing custom items (e.g. cold lambda container), sync them to server immediately!
+        // If server is missing custom items (e.g. cold lambda worker), sync them to server immediately!
         const serverProdIds = new Set(cleanServerProducts.map(p => p.id));
-        const missingOnServer = customProducts.some(p => !serverProdIds.has(p.id));
-        if (missingOnServer && sortedProducts.length > 0 && hasAdminAuth) {
+        const missingOnServer = sortedProducts.some(p => !serverProdIds.has(p.id));
+        if (missingOnServer && sortedProducts.length > 0) {
           void this.persistCatalog();
         }
       }
@@ -1075,7 +1106,7 @@ class CentralStoreService {
 
     const sanitized = products
       .map(this.sanitizeProduct)
-      .filter((p) => p && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-'));
+      .filter((p) => !this.isBannedProduct(p));
     const sorted = this.sortNewestProductsFirst(sanitized);
     const indexed = sorted.map((p, index) => ({
       ...p,
@@ -1096,7 +1127,7 @@ class CentralStoreService {
     }
 
     // Identify and persist any custom products safely to dedicated storage key
-    const custom = indexed.filter(p => !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-'));
+    const custom = indexed.filter(p => !this.isBannedProduct(p));
     this.saveCustomProducts(custom);
 
     this.state = { ...this.state, products: indexed };
@@ -1217,8 +1248,7 @@ class CentralStoreService {
       this.saveDeletedCategoryIds(deleted);
     }
 
-    const initialCatIds = new Set(INITIAL_CATEGORIES.map(c => c.id));
-    const custom = indexed.filter(c => !initialCatIds.has(c.id) || c.createdAt || c.id.startsWith('cat-'));
+    const custom = indexed.filter(c => !this.isBannedCategory(c));
     this.saveCustomCategories(custom);
 
     this.state = { ...this.state, categories: indexed };

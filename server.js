@@ -181,6 +181,20 @@ const memoryStore = {
   catalogCleared: false,
 };
 
+function isBannedProduct(p) {
+  if (!p || typeof p !== 'object' || typeof p.id !== 'string') return true;
+  if (p.id.startsWith('ad-prod-') || p.id.startsWith('vp-') || p.id.startsWith('prod-test-')) return true;
+  if (p.code === 'AD-VS-450') return true;
+  if (typeof p.title === 'string' && p.title.toLowerCase().includes('royal emerald suede portrait necklace bust')) return true;
+  return false;
+}
+
+function isBannedCategory(c) {
+  if (!c || typeof c !== 'object' || typeof c.id !== 'string') return true;
+  if (c.id.startsWith('cat-test-') || c.id === 'cat-necklaces' || c.id === 'cat-portrait-busts' || c.id === 'cat-suede-busts') return true;
+  return false;
+}
+
 const catalogDiskCachePath = path.join(uploadDirectory, 'catalog_cache.json');
 const catalogSeedPath = path.join(rootDirectory, 'public', 'uploads', 'catalog_cache.json');
 function loadDiskCatalog() {
@@ -196,10 +210,10 @@ function loadDiskCatalog() {
         return;
       }
       if (Array.isArray(data?.products)) {
-        memoryStore.products = data.products.filter(p => p && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-'));
+        memoryStore.products = data.products.filter(p => !isBannedProduct(p));
       }
       if (Array.isArray(data?.categories)) {
-        memoryStore.categories = data.categories;
+        memoryStore.categories = data.categories.filter(c => !isBannedCategory(c));
       }
       memoryStore.catalogCleared = Boolean(data?.catalogCleared);
     }
@@ -1093,13 +1107,19 @@ function sortNewestRecordsFirst(records, idPrefix = 'prod-') {
 }
 
 app.get('/api/catalog', async (_request, response, next) => {
+  response.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  response.setHeader('Pragma', 'no-cache');
+  response.setHeader('Expires', '0');
+
   if (!pool) {
     if ((!memoryStore.products || memoryStore.products.length === 0) && memoryStore.catalogCleared !== true) {
       loadDiskCatalog();
     }
+    const filteredProducts = (memoryStore.products || []).filter(p => !isBannedProduct(p));
+    const filteredCategories = (memoryStore.categories || []).filter(c => !isBannedCategory(c));
     return response.json({
-      products: sortNewestRecordsFirst(memoryStore.products, 'prod-'),
-      categories: sortNewestRecordsFirst(memoryStore.categories, 'cat-'),
+      products: sortNewestRecordsFirst(filteredProducts, 'prod-'),
+      categories: sortNewestRecordsFirst(filteredCategories, 'cat-'),
       catalogCleared: memoryStore.catalogCleared === true,
     });
   }
@@ -1114,14 +1134,14 @@ app.get('/api/catalog', async (_request, response, next) => {
         try { data = JSON.parse(data); } catch {}
       }
       return { ...data, id: row.id };
-    });
+    }).filter(p => !isBannedProduct(p));
     const parsedCategories = categories[0].map((row) => {
       let data = row.data;
       if (typeof data === 'string') {
         try { data = JSON.parse(data); } catch {}
       }
       return { ...data, id: row.id };
-    });
+    }).filter(c => !isBannedCategory(c));
     response.json({
       products: sortNewestRecordsFirst(parsedProducts, 'prod-'),
       categories: sortNewestRecordsFirst(parsedCategories, 'cat-'),
@@ -1717,8 +1737,8 @@ app.put('/api/catalog', requireSameOrigin, requireAdmin, async (request, respons
   }
 
   if (!pool) {
-    memoryStore.products = products;
-    memoryStore.categories = categories;
+    memoryStore.products = products.filter(p => !isBannedProduct(p));
+    memoryStore.categories = categories.filter(c => !isBannedCategory(c));
     memoryStore.catalogCleared = Boolean(request.body?.catalogCleared);
     saveDiskCatalog();
     return response.json({ saved: true });
