@@ -116,24 +116,35 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   const initialCatIds = useMemo(() => new Set(['cat-1', 'cat-2', 'cat-3', 'cat-4', 'cat-5', 'cat-6', 'cat-7', 'cat-8', 'cat-9']), []);
 
-  // Issue #5: Filter categories to only those with at least 1 product (Newest categories first)
+  // Level 1 Root Categories on homepage (Newest categories first)
   const activeCategoriesList = useMemo(() => {
-    return categories
-      .map((cat) => {
-        const count = products.filter((p) => p.category.toLowerCase() === cat.name.toLowerCase()).length;
-        const isNew = !initialCatIds.has(cat.id) && Boolean(cat.createdAt || (cat.id.startsWith('cat-') && cat.id.length > 8));
-        return {
-          id: cat.id,
-          title: cat.name,
-          category: cat.name,
-          icon: cat.image || defaultCategoryIcons[cat.name] || '/assets/vinayak/cat_stand.png',
-          count: `${count} Item${count === 1 ? '' : 's'}`,
-          itemCount: count,
-          createdAt: cat.createdAt,
-          isNew,
-        };
-      })
-      .filter((cat) => cat.itemCount > 0);
+    const rootCats = categories.filter((c) => !c.parentId || (c.level || 1) === 1);
+    return rootCats.map((cat) => {
+      const subCatNames = new Set(categories.filter((c) => c.parentId === cat.id).map(c => c.name.toLowerCase()));
+      const childCatNames = new Set(categories.filter((c) => {
+        const parent = categories.find(p => p.id === c.parentId);
+        return parent && parent.parentId === cat.id;
+      }).map(c => c.name.toLowerCase()));
+
+      const count = products.filter((p) => {
+        const pCat = (p.category || '').toLowerCase();
+        const pSub = (p.subCategory || '').toLowerCase();
+        const pChild = (p.childCategory || '').toLowerCase();
+        return pCat === cat.name.toLowerCase() || subCatNames.has(pCat) || subCatNames.has(pSub) || childCatNames.has(pChild);
+      }).length;
+
+      const isNew = !initialCatIds.has(cat.id) && Boolean(cat.createdAt || (cat.id.startsWith('cat-') && cat.id.length > 8));
+      return {
+        id: cat.id,
+        title: cat.name,
+        category: cat.name,
+        icon: cat.image || defaultCategoryIcons[cat.name] || '/assets/vinayak/cat_stand.png',
+        count: `${count} Item${count === 1 ? '' : 's'}`,
+        itemCount: count,
+        createdAt: cat.createdAt,
+        isNew,
+      };
+    });
   }, [categories, products, initialCatIds]);
 
   // All Products List

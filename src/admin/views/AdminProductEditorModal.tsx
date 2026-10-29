@@ -34,7 +34,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
   const allCategories = storeManager.getCategories();
   const rootCategories = allCategories.filter((c) => !c.parentId || (c.level || 1) === 1);
 
-  const [category, setCategory] = useState(isNew ? (rootCategories[0]?.name ?? 'Display Bust') : product.category);
+  const [category, setCategory] = useState(isNew ? (rootCategories[0]?.name ?? '') : product.category);
   const [subCategory, setSubCategory] = useState(isNew ? '' : (product.subCategory || ''));
   const [childCategory, setChildCategory] = useState(isNew ? '' : (product.childCategory || ''));
 
@@ -253,6 +253,12 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setModalError(null);
+    if (!category || !category.trim()) {
+      const msg = 'Please create at least one Main Category in the Categories tab before creating products.';
+      setModalError(msg);
+      onError(msg);
+      return;
+    }
     if (images.length === 0) {
       setModalError('Add at least one product photo before saving.');
       onError('Add at least one product photo before saving.');
@@ -414,10 +420,18 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
                   }}
                   className="p-2.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-900 focus:outline-none focus:border-orange-500 transition-all"
                 >
+                  {rootCategories.length === 0 && (
+                    <option value="">-- No categories exist yet (Create in Categories tab) --</option>
+                  )}
                   {rootCategories.map((cat) => (
                     <option key={cat.id} value={cat.name}>{cat.name}</option>
                   ))}
                 </select>
+                {rootCategories.length === 0 && (
+                  <span className="text-[10px] text-amber-600 font-medium">
+                    ⚠️ Go to the Categories tab to create your main category hierarchy first.
+                  </span>
+                )}
               </div>
 
               {/* 2. Sub-Category (Optional) */}
