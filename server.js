@@ -10,7 +10,7 @@ import mysql from 'mysql2/promise';
 
 const app = express();
 const port = Number(process.env.PORT || 3001);
-const production = process.env.NODE_ENV === 'production';
+const production = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
 const sessionCookie = 'alldisplay_admin_session';
 const customerSessionCookie = 'alldisplay_customer_session';
 const oauthStateCookie = 'alldisplay_google_state';
@@ -26,8 +26,8 @@ const scrypt = promisify(scryptCallback);
 const rootDirectory = path.dirname(fileURLToPath(import.meta.url));
 const uploadDirectory = process.env.VERCEL ? '/tmp/uploads' : path.join(rootDirectory, 'public', 'uploads');
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin123456';
-const SESSION_SECRET = process.env.SESSION_SECRET || 'b5bc5ae7de4729b601e432c196e061e4bdb13f514ee5aa991160d10e2ce207b4';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || (production ? '' : 'Admin123456');
+const SESSION_SECRET = process.env.SESSION_SECRET || (production ? '' : 'b5bc5ae7de4729b601e432c196e061e4bdb13f514ee5aa991160d10e2ce207b4');
 
 // Live Database Configuration (URI Connection String & Cloud Environment Variables)
 function getDatabaseConfig() {
@@ -791,16 +791,30 @@ async function checkDatabaseReady() {
 
 async function requireDatabase(request, response, next) {
   if (!pool) {
-    // Graceful fallback: continue in standalone memory mode
+    if (production) {
+      return response.status(503).json({
+        error: 'This operation is unavailable until persistent database storage is configured.',
+      });
+    }
     return next();
   }
   try {
     const ready = await checkDatabaseReady();
     if (!ready) {
+      if (production) {
+        return response.status(503).json({
+          error: 'This operation is unavailable until persistent database storage is ready.',
+        });
+      }
       console.warn('MySQL schema initialization pending...');
     }
     next();
   } catch (err) {
+    if (production) {
+      return response.status(503).json({
+        error: 'This operation is unavailable until persistent database storage is ready.',
+      });
+    }
     console.warn('MySQL check warning, proceeding:', err.message);
     next();
   }
@@ -842,7 +856,12 @@ function limitPublicSubmissions(request, response, next) {
 
 app.get('/api/health', async (_request, response) => {
   if (!pool) {
-    return response.json({ configured: false, connected: false, mode: 'standalone' });
+    return response.status(production ? 503 : 200).json({
+      configured: false,
+      connected: false,
+      mode: 'standalone',
+      error: production ? 'Persistent database storage is not configured.' : undefined,
+    });
   }
 
   try {
@@ -850,7 +869,7 @@ app.get('/api/health', async (_request, response) => {
     await pool.query('SELECT 1');
     response.json({ configured: true, connected: true, mode: 'mysql' });
   } catch {
-    response.json({ configured: true, connected: false, mode: 'standalone', error: 'Could not connect to MySQL.' });
+    response.status(503).json({ configured: true, connected: false, mode: 'standalone', error: 'Could not connect to MySQL.' });
   }
 });
 
@@ -1146,6 +1165,12 @@ app.get('/api/auth/google/callback', requireGoogleOAuth, requireDatabase, authLi
 });
 
 app.post('/api/admin/login', requireSameOrigin, async (request, response) => {
+  if (production && (ADMIN_PASSWORD.length < 16 || SESSION_SECRET.length < 32)) {
+    return response.status(503).json({
+      error: 'Admin sign-in is unavailable until a strong ADMIN_PASSWORD and SESSION_SECRET are configured.',
+    });
+  }
+
   const address = request.ip || 'unknown';
   const attempt = loginAttempts.get(address);
   if (attempt && attempt.blockedUntil > Date.now()) {
@@ -1154,9 +1179,8 @@ app.post('/api/admin/login', requireSameOrigin, async (request, response) => {
 
   const provided = typeof request.body?.password === 'string' ? request.body.password : '';
   const expectedHash1 = createHmac('sha256', 'admin-password-check').update(ADMIN_PASSWORD).digest();
-  const expectedHash2 = createHmac('sha256', 'admin-password-check').update('Admin123456').digest();
   const providedHash = createHmac('sha256', 'admin-password-check').update(provided).digest();
-  const valid = timingSafeEqual(expectedHash1, providedHash) || timingSafeEqual(expectedHash2, providedHash);
+  const valid = timingSafeEqual(expectedHash1, providedHash);
 
   if (!valid) {
     const failures = (attempt?.failures || 0) + 1;
@@ -1200,6 +1224,7 @@ app.post(
   '/api/admin/uploads',
   requireSameOrigin,
   requireAdmin,
+  requireDatabase,
   (request, response, next) => {
     imageUpload.single('image')(request, response, (error) => {
       if (error) {
@@ -1228,6 +1253,7 @@ app.post(
   '/api/admin/video-uploads',
   requireSameOrigin,
   requireAdmin,
+  requireDatabase,
   (request, response, next) => {
     videoUpload.single('video')(request, response, (error) => {
       if (error) {
@@ -1516,7 +1542,7 @@ app.get('/api/homepage-banners', async (_request, response, next) => {
   }
 });
 
-app.put('/api/homepage-banners', requireSameOrigin, requireAdmin, async (request, response, next) => {
+app.put('/api/homepage-banners', requireSameOrigin, requireAdmin, requireDatabase, async (request, response, next) => {
   const banners = request.body?.banners;
   const dealProductIds = request.body?.dealProductIds ?? [];
   if (!Array.isArray(banners) || banners.length > 100) {
@@ -1561,7 +1587,7 @@ app.put('/api/homepage-banners', requireSameOrigin, requireAdmin, async (request
   }
 });
 
-app.put('/api/settings', requireSameOrigin, requireAdmin, async (request, response, next) => {
+app.put('/api/settings', requireSameOrigin, requireAdmin, requireDatabase, async (request, response, next) => {
   let settings = request.body?.settings;
   if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
     return response.status(400).json({ error: 'Invalid settings format.' });
@@ -1610,7 +1636,7 @@ function isNonEmptyString(value, maxLength = 500) {
   return typeof value === 'string' && value.trim().length > 0 && value.length <= maxLength;
 }
 
-app.post('/api/orders', limitPublicSubmissions, async (request, response, next) => {
+app.post('/api/orders', requireDatabase, limitPublicSubmissions, async (request, response, next) => {
   const order = request.body;
   if (!isRecord(order) ||
       !isNonEmptyString(order.customerName, 120) ||
@@ -1687,7 +1713,7 @@ app.get('/api/admin/orders', requireAdmin, async (_request, response, next) => {
   }
 });
 
-app.put('/api/admin/orders/sync', requireSameOrigin, async (request, response, next) => {
+app.put('/api/admin/orders/sync', requireSameOrigin, requireDatabase, async (request, response, next) => {
   try {
     const incoming = request.body?.orders;
     if (!Array.isArray(incoming)) {
@@ -1726,7 +1752,7 @@ app.put('/api/admin/orders/sync', requireSameOrigin, async (request, response, n
   }
 });
 
-app.put('/api/admin/orders', requireSameOrigin, requireAdmin, async (request, response, next) => {
+app.put('/api/admin/orders', requireSameOrigin, requireAdmin, requireDatabase, async (request, response, next) => {
   const orders = request.body?.orders;
   if (!Array.isArray(orders) || orders.length > 10000 ||
       !orders.every((order) => isRecord(order) && isNonEmptyString(order.id, 64))) {
@@ -1749,7 +1775,7 @@ app.put('/api/admin/orders', requireSameOrigin, requireAdmin, async (request, re
   return response.json({ saved: true });
 });
 
-app.post('/api/quotes', limitPublicSubmissions, async (request, response, next) => {
+app.post('/api/quotes', requireDatabase, limitPublicSubmissions, async (request, response, next) => {
   const quote = request.body;
   if (!isRecord(quote) ||
       !isNonEmptyString(quote.customerName, 120) ||
@@ -1800,7 +1826,7 @@ app.get('/api/admin/quotes', requireAdmin, async (_request, response, next) => {
   }
 });
 
-app.put('/api/admin/quotes', requireSameOrigin, requireAdmin, async (request, response, next) => {
+app.put('/api/admin/quotes', requireSameOrigin, requireAdmin, requireDatabase, async (request, response, next) => {
   const quotes = request.body?.quotes;
   if (!Array.isArray(quotes) || quotes.length > 10000 ||
       !quotes.every((quote) => isRecord(quote) && isNonEmptyString(quote.id, 64))) {
@@ -1911,7 +1937,7 @@ app.get('/api/admin/customers', requireAdmin, async (_request, response, next) =
   }
 });
 
-app.put('/api/admin/customers/sync', requireSameOrigin, async (request, response, next) => {
+app.put('/api/admin/customers/sync', requireSameOrigin, requireDatabase, async (request, response, next) => {
   try {
     const incoming = request.body?.customers;
     if (!Array.isArray(incoming)) {
@@ -2004,7 +2030,7 @@ app.post('/api/admin/test-db', requireSameOrigin, requireAdmin, async (request, 
   }
 });
 
-app.put('/api/catalog', requireSameOrigin, requireAdmin, async (request, response, next) => {
+app.put('/api/catalog', requireSameOrigin, requireAdmin, requireDatabase, async (request, response, next) => {
   const { products, categories } = request.body ?? {};
   if (!Array.isArray(products) || !Array.isArray(categories)) {
     return response.status(400).json({ error: 'Products and categories must both be arrays.' });

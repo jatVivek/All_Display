@@ -35,9 +35,9 @@ In the product editor, choose image files from the device or add an HTTP(S) imag
 
 ## Deploying
 
-Build the frontend with `npm run build`, then start the app with `NODE_ENV=production npm start`. The same Node process serves the `dist` files and `/api` routes. Configure all environment variables on the hosting provider, including `MYSQL_SSL=true` when required by its managed database. Never expose the MySQL password or session secret to browser code or use a `VITE_` prefix for them.
+Build the frontend with `npm run build`, then start the app with `NODE_ENV=production npm start`. The same Node process serves the `dist` files and `/api` routes. For Vercel, provision a managed MySQL-compatible database (for example TiDB Cloud, PlanetScale, Railway, Aiven, or AWS RDS), then add its connection URI as the server-only `DATABASE_URL` project environment variable for Production and redeploy. Also configure a unique `ADMIN_PASSWORD` of at least 16 characters and a random `SESSION_SECRET` of at least 32 characters.
 
-Deploy Node.js and MySQL on hosting that supports both; a static-only host cannot run the Express API. Use HTTPS in production so the admin session cookie is marked secure.
+The API reports an unhealthy status and rejects operations that would otherwise be saved only to ephemeral serverless memory when durable storage or strong admin secrets are missing. Deploy Node.js and MySQL on hosting that supports both; a static-only host cannot run the Express API. Configure `MYSQL_SSL=true` when required by the managed database and use HTTPS in production so the admin session cookie is marked secure. Never expose the MySQL password or session secret to browser code or use a `VITE_` prefix for them.
 
 ## Scope
 
