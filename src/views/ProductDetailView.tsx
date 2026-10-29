@@ -23,6 +23,15 @@ interface ProductDetailContentProps {
   onOpenReel?: () => void;
 }
 
+const getProductCategoryPath = (product: Product, includeChildCategory = false) => {
+  const params = new URLSearchParams({ category: product.category });
+  if (product.subCategory) params.set('subCategory', product.subCategory);
+  if (includeChildCategory && product.childCategory) {
+    params.set('childCategory', product.childCategory);
+  }
+  return `/shop?${params.toString()}`;
+};
+
 const ProductDetailContent: React.FC<ProductDetailContentProps> = ({
   product: currentProduct,
   allProducts: propAllProducts,
@@ -316,7 +325,7 @@ Please confirm stock availability and freight to my location.`;
               <>
                 <span>/</span>
                 <button
-                  onClick={() => onNavigate('shop', `/shop?category=${encodeURIComponent(currentProduct.category)}&subCategory=${encodeURIComponent(currentProduct.subCategory)}`)}
+                  onClick={() => onNavigate('shop', getProductCategoryPath(currentProduct))}
                   className="hover:text-orange-600 transition-colors cursor-pointer"
                 >
                   {currentProduct.subCategory}
@@ -327,7 +336,7 @@ Please confirm stock availability and freight to my location.`;
               <>
                 <span>/</span>
                 <button
-                  onClick={() => onNavigate('shop', `/shop?category=${encodeURIComponent(currentProduct.category)}&subCategory=${encodeURIComponent(currentProduct.subCategory)}&childCategory=${encodeURIComponent(currentProduct.childCategory)}`)}
+                  onClick={() => onNavigate('shop', getProductCategoryPath(currentProduct, true))}
                   className="hover:text-orange-600 transition-colors cursor-pointer"
                 >
                   {currentProduct.childCategory}
@@ -521,7 +530,7 @@ Please confirm stock availability and freight to my location.`;
                 {currentProduct.subCategory && (
                   <button
                     type="button"
-                    onClick={() => onNavigate('shop', `/shop?category=${encodeURIComponent(currentProduct.category)}&subCategory=${encodeURIComponent(currentProduct.subCategory)}`)}
+                    onClick={() => onNavigate('shop', getProductCategoryPath(currentProduct))}
                     className="text-xs font-semibold text-slate-700 hover:text-orange-600 bg-slate-100 hover:bg-orange-50 px-2.5 py-0.5 rounded-md border border-slate-200 hover:border-orange-200 transition-colors cursor-pointer"
                     title={`View all in ${currentProduct.subCategory}`}
                   >
@@ -531,7 +540,7 @@ Please confirm stock availability and freight to my location.`;
                 {currentProduct.childCategory && (
                   <button
                     type="button"
-                    onClick={() => onNavigate('shop', `/shop?category=${encodeURIComponent(currentProduct.category)}&subCategory=${encodeURIComponent(currentProduct.subCategory)}&childCategory=${encodeURIComponent(currentProduct.childCategory)}`)}
+                    onClick={() => onNavigate('shop', getProductCategoryPath(currentProduct, true))}
                     className="text-xs font-semibold text-amber-800 hover:text-orange-600 bg-amber-50 hover:bg-orange-50 px-2.5 py-0.5 rounded-md border border-amber-200 hover:border-orange-200 transition-colors cursor-pointer"
                     title={`View all in ${currentProduct.childCategory}`}
                   >
