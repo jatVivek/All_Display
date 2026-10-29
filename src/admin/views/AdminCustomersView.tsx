@@ -1,6 +1,6 @@
 import { AppIcon } from '../../components/AppIcon';
 import React, { useEffect, useMemo, useState } from 'react';
-import { storeManager, RegisteredCustomer } from '../../services/storeManager';
+import { storeManager, RegisteredCustomer, AdminOrder } from '../../services/storeManager';
 
 export const AdminCustomersView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'registered' | 'buyers'>('registered');
@@ -9,20 +9,25 @@ export const AdminCustomersView: React.FC = () => {
   const [registeredCustomers, setRegisteredCustomers] = useState<RegisteredCustomer[]>(() =>
     storeManager.getRegisteredCustomers()
   );
-  const orders = storeManager.getOrders();
+  const [orders, setOrders] = useState<AdminOrder[]>(() => storeManager.getOrders());
 
   // Subscribe to store updates
   useEffect(() => {
-    return storeManager.subscribe(() => {
+    return storeManager.subscribe((state) => {
       setRegisteredCustomers(storeManager.getRegisteredCustomers());
+      setOrders(state.orders);
     });
   }, []);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      await storeManager.refreshCustomers();
+      await Promise.all([
+        storeManager.refreshCustomers(),
+        storeManager.refreshOrders(),
+      ]);
       setRegisteredCustomers(storeManager.getRegisteredCustomers());
+      setOrders(storeManager.getOrders());
     } finally {
       setIsRefreshing(false);
     }

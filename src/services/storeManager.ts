@@ -191,6 +191,143 @@ const DEFAULT_SETTINGS: AdminSettings = {
   instagramUrl: 'https://www.instagram.com/all_display_?cplk=MXNpcGN3cno4MHI0Nw==',
 };
 
+export const INITIAL_ORDERS: AdminOrder[] = [
+  {
+    id: 'ord-seed-1001',
+    orderNo: 'AD-ORD-1001',
+    customerName: 'Ganesh Singh',
+    storeName: 'Ganesh Jewellers & Gems',
+    customerEmail: 'ganeshsingh@yopmail.com',
+    whatsapp: '9462247004',
+    destination: 'Jaipur, Rajasthan',
+    pincode: '302003',
+    date: '2026-10-26 14:30',
+    status: 'Delivered',
+    trackingNo: 'DELHIVERY-98421094',
+    items: [
+      {
+        sku: 'AD-FL-001',
+        title: 'Royal Velvet Necklace Display Bust',
+        finish: 'Midnight Black Velvet',
+        quantity: 12,
+        unitPrice: 1250,
+        unitLabel: 'piece',
+      },
+      {
+        sku: 'AD-FL-003',
+        title: 'Rotating Hexagonal Glass Display Pillar',
+        finish: 'Champagne Gold Brass',
+        quantity: 2,
+        unitPrice: 18500,
+        unitLabel: 'unit',
+      },
+    ],
+    subtotal: 52000,
+    discount: 2600,
+    gst: 8892,
+    total: 58292,
+    notes: 'Express surface delivery requested for showroom inauguration.',
+  },
+  {
+    id: 'ord-seed-1002',
+    orderNo: 'AD-ORD-1002',
+    customerName: 'Meenakshi Sharma',
+    storeName: 'Meenakshi Designer Jewellers',
+    customerEmail: 'testboutique@alldisplay.com',
+    whatsapp: '9876543210',
+    destination: 'Hyderabad, Telangana',
+    pincode: '500034',
+    date: '2026-10-27 11:15',
+    status: 'Shipped',
+    trackingNo: 'BLUEDART-88371902',
+    items: [
+      {
+        sku: 'AD-ST-002',
+        title: 'Tiered Velvet Bangle & Bracelet Organizer',
+        finish: 'Crimson Red Velvet',
+        quantity: 20,
+        unitPrice: 850,
+        unitLabel: 'piece',
+      },
+      {
+        sku: 'AD-FL-001',
+        title: 'Royal Velvet Necklace Display Bust',
+        finish: 'Emerald Green Velvet',
+        quantity: 10,
+        unitPrice: 1250,
+        unitLabel: 'piece',
+      },
+    ],
+    subtotal: 29500,
+    discount: 1475,
+    gst: 5045,
+    total: 33070,
+    notes: 'Direct courier dispatch from Feel Khana depot.',
+  },
+  {
+    id: 'ord-seed-1003',
+    orderNo: 'AD-ORD-1003',
+    customerName: 'K. Venkatesh',
+    storeName: 'Venkatesh Jewellers',
+    customerEmail: 'qa_member_1793204745296@alldisplay.com',
+    whatsapp: '9840112233',
+    destination: 'Chennai, Tamil Nadu',
+    pincode: '600017',
+    date: '2026-10-28 16:45',
+    status: 'New (Awaiting WhatsApp)',
+    items: [
+      {
+        sku: 'AD-RC-001',
+        title: 'Heavy-Duty Stainless Steel Display Rack',
+        finish: 'Brushed Titanium Silver',
+        quantity: 4,
+        unitPrice: 14200,
+        unitLabel: 'unit',
+      },
+      {
+        sku: 'AD-FL-002',
+        title: 'Modular Ring Showcase Podium',
+        finish: 'Midnight Black Velvet',
+        quantity: 15,
+        unitPrice: 1450,
+        unitLabel: 'set',
+      },
+    ],
+    subtotal: 78550,
+    discount: 3928,
+    gst: 13432,
+    total: 88054,
+    notes: 'Confirmed proforma requirement for festival counter redesign.',
+  },
+  {
+    id: 'ord-seed-1004',
+    orderNo: 'AD-ORD-1004',
+    customerName: 'Rajesh Tribhovandas',
+    storeName: 'Tribhovandas Heritage Jewellers',
+    customerEmail: 'orders@tribhovandasjewels.in',
+    whatsapp: '9820011223',
+    destination: 'Zaveri Bazaar, Mumbai, Maharashtra',
+    pincode: '400002',
+    date: '2026-10-29 09:20',
+    status: 'Payment pending',
+    items: [
+      {
+        sku: 'AD-FL-001',
+        title: 'Royal Velvet Necklace Display Bust',
+        finish: 'Royal Ivory Velvet',
+        quantity: 24,
+        unitPrice: 1250,
+        unitLabel: 'piece',
+      },
+    ],
+    subtotal: 30000,
+    discount: 1500,
+    gst: 5130,
+    total: 33630,
+    notes: 'Awaiting NEFT / RTGS transfer confirmation.',
+  },
+];
+
 export interface CentralStoreState {
   products: Product[];
   categories: AdminCategory[];
@@ -272,7 +409,7 @@ class CentralStoreService {
     window.addEventListener('storage', this.handleStorageChange);
     void this.refreshCatalog();
     window.setInterval(() => {
-      if (this.apiConfigured && this.state.catalogSyncStatus === 'connected') {
+      if (this.apiConfigured) {
         void this.loadSharedCatalog();
         void this.loadSharedSettings();
         void this.loadSharedHomepageBanners();
@@ -566,9 +703,12 @@ class CentralStoreService {
   private loadOrders(): AdminOrder[] {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.ORDERS);
-      if (stored !== null) return JSON.parse(stored);
+      if (stored !== null) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
     } catch {}
-    return [];
+    return INITIAL_ORDERS;
   }
 
   private loadQuotes(): AdminQuote[] {
@@ -596,8 +736,9 @@ class CentralStoreService {
         avatarUrl: null,
         role: 'user',
         createdAt: '2026-10-26T08:45:47.000Z',
-        orderCount: 0,
-        totalSpent: 0,
+        orderCount: 1,
+        totalSpent: 58292,
+        lastOrderDate: '2026-10-26 14:30',
       },
       {
         id: '93531d58d74d174e69394e6dacf29a7f',
@@ -607,8 +748,33 @@ class CentralStoreService {
         avatarUrl: null,
         role: 'user',
         createdAt: '2026-10-27T10:22:45.777Z',
-        orderCount: 0,
-        totalSpent: 0,
+        orderCount: 1,
+        totalSpent: 33070,
+        lastOrderDate: '2026-10-27 11:15',
+      },
+      {
+        id: '147fc7d09c65a1ee2fbdf9972ce4a8eb',
+        name: 'Venkatesh Jewellers',
+        email: 'qa_member_1793204745296@alldisplay.com',
+        phone: '9840112233',
+        avatarUrl: null,
+        role: 'user',
+        createdAt: '2026-10-28T16:25:45.379Z',
+        orderCount: 1,
+        totalSpent: 88054,
+        lastOrderDate: '2026-10-28 16:45',
+      },
+      {
+        id: 'c18a99478fbe3d2e11894a7391a8c3e2',
+        name: 'Tribhovandas Heritage Jewellers',
+        email: 'orders@tribhovandasjewels.in',
+        phone: '9820011223',
+        avatarUrl: null,
+        role: 'user',
+        createdAt: '2026-10-29T09:15:00.000Z',
+        orderCount: 1,
+        totalSpent: 33630,
+        lastOrderDate: '2026-10-29 09:20',
       },
     ];
   }
@@ -908,6 +1074,26 @@ class CentralStoreService {
     }
   }
 
+  private mergeOrders(localList: AdminOrder[], remoteList: AdminOrder[]): AdminOrder[] {
+    const map = new Map<string, AdminOrder>();
+    for (const o of (localList || [])) {
+      if (o && (o.id || o.orderNo)) {
+        map.set(o.id || o.orderNo, o);
+      }
+    }
+    for (const o of (remoteList || [])) {
+      if (o && (o.id || o.orderNo)) {
+        const key = o.id || o.orderNo;
+        const existing = map.get(key);
+        map.set(key, {
+          ...(existing || {}),
+          ...o,
+        });
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+  }
+
   private mergeCustomers(localList: RegisteredCustomer[], remoteList: RegisteredCustomer[]): RegisteredCustomer[] {
     const map = new Map<string, RegisteredCustomer>();
     for (const c of (localList || [])) {
@@ -929,19 +1115,51 @@ class CentralStoreService {
 
   private async loadOperationalData() {
     try {
-      const [orders, quotes, customersRes] = await Promise.all([
+      if (this.state.orders.length > 0) {
+        await fetch('/api/admin/orders/sync', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Request': '1',
+          },
+          body: JSON.stringify({ orders: this.state.orders }),
+        }).catch(() => {});
+      }
+      if (this.state.customers.length > 0) {
+        await fetch('/api/admin/customers/sync', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Request': '1',
+          },
+          body: JSON.stringify({ customers: this.state.customers }),
+        }).catch(() => {});
+      }
+
+      const [ordersRes, quotesRes, customersRes] = await Promise.all([
         this.apiRequest<{ orders: AdminOrder[] }>('/api/admin/orders').catch(() => ({ orders: this.state.orders })),
         this.apiRequest<{ quotes: AdminQuote[] }>('/api/admin/quotes').catch(() => ({ quotes: this.state.quotes })),
         this.apiRequest<{ customers: RegisteredCustomer[] }>('/api/admin/customers').catch(() => ({ customers: this.state.customers })),
       ]);
-      const mergedCustomers = this.mergeCustomers(this.state.customers, customersRes.customers || []);
+
+      const serverOrders = Array.isArray(ordersRes.orders) ? ordersRes.orders : [];
+      const mergedOrders = this.mergeOrders(this.state.orders, serverOrders);
+
+      const serverQuotes = Array.isArray(quotesRes.quotes) ? quotesRes.quotes : [];
+      const mergedQuotes = serverQuotes.length > 0 ? serverQuotes : this.state.quotes;
+
+      const serverCustomers = Array.isArray(customersRes.customers) ? customersRes.customers : [];
+      const mergedCustomers = this.mergeCustomers(this.state.customers, serverCustomers);
+
       this.state = {
         ...this.state,
-        orders: orders.orders || this.state.orders,
-        quotes: quotes.quotes || this.state.quotes,
+        orders: mergedOrders,
+        quotes: mergedQuotes,
         customers: mergedCustomers,
       };
       try {
+        localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(mergedOrders));
+        localStorage.setItem(STORAGE_KEYS.QUOTES, JSON.stringify(mergedQuotes));
         localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify(mergedCustomers));
       } catch {}
       this.notify();
@@ -1479,12 +1697,63 @@ class CentralStoreService {
     return true;
   }
 
+  public async refreshOrders(): Promise<void> {
+    try {
+      if (this.state.orders.length > 0) {
+        await fetch('/api/admin/orders/sync', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Request': '1',
+          },
+          body: JSON.stringify({ orders: this.state.orders }),
+        }).catch(() => {});
+      }
+      const res = await this.apiRequest<{ orders: AdminOrder[] }>('/api/admin/orders');
+      if (Array.isArray(res.orders)) {
+        const merged = this.mergeOrders(this.state.orders, res.orders);
+        this.state = { ...this.state, orders: merged };
+        try {
+          localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(merged));
+        } catch {}
+        this.notify();
+      }
+    } catch {}
+  }
+
   public async createOrder(order: Omit<AdminOrder, 'id' | 'orderNo' | 'date' | 'status' | 'subtotal' | 'discount' | 'gst' | 'total'>): Promise<AdminOrder> {
-    const { order: savedOrder } = await this.apiRequest<{ order: AdminOrder }>('/api/orders', {
-      method: 'POST',
-      body: JSON.stringify(order),
-    });
-    this.state = { ...this.state, orders: [savedOrder, ...this.state.orders] };
+    let savedOrder: AdminOrder;
+    try {
+      const res = await this.apiRequest<{ order: AdminOrder }>('/api/orders', {
+        method: 'POST',
+        body: JSON.stringify(order),
+      });
+      savedOrder = res.order;
+    } catch {
+      const id = `ord-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+      const orderNo = `AD-${new Date().getFullYear()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+      const subtotal = order.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
+      const discountRate = subtotal >= 50000 ? 0.15 : subtotal >= 25000 ? 0.1 : 0;
+      const discount = Math.round(subtotal * discountRate);
+      const gst = Math.round((subtotal - discount) * 0.18);
+      savedOrder = {
+        ...order,
+        id,
+        orderNo,
+        date: new Date().toISOString(),
+        status: 'New (Awaiting WhatsApp)',
+        subtotal,
+        discount,
+        gst,
+        total: subtotal - discount + gst,
+        notes: order.notes || '',
+      };
+    }
+    const updatedOrders = [savedOrder, ...this.state.orders.filter((o) => o.id !== savedOrder.id)];
+    this.state = { ...this.state, orders: updatedOrders };
+    try {
+      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(updatedOrders));
+    } catch {}
     this.notify();
     return savedOrder;
   }

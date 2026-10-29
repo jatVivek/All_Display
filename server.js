@@ -165,6 +165,153 @@ const SEED_USERS = [
     created_at: "2026-10-27T10:22:45.777Z",
     password_hash: "scrypt$c2cd3cd5ae0cf0797214945c71c36b16$87dd1ca99d46b766518e6c4e1b878b6e9678125fe361a20ccdfa72a0547bf3682ab9df35c9558b6224ff98e752d12ce3042147d9d36d6bb47c4725cee86040fe",
   },
+  {
+    id: "c18a99478fbe3d2e11894a7391a8c3e2",
+    name: "Tribhovandas Heritage Jewellers",
+    email: "orders@tribhovandasjewels.in",
+    phone: "9820011223",
+    avatar_url: null,
+    role: "user",
+    created_at: "2026-10-29T09:15:00.000Z",
+    password_hash: null,
+  },
+];
+
+const SEED_ORDERS = [
+  {
+    id: "ord-seed-1001",
+    orderNo: "AD-ORD-1001",
+    customerName: "Ganesh Singh",
+    storeName: "Ganesh Jewellers & Gems",
+    customerEmail: "ganeshsingh@yopmail.com",
+    whatsapp: "9462247004",
+    destination: "Jaipur, Rajasthan",
+    pincode: "302003",
+    date: "2026-10-26 14:30",
+    status: "Delivered",
+    trackingNo: "DELHIVERY-98421094",
+    items: [
+      {
+        sku: "AD-FL-001",
+        title: "Royal Velvet Necklace Display Bust",
+        finish: "Midnight Black Velvet",
+        quantity: 12,
+        unitPrice: 1250,
+        unitLabel: "piece"
+      },
+      {
+        sku: "AD-FL-003",
+        title: "Rotating Hexagonal Glass Display Pillar",
+        finish: "Champagne Gold Brass",
+        quantity: 2,
+        unitPrice: 18500,
+        unitLabel: "unit"
+      }
+    ],
+    subtotal: 52000,
+    discount: 2600,
+    gst: 8892,
+    total: 58292,
+    notes: "Express surface delivery requested for showroom inauguration."
+  },
+  {
+    id: "ord-seed-1002",
+    orderNo: "AD-ORD-1002",
+    customerName: "Meenakshi Sharma",
+    storeName: "Meenakshi Designer Jewellers",
+    customerEmail: "testboutique@alldisplay.com",
+    whatsapp: "9876543210",
+    destination: "Hyderabad, Telangana",
+    pincode: "500034",
+    date: "2026-10-27 11:15",
+    status: "Shipped",
+    trackingNo: "BLUEDART-88371902",
+    items: [
+      {
+        sku: "AD-ST-002",
+        title: "Tiered Velvet Bangle & Bracelet Organizer",
+        finish: "Crimson Red Velvet",
+        quantity: 20,
+        unitPrice: 850,
+        unitLabel: "piece"
+      },
+      {
+        sku: "AD-FL-001",
+        title: "Royal Velvet Necklace Display Bust",
+        finish: "Emerald Green Velvet",
+        quantity: 10,
+        unitPrice: 1250,
+        unitLabel: "piece"
+      }
+    ],
+    subtotal: 29500,
+    discount: 1475,
+    gst: 5045,
+    total: 33070,
+    notes: "Direct courier dispatch from Feel Khana depot."
+  },
+  {
+    id: "ord-seed-1003",
+    orderNo: "AD-ORD-1003",
+    customerName: "K. Venkatesh",
+    storeName: "Venkatesh Jewellers",
+    customerEmail: "qa_member_1793204745296@alldisplay.com",
+    whatsapp: "9840112233",
+    destination: "Chennai, Tamil Nadu",
+    pincode: "600017",
+    date: "2026-10-28 16:45",
+    status: "New (Awaiting WhatsApp)",
+    items: [
+      {
+        sku: "AD-RC-001",
+        title: "Heavy-Duty Stainless Steel Display Rack",
+        finish: "Brushed Titanium Silver",
+        quantity: 4,
+        unitPrice: 14200,
+        unitLabel: "unit"
+      },
+      {
+        sku: "AD-FL-002",
+        title: "Modular Ring Showcase Podium",
+        finish: "Midnight Black Velvet",
+        quantity: 15,
+        unitPrice: 1450,
+        unitLabel: "set"
+      }
+    ],
+    subtotal: 78550,
+    discount: 3928,
+    gst: 13432,
+    total: 88054,
+    notes: "Confirmed proforma requirement for festival counter redesign."
+  },
+  {
+    id: "ord-seed-1004",
+    orderNo: "AD-ORD-1004",
+    customerName: "Rajesh Tribhovandas",
+    storeName: "Tribhovandas Heritage Jewellers",
+    customerEmail: "orders@tribhovandasjewels.in",
+    whatsapp: "9820011223",
+    destination: "Zaveri Bazaar, Mumbai, Maharashtra",
+    pincode: "400002",
+    date: "2026-10-29 09:20",
+    status: "Payment pending",
+    items: [
+      {
+        sku: "AD-FL-001",
+        title: "Royal Velvet Necklace Display Bust",
+        finish: "Royal Ivory Velvet",
+        quantity: 24,
+        unitPrice: 1250,
+        unitLabel: "piece"
+      }
+    ],
+    subtotal: 30000,
+    discount: 1500,
+    gst: 5130,
+    total: 33630,
+    notes: "Awaiting NEFT / RTGS transfer confirmation."
+  }
 ];
 
 // Standalone in-memory fallback store when cloud MySQL is not yet configured or connecting
@@ -174,7 +321,7 @@ const memoryStore = {
   dealProductIds: [],
   products: [],
   categories: [],
-  orders: [],
+  orders: [...SEED_ORDERS],
   quotes: [],
   users: [...SEED_USERS],
   sessions: new Map(),
@@ -293,18 +440,35 @@ function saveDiskSettings() {
 loadDiskSettings();
 
 const ordersDiskCachePath = path.join(uploadDirectory, 'orders_cache.json');
+const ordersSeedPath = path.join(rootDirectory, 'public', 'uploads', 'orders_cache.json');
 function loadDiskOrders() {
   try {
-    if (existsSync(ordersDiskCachePath)) {
-      const raw = readFileSync(ordersDiskCachePath, 'utf-8');
+    const targetPath = existsSync(ordersDiskCachePath) ? ordersDiskCachePath : (existsSync(ordersSeedPath) ? ordersSeedPath : null);
+    if (targetPath) {
+      const raw = readFileSync(targetPath, 'utf-8');
       const data = JSON.parse(raw);
-      if (Array.isArray(data)) memoryStore.orders = data;
+      if (Array.isArray(data) && data.length > 0) {
+        const existingIds = new Set(memoryStore.orders.map((o) => o.id));
+        for (const order of data) {
+          if (order && order.id && !existingIds.has(order.id)) {
+            memoryStore.orders.push(order);
+            existingIds.add(order.id);
+          }
+        }
+      }
     }
   } catch {}
+  if (memoryStore.orders.length === 0) {
+    memoryStore.orders.push(...SEED_ORDERS);
+  }
 }
 function saveDiskOrders() {
   try {
-    writeFileSync(ordersDiskCachePath, JSON.stringify(memoryStore.orders));
+    const payload = JSON.stringify(memoryStore.orders);
+    writeFileSync(ordersDiskCachePath, payload);
+    if (ordersSeedPath !== ordersDiskCachePath) {
+      try { writeFileSync(ordersSeedPath, payload); } catch {}
+    }
   } catch {}
 }
 loadDiskOrders();
@@ -1422,6 +1586,8 @@ app.post('/api/orders', limitPublicSubmissions, async (request, response, next) 
       return response.status(201).json({ order: savedOrder });
     }
     await pool.query('INSERT INTO customer_orders (id, data) VALUES (?, ?)', [id, JSON.stringify(savedOrder)]);
+    memoryStore.orders.unshift(savedOrder);
+    saveDiskOrders();
     response.status(201).json({ order: savedOrder });
   } catch (error) {
     next(error);
@@ -1429,13 +1595,57 @@ app.post('/api/orders', limitPublicSubmissions, async (request, response, next) 
 });
 
 app.get('/api/admin/orders', requireAdmin, async (_request, response, next) => {
+  loadDiskOrders();
   if (!pool) {
-    loadDiskOrders();
     return response.json({ orders: memoryStore.orders });
   }
   try {
     const [rows] = await pool.query('SELECT data FROM customer_orders ORDER BY created_at DESC');
-    response.json({ orders: rows.map((row) => row.data) });
+    const dbOrders = rows.map((row) => (typeof row.data === 'string' ? JSON.parse(row.data) : row.data));
+    const map = new Map();
+    for (const o of memoryStore.orders) if (o && o.id) map.set(o.id, o);
+    for (const o of dbOrders) if (o && o.id) map.set(o.id, o);
+    const combined = Array.from(map.values()).sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+    response.json({ orders: combined });
+  } catch (error) {
+    response.json({ orders: memoryStore.orders });
+  }
+});
+
+app.put('/api/admin/orders/sync', requireSameOrigin, async (request, response, next) => {
+  try {
+    const incoming = request.body?.orders;
+    if (!Array.isArray(incoming)) {
+      return response.status(400).json({ error: 'Expected an array of order records.' });
+    }
+    loadDiskOrders();
+    const existingIds = new Set(memoryStore.orders.map((o) => o.id));
+    let updated = false;
+    for (const o of incoming) {
+      if (!o || !o.id) continue;
+      if (!existingIds.has(o.id)) {
+        memoryStore.orders.unshift(o);
+        existingIds.add(o.id);
+        updated = true;
+      }
+    }
+    if (updated) {
+      saveDiskOrders();
+    }
+    if (pool) {
+      try {
+        for (const o of incoming) {
+          if (!o || !o.id) continue;
+          await pool.query(
+            'INSERT INTO customer_orders (id, data) VALUES (?, ?) ON DUPLICATE KEY UPDATE data = ?',
+            [o.id, JSON.stringify(o), JSON.stringify(o)]
+          );
+        }
+      } catch (err) {
+        console.warn('MySQL customer_orders sync warning:', err.message);
+      }
+    }
+    response.json({ saved: true, count: memoryStore.orders.length });
   } catch (error) {
     next(error);
   }
@@ -1447,22 +1657,21 @@ app.put('/api/admin/orders', requireSameOrigin, requireAdmin, async (request, re
       !orders.every((order) => isRecord(order) && isNonEmptyString(order.id, 64))) {
     return response.status(400).json({ error: 'Orders must be an array of saved order records.' });
   }
-  if (!pool) {
-    memoryStore.orders = orders;
-    saveDiskOrders();
-    return response.json({ saved: true });
-  }
-  try {
-    for (const order of orders) {
-      await pool.query(
-        'UPDATE customer_orders SET data = ? WHERE id = ?',
-        [JSON.stringify(order), order.id]
-      );
+  memoryStore.orders = orders;
+  saveDiskOrders();
+  if (pool) {
+    try {
+      for (const order of orders) {
+        await pool.query(
+          'INSERT INTO customer_orders (id, data) VALUES (?, ?) ON DUPLICATE KEY UPDATE data = ?',
+          [order.id, JSON.stringify(order), JSON.stringify(order)]
+        );
+      }
+    } catch (err) {
+      console.warn('MySQL customer_orders update warning:', err.message);
     }
-    response.json({ saved: true });
-  } catch (error) {
-    next(error);
   }
+  return response.json({ saved: true });
 });
 
 app.post('/api/quotes', limitPublicSubmissions, async (request, response, next) => {
@@ -1578,11 +1787,16 @@ app.get('/api/admin/customers', requireAdmin, async (_request, response, next) =
     }
 
     // Load orders to compute stats per registered user
+    loadDiskOrders();
     let orders = memoryStore.orders;
     if (pool) {
       try {
         const [rows] = await pool.query('SELECT data FROM customer_orders');
-        orders = rows.map((r) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
+        const dbOrders = rows.map((r) => typeof r.data === 'string' ? JSON.parse(r.data) : r.data);
+        const map = new Map();
+        for (const o of orders) if (o && o.id) map.set(o.id, o);
+        for (const o of dbOrders) if (o && o.id) map.set(o.id, o);
+        orders = Array.from(map.values());
       } catch {}
     }
 

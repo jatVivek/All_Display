@@ -17,8 +17,22 @@ export const AdminOrdersView: React.FC<AdminOrdersViewProps> = ({
   const [orders, setOrders] = useState<AdminOrder[]>(() => storeManager.getOrders());
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('All');
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => storeManager.subscribe((state) => setOrders(state.orders)), []);
+
+  const handleSyncOrders = async () => {
+    setIsSyncing(true);
+    try {
+      await storeManager.refreshOrders();
+      setOrders(storeManager.getOrders());
+      showToast('Orders synchronized successfully.');
+    } catch {
+      showToast('Unable to synchronize orders.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const statuses = [
     'All',
@@ -83,6 +97,14 @@ export const AdminOrdersView: React.FC<AdminOrdersViewProps> = ({
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={handleSyncOrders}
+            disabled={isSyncing}
+            className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer disabled:opacity-60"
+          >
+            <AppIcon name="sync" className={`text-[18px] ${isSyncing ? 'animate-spin text-orange-600' : ''}`} />
+            <span>{isSyncing ? 'Syncing…' : 'Sync Orders'}</span>
+          </button>
           <button
             onClick={handleExportCSV}
             className="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer"

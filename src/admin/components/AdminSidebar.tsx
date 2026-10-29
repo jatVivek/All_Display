@@ -1,6 +1,6 @@
 import { AppIcon } from '../../components/AppIcon';
 import type { AppIconName } from '../../components/AppIcon';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AdminTab } from '../AdminApp';
 import { storeManager } from '../../services/storeManager';
 import { getWhatsAppNumber } from '../../utils/whatsapp';
@@ -11,9 +11,17 @@ interface AdminSidebarProps {
 }
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activeTab, setActiveTab }) => {
-  const orders = storeManager.getOrders();
+  const [orders, setOrders] = useState(() => storeManager.getOrders());
+  const [quotes, setQuotes] = useState(() => storeManager.getQuotes());
+
+  useEffect(() => {
+    return storeManager.subscribe((state) => {
+      setOrders(state.orders);
+      setQuotes(state.quotes);
+    });
+  }, []);
+
   const newOrdersCount = orders.filter(o => o.status === 'New (Awaiting WhatsApp)').length;
-  const quotes = storeManager.getQuotes();
   const pendingQuotesCount = quotes.filter(q => q.status === 'Pending Review').length;
 
   const menuItems: { id: AdminTab; label: string; icon: AppIconName; badge?: number; subtitle: string }[] = [

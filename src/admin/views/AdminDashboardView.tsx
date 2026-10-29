@@ -1,5 +1,5 @@
 import { AppIcon } from '../../components/AppIcon';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { getWhatsAppLink, getWhatsAppNumber } from '../../utils/whatsapp';
 import { AdminTab } from '../AdminApp';
 import { storeManager } from '../../services/storeManager';
@@ -13,9 +13,17 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
   setActiveTab,
   setSelectedOrderId
 }) => {
-  const orders = storeManager.getOrders();
-  const quotes = storeManager.getQuotes();
-  const products = storeManager.getProducts();
+  const [orders, setOrders] = useState(() => storeManager.getOrders());
+  const [quotes, setQuotes] = useState(() => storeManager.getQuotes());
+  const [products, setProducts] = useState(() => storeManager.getProducts());
+
+  useEffect(() => {
+    return storeManager.subscribe((state) => {
+      setOrders(state.orders);
+      setQuotes(state.quotes);
+      setProducts(state.products);
+    });
+  }, []);
 
   const newOrdersCount = orders.filter(o => o.status === 'New (Awaiting WhatsApp)').length;
   const paymentPendingCount = orders.filter(o => o.status === 'Payment pending').length;

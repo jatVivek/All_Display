@@ -1,0 +1,136 @@
+[
+  {
+    "id": "ord-seed-1001",
+    "orderNo": "AD-ORD-1001",
+    "customerName": "Ganesh Singh",
+    "storeName": "Ganesh Jewellers & Gems",
+    "customerEmail": "ganeshsingh@yopmail.com",
+    "whatsapp": "9462247004",
+    "destination": "Jaipur, Rajasthan",
+    "pincode": "302003",
+    "date": "2026-10-26 14:30",
+    "status": "Delivered",
+    "trackingNo": "DELHIVERY-98421094",
+    "items": [
+      {
+        "sku": "AD-FL-001",
+        "title": "Royal Velvet Necklace Display Bust",
+        "finish": "Midnight Black Velvet",
+        "quantity": 12,
+        "unitPrice": 1250,
+        "unitLabel": "piece"
+      },
+      {
+        "sku": "AD-FL-003",
+        "title": "Rotating Hexagonal Glass Display Pillar",
+        "finish": "Champagne Gold Brass",
+        "quantity": 2,
+        "unitPrice": 18500,
+        "unitLabel": "unit"
+      }
+    ],
+    "subtotal": 52000,
+    "discount": 2600,
+    "gst": 8892,
+    "total": 58292,
+    "notes": "Express surface delivery requested for showroom inauguration."
+  },
+  {
+    "id": "ord-seed-1002",
+    "orderNo": "AD-ORD-1002",
+    "customerName": "Meenakshi Sharma",
+    "storeName": "Meenakshi Designer Jewellers",
+    "customerEmail": "testboutique@alldisplay.com",
+    "whatsapp": "9876543210",
+    "destination": "Hyderabad, Telangana",
+    "pincode": "500034",
+    "date": "2026-10-27 11:15",
+    "status": "Shipped",
+    "trackingNo": "BLUEDART-88371902",
+    "items": [
+      {
+        "sku": "AD-ST-002",
+        "title": "Tiered Velvet Bangle & Bracelet Organizer",
+        "finish": "Crimson Red Velvet",
+        "quantity": 20,
+        "unitPrice": 850,
+        "unitLabel": "piece"
+      },
+      {
+        "sku": "AD-FL-001",
+        "title": "Royal Velvet Necklace Display Bust",
+        "finish": "Emerald Green Velvet",
+        "quantity": 10,
+        "unitPrice": 1250,
+        "unitLabel": "piece"
+      }
+    ],
+    "subtotal": 29500,
+    "discount": 1475,
+    "gst": 5045,
+    "total": 33070,
+    "notes": "Direct courier dispatch from Feel Khana depot."
+  },
+  {
+    "id": "ord-seed-1003",
+    "orderNo": "AD-ORD-1003",
+    "customerName": "K. Venkatesh",
+    "storeName": "Venkatesh Jewellers",
+    "customerEmail": "qa_member_1793204745296@alldisplay.com",
+    "whatsapp": "9840112233",
+    "destination": "Chennai, Tamil Nadu",
+    "pincode": "600017",
+    "date": "2026-10-28 16:45",
+    "status": "New (Awaiting WhatsApp)",
+    "items": [
+      {
+        "sku": "AD-RC-001",
+        "title": "Heavy-Duty Stainless Steel Display Rack",
+        "finish": "Brushed Titanium Silver",
+        "quantity": 4,
+        "unitPrice": 14200,
+        "unitLabel": "unit"
+      },
+      {
+        "sku": "AD-FL-002",
+        "title": "Modular Ring Showcase Podium",
+        "finish": "Midnight Black Velvet",
+        "quantity": 15,
+        "unitPrice": 1450,
+        "unitLabel": "set"
+      }
+    ],
+    "subtotal": 78550,
+    "discount": 3928,
+    "gst": 13432,
+    "total": 88054,
+    "notes": "Confirmed proforma requirement for festival counter redesign."
+  },
+  {
+    "id": "ord-seed-1004",
+    "orderNo": "AD-ORD-1004",
+    "customerName": "Rajesh Tribhovandas",
+    "storeName": "Tribhovandas Heritage Jewellers",
+    "customerEmail": "orders@tribhovandasjewels.in",
+    "whatsapp": "9820011223",
+    "destination": "Zaveri Bazaar, Mumbai, Maharashtra",
+    "pincode": "400002",
+    "date": "2026-10-29 09:20",
+    "status": "Payment pending",
+    "items": [
+      {
+        "sku": "AD-FL-001",
+        "title": "Royal Velvet Necklace Display Bust",
+        "finish": "Royal Ivory Velvet",
+        "quantity": 24,
+        "unitPrice": 1250,
+        "unitLabel": "piece"
+      }
+    ],
+    "subtotal": 30000,
+    "discount": 1500,
+    "gst": 5130,
+    "total": 33630,
+    "notes": "Awaiting NEFT / RTGS transfer confirmation."
+  }
+]
