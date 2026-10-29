@@ -178,7 +178,7 @@ const memoryStore = {
   quotes: [],
   users: [...SEED_USERS],
   sessions: new Map(),
-  catalogCleared: true,
+  catalogCleared: false,
 };
 
 const catalogDiskCachePath = path.join(uploadDirectory, 'catalog_cache.json');
@@ -189,10 +189,10 @@ function loadDiskCatalog() {
     if (targetPath) {
       const raw = readFileSync(targetPath, 'utf-8');
       const data = JSON.parse(raw);
-      if (data?.catalogCleared === true) {
-        memoryStore.products = Array.isArray(data?.products) ? data.products.filter(p => p && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-')) : [];
-        memoryStore.categories = Array.isArray(data?.categories) ? data.categories : [];
-        memoryStore.catalogCleared = (memoryStore.products.length === 0);
+      if (data?.catalogCleared === true && (!Array.isArray(data?.products) || data.products.length === 0) && (!Array.isArray(data?.categories) || data.categories.length === 0)) {
+        memoryStore.products = [];
+        memoryStore.categories = [];
+        memoryStore.catalogCleared = true;
         return;
       }
       if (Array.isArray(data?.products)) {

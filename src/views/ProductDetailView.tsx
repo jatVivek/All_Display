@@ -15,6 +15,7 @@ interface ProductDetailViewProps {
 
 interface ProductDetailContentProps {
   product: Product;
+  allProducts?: Product[];
   onNavigate: (view: ActiveView, path?: string) => void;
   onAddToCart: (item: Omit<CartItem, 'id'>, qty: number) => void;
   onSelectProduct?: (product: Product) => void;
@@ -24,12 +25,38 @@ interface ProductDetailContentProps {
 
 const ProductDetailContent: React.FC<ProductDetailContentProps> = ({
   product: currentProduct,
+  allProducts: propAllProducts,
   onNavigate,
   onAddToCart,
   onSelectProduct,
   onOpenCad,
   onOpenReel
 }) => {
+  const [internalProducts, setInternalProducts] = useState<Product[]>(() => propAllProducts || storeManager.getProducts());
+
+  useEffect(() => {
+    if (propAllProducts) {
+      setInternalProducts(propAllProducts);
+    }
+  }, [propAllProducts]);
+
+  useEffect(() => {
+    const handleProductsUpdate = () => {
+      setInternalProducts(storeManager.getProducts());
+    };
+    window.addEventListener('alldisplay_catalog_updated', handleProductsUpdate);
+    window.addEventListener('alldisplay_data_updated', handleProductsUpdate);
+    const unsubscribe = storeManager.subscribe((state) => {
+      setInternalProducts(state.products);
+    });
+    return () => {
+      window.removeEventListener('alldisplay_catalog_updated', handleProductsUpdate);
+      window.removeEventListener('alldisplay_data_updated', handleProductsUpdate);
+      unsubscribe();
+    };
+  }, []);
+
+  const allProducts = propAllProducts || internalProducts;
 
   const [settings, setSettings] = useState(() => storeManager.getSettings());
 
@@ -804,7 +831,24 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   onOpenCad,
   onOpenReel
 }) => {
-  const allProducts = storeManager.getProducts();
+  const [allProducts, setAllProducts] = useState<Product[]>(() => storeManager.getProducts());
+
+  useEffect(() => {
+    const handleProductsUpdate = () => {
+      setAllProducts(storeManager.getProducts());
+    };
+    window.addEventListener('alldisplay_catalog_updated', handleProductsUpdate);
+    window.addEventListener('alldisplay_data_updated', handleProductsUpdate);
+    const unsubscribe = storeManager.subscribe((state) => {
+      setAllProducts(state.products);
+    });
+    return () => {
+      window.removeEventListener('alldisplay_catalog_updated', handleProductsUpdate);
+      window.removeEventListener('alldisplay_data_updated', handleProductsUpdate);
+      unsubscribe();
+    };
+  }, []);
+
   const currentProduct: Product | null = useMemo(() => {
     if (initialProduct) return initialProduct;
     if (typeof window !== 'undefined' && window.location.pathname.startsWith('/products/')) {
@@ -847,6 +891,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   return (
     <ProductDetailContent
       product={currentProduct}
+      allProducts={allProducts}
       onNavigate={onNavigate}
       onAddToCart={onAddToCart}
       onSelectProduct={onSelectProduct}

@@ -387,14 +387,20 @@ class CentralStoreService {
   }
 
   private loadProducts(): Product[] {
-    try {
-      if (localStorage.getItem(STORAGE_KEYS.CATALOG_CLEARED) === '1') {
-        return [];
-      }
-    } catch {}
-
     const custom = this.loadCustomProducts();
     const deleted = this.loadDeletedProductIds();
+
+    if (custom.length === 0) {
+      try {
+        if (localStorage.getItem(STORAGE_KEYS.CATALOG_CLEARED) === '1') {
+          return [];
+        }
+      } catch {}
+    } else {
+      try {
+        localStorage.removeItem(STORAGE_KEYS.CATALOG_CLEARED);
+      } catch {}
+    }
 
     let base: Product[] = [];
     try {
@@ -424,14 +430,20 @@ class CentralStoreService {
   }
 
   private loadCategories(): AdminCategory[] {
-    try {
-      if (localStorage.getItem(STORAGE_KEYS.CATEGORIES_CLEARED) === '1') {
-        return [];
-      }
-    } catch {}
-
     const custom = this.loadCustomCategories();
     const deleted = this.loadDeletedCategoryIds();
+
+    if (custom.length === 0) {
+      try {
+        if (localStorage.getItem(STORAGE_KEYS.CATEGORIES_CLEARED) === '1') {
+          return [];
+        }
+      } catch {}
+    } else {
+      try {
+        localStorage.removeItem(STORAGE_KEYS.CATEGORIES_CLEARED);
+      } catch {}
+    }
 
     let base: AdminCategory[] = [];
     try {
@@ -695,31 +707,9 @@ class CentralStoreService {
           void this.persistCatalog();
         }
 
-        // If server catalog is empty or catalogCleared is true, respect the cleared state for products!
-        if (catalog.products.length === 0 || catalog.catalogCleared === true) {
-          try {
-            localStorage.setItem(STORAGE_KEYS.CATALOG_CLEARED, '1');
-            localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
-            localStorage.removeItem(STORAGE_KEYS.CUSTOM_PRODUCTS);
-          } catch {}
-          this.state = {
-            ...this.state,
-            products: [],
-            categories: sortedCategories,
-            catalogSyncStatus: 'connected',
-            catalogSyncError: null,
-          };
-          this.notify();
-          return;
-        }
-
-        // Server has products, clear the cleared flag
-        try {
-          localStorage.removeItem(STORAGE_KEYS.CATALOG_CLEARED);
-        } catch {}
-
-        // Filter out legacy ad-prod- items
-        const cleanServerProducts = catalog.products.filter(p => p && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-'));
+        // 2. Process products with full deletedProducts filter and customProducts merge
+        const rawServerProducts = Array.isArray(catalog.products) ? catalog.products : [];
+        const cleanServerProducts = rawServerProducts.filter(p => p && !deletedProducts.has(p.id) && !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-'));
 
         // Merge server products with local custom products so custom products NEVER disappear
         const prodMap = new Map<string, Product>();
@@ -736,6 +726,19 @@ class CentralStoreService {
 
         const sortedProducts = this.sortNewestProductsFirst(Array.from(prodMap.values()));
 
+        if (sortedProducts.length === 0) {
+          try {
+            localStorage.setItem(STORAGE_KEYS.CATALOG_CLEARED, '1');
+            localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
+            localStorage.removeItem(STORAGE_KEYS.CUSTOM_PRODUCTS);
+          } catch {}
+        } else {
+          try {
+            localStorage.removeItem(STORAGE_KEYS.CATALOG_CLEARED);
+            localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(sortedProducts));
+          } catch {}
+        }
+
         this.state = {
           ...this.state,
           products: sortedProducts,
@@ -743,15 +746,12 @@ class CentralStoreService {
           catalogSyncStatus: 'connected',
           catalogSyncError: null,
         };
-        try {
-          localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(sortedProducts));
-        } catch {}
         this.notify();
 
-        // If server is missing custom items, sync them to server
+        // If server is missing custom items (e.g. cold lambda container), sync them to server immediately!
         const serverProdIds = new Set(cleanServerProducts.map(p => p.id));
         const missingOnServer = customProducts.some(p => !serverProdIds.has(p.id));
-        if (missingOnServer && sortedProducts.length > 0) {
+        if (missingOnServer && sortedProducts.length > 0 && this.adminAuthenticated) {
           void this.persistCatalog();
         }
       }
@@ -1048,7 +1048,6 @@ class CentralStoreService {
         localStorage.setItem(STORAGE_KEYS.CATALOG_CLEARED, '1');
         localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify([]));
         localStorage.removeItem(STORAGE_KEYS.CUSTOM_PRODUCTS);
-        localStorage.removeItem(STORAGE_KEYS.DELETED_PRODUCT_IDS);
       } catch {}
       this.state = { ...this.state, products: [] };
       this.notify();
@@ -1069,6 +1068,18 @@ class CentralStoreService {
       createdAt: p.createdAt || (p.id.startsWith('prod-') ? new Date(Number(p.id.replace('prod-', '')) || Date.now()).toISOString() : undefined)
     }));
 
+    const deleted = this.loadDeletedProductIds();
+    let deletedChanged = false;
+    indexed.forEach(p => {
+      if (deleted.has(p.id)) {
+        deleted.delete(p.id);
+        deletedChanged = true;
+      }
+    });
+    if (deletedChanged) {
+      this.saveDeletedProductIds(deleted);
+    }
+
     // Identify and persist any custom products safely to dedicated storage key
     const custom = indexed.filter(p => !p.id.startsWith('ad-prod-') && !p.id.startsWith('vp-'));
     this.saveCustomProducts(custom);
@@ -1084,6 +1095,10 @@ class CentralStoreService {
   }
 
   public clearProducts(): Promise<boolean> {
+    const allIds = new Set(this.state.products.map(p => p.id));
+    const deleted = this.loadDeletedProductIds();
+    allIds.forEach(id => deleted.add(id));
+    this.saveDeletedProductIds(deleted);
     return this.saveProducts([]);
   }
 

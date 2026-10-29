@@ -578,7 +578,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
           <ol className="list-decimal list-inside space-y-1 text-slate-700 leading-relaxed ml-1">
             <li>Go to your Vercel Dashboard &gt; <strong>All_Display</strong> project &gt; <strong>Settings</strong> &gt; <strong>Environment Variables</strong>.</li>
             <li>Add <code>DATABASE_URL</code> with your cloud database URI (e.g. from TiDB Cloud, PlanetScale, Railway, or AWS RDS).</li>
-            <li>Add <code>ADMIN_PASSWORD</code>: <code>12345678912345678</code></li>
+            <li>Add <code>ADMIN_PASSWORD</code>: <code>Admin123456</code> (or your preferred password).</li>
             <li>Add <code>MYSQL_SSL</code>: <code>true</code> and <code>MYSQL_SSL_REJECT_UNAUTHORIZED</code>: <code>false</code>.</li>
             <li>Redeploy your latest commit. Tables will automatically be created on the cloud database!</li>
           </ol>
