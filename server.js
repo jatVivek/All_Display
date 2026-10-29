@@ -330,7 +330,7 @@ const memoryStore = {
 
 function isBannedProduct(p) {
   if (!p || typeof p !== 'object' || typeof p.id !== 'string') return true;
-  if (p.id.startsWith('ad-prod-') || p.id.startsWith('vp-') || p.id.startsWith('prod-test-')) return true;
+  if (p.id.startsWith('vp-') || p.id.startsWith('prod-test-')) return true;
   if (p.code === 'AD-VS-450') return true;
   if (typeof p.title === 'string' && p.title.toLowerCase().includes('royal emerald suede portrait necklace bust')) return true;
   return false;
@@ -1276,7 +1276,7 @@ app.get('/api/catalog', async (_request, response, next) => {
   response.setHeader('Expires', '0');
 
   if (!pool) {
-    if ((!memoryStore.products || memoryStore.products.length === 0) && memoryStore.catalogCleared !== true) {
+    if ((!memoryStore.products || memoryStore.products.length < 10) && memoryStore.catalogCleared !== true) {
       loadDiskCatalog();
     }
     const filteredProducts = (memoryStore.products || []).filter(p => !isBannedProduct(p));
@@ -1292,20 +1292,61 @@ app.get('/api/catalog', async (_request, response, next) => {
       pool.query('SELECT id, data FROM catalog_products'),
       pool.query('SELECT id, data FROM catalog_categories'),
     ]);
-    const parsedProducts = products[0].map((row) => {
+    let parsedProducts = products[0].map((row) => {
       let data = row.data;
       if (typeof data === 'string') {
         try { data = JSON.parse(data); } catch {}
       }
       return { ...data, id: row.id };
     }).filter(p => !isBannedProduct(p));
-    const parsedCategories = categories[0].map((row) => {
+    let parsedCategories = categories[0].map((row) => {
       let data = row.data;
       if (typeof data === 'string') {
         try { data = JSON.parse(data); } catch {}
       }
       return { ...data, id: row.id };
     }).filter(c => !isBannedCategory(c));
+
+    // If database was wiped or has less than the catalog seed products, merge and re-seed from disk cache!
+    if (parsedProducts.length < 10) {
+      if ((!memoryStore.products || memoryStore.products.length === 0) && memoryStore.catalogCleared !== true) {
+        loadDiskCatalog();
+      }
+      if (memoryStore.products && memoryStore.products.length > 0) {
+        const seedProducts = memoryStore.products.filter(p => !isBannedProduct(p));
+        const dbProductIds = new Set(parsedProducts.map(p => p.id));
+        const missingSeed = seedProducts.filter(p => !dbProductIds.has(p.id));
+        if (missingSeed.length > 0) {
+          parsedProducts = [...parsedProducts, ...missingSeed];
+          try {
+            const insertPayload = missingSeed.map(({ id, ...data }, index) => [id, JSON.stringify({ ...data, sortOrder: index })]);
+            if (insertPayload.length > 0) {
+              pool.query('INSERT INTO catalog_products (id, data) VALUES ? ON DUPLICATE KEY UPDATE data = VALUES(data)', [insertPayload]).catch(() => {});
+            }
+          } catch {}
+        }
+      }
+    }
+    if (parsedCategories.length < 5) {
+      if ((!memoryStore.categories || memoryStore.categories.length === 0)) {
+        loadDiskCatalog();
+      }
+      if (memoryStore.categories && memoryStore.categories.length > 0) {
+        const seedCategories = memoryStore.categories.filter(c => !isBannedCategory(c));
+        const dbCatIds = new Set(parsedCategories.map(c => c.id));
+        const missingCats = seedCategories.filter(c => !dbCatIds.has(c.id));
+        if (missingCats.length > 0) {
+          parsedCategories = [...parsedCategories, ...missingCats];
+          try {
+            const insertCatPayload = missingCats.map(({ id, ...data }, index) => [id, JSON.stringify({ ...data, sortOrder: index })]);
+            if (insertCatPayload.length > 0) {
+              pool.query('INSERT INTO catalog_categories (id, data) VALUES ? ON DUPLICATE KEY UPDATE data = VALUES(data)', [insertCatPayload]).catch(() => {});
+            }
+          } catch {}
+        }
+      }
+    }
+
     response.json({
       products: sortNewestRecordsFirst(parsedProducts, 'prod-'),
       categories: sortNewestRecordsFirst(parsedCategories, 'cat-'),
@@ -1411,7 +1452,7 @@ app.get('/api/settings', async (_request, response, next) => {
 app.get('/api/homepage-banners', async (_request, response, next) => {
   if (!pool) {
     const memoryDeals = Array.isArray(memoryStore.dealProductIds)
-      ? memoryStore.dealProductIds.filter((id) => typeof id === 'string' && !id.startsWith('vp-') && !id.startsWith('ad-prod-'))
+      ? memoryStore.dealProductIds.filter((id) => typeof id === 'string' && !id.startsWith('vp-'))
       : [];
     return response.json({
       banners: memoryStore.banners,
@@ -1430,7 +1471,7 @@ app.get('/api/homepage-banners', async (_request, response, next) => {
     }
     const banners = Array.isArray(savedHomepage) ? savedHomepage : savedHomepage?.banners ?? null;
     let dealProductIds = Array.isArray(savedHomepage?.dealProductIds)
-      ? savedHomepage.dealProductIds.filter((id) => typeof id === 'string' && !id.startsWith('vp-') && !id.startsWith('ad-prod-'))
+      ? savedHomepage.dealProductIds.filter((id) => typeof id === 'string' && !id.startsWith('vp-'))
       : [];
     response.json({
       banners,

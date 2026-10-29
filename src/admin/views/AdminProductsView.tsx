@@ -107,6 +107,23 @@ export const AdminProductsView: React.FC<AdminProductsViewProps> = ({
               <span>Clear Catalog</span>
             </button>
             <button
+              onClick={async () => {
+                if (window.confirm('Restore official wholesale catalog (120 products & 9 categories)?')) {
+                  const restored = await storeManager.restoreDefaultCatalog();
+                  if (restored) {
+                    setProducts(storeManager.getProducts());
+                    showToast('Official catalog restored successfully!');
+                  } else {
+                    showToast('Catalog could not be restored to the server.');
+                  }
+                }
+              }}
+              className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <AppIcon name="restart_alt" className="text-[18px]" />
+              <span>Restore Catalog</span>
+            </button>
+            <button
               onClick={() => setEditingProduct('new')}
               className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer shadow-xs"
             >

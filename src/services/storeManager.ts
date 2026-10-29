@@ -108,7 +108,71 @@ export interface AdminCategory {
   sortOrder?: number;
 }
 
-const INITIAL_CATEGORIES: AdminCategory[] = [];
+export const INITIAL_CATEGORIES: AdminCategory[] = [
+  {
+    id: 'cat-1',
+    name: 'Display Bust',
+    description: 'Velvet and leatherette portrait busts for necklaces and bridal sets.',
+    image: '/assets/vinayak/cat_bust.png',
+    level: 1,
+  },
+  {
+    id: 'cat-2',
+    name: 'Display Cards',
+    description: 'Earring cards, necklace tags, barcode cards and jewelry packaging.',
+    image: '/assets/vinayak/cat_card.png',
+    level: 1,
+  },
+  {
+    id: 'cat-3',
+    name: 'Display Stand',
+    description: 'Tiered wooden & metal stands for earrings, chains and pendants.',
+    image: '/assets/vinayak/cat_stand.png',
+    level: 1,
+  },
+  {
+    id: 'cat-4',
+    name: 'Display Tray',
+    description: 'Stackable velvet trays, ring pads, and flat counter showcase inserts.',
+    image: '/assets/vinayak/cat_tray.png',
+    level: 1,
+  },
+  {
+    id: 'cat-5',
+    name: 'Bangle & Bracelet Display Stand',
+    description: 'Single and multi-tier cylinders for bangles, watches, and bracelets.',
+    image: '/assets/vinayak/cat_stand.png',
+    level: 1,
+  },
+  {
+    id: 'cat-6',
+    name: 'Storage Box',
+    description: 'Velvet gift boxes, organizer chests, and acrylic storage boxes.',
+    image: '/assets/vinayak/cat_box.png',
+    level: 1,
+  },
+  {
+    id: 'cat-7',
+    name: 'Mannequin Stand',
+    description: 'Full form mannequin busts, sculpted heads, and torso models.',
+    image: '/assets/vinayak/cat_mannequin.png',
+    level: 1,
+  },
+  {
+    id: 'cat-8',
+    name: 'Packaging Tools',
+    description: 'Tape dispensers, clear wonder tapes, barcode sticker rolls, and sealers.',
+    image: '/assets/vinayak/cat_bag.png',
+    level: 1,
+  },
+  {
+    id: 'cat-9',
+    name: 'Jewellery Display Cloth',
+    description: 'Seamless suede and velvet counter fabrics for showcase flatlays.',
+    image: '/assets/vinayak/prod_suede_velvet.png',
+    level: 1,
+  },
+];
 
 const INITIAL_HOMEPAGE_BANNERS: HomepageBanner[] = [
   {
@@ -481,7 +545,7 @@ class CentralStoreService {
 
   public isBannedProduct = (p: any): boolean => {
     if (!p || typeof p !== 'object' || typeof p.id !== 'string') return true;
-    if (p.id.startsWith('ad-prod-') || p.id.startsWith('vp-') || p.id.startsWith('prod-test-')) return true;
+    if (p.id.startsWith('vp-') || p.id.startsWith('prod-test-')) return true;
     if (p.code === 'AD-VS-450') return true;
     if (typeof p.title === 'string' && p.title.toLowerCase().includes('royal emerald suede portrait necklace bust')) return true;
     return false;
@@ -594,18 +658,6 @@ class CentralStoreService {
     const custom = this.loadCustomProducts();
     const deleted = this.loadDeletedProductIds();
 
-    if (custom.length === 0) {
-      try {
-        if (localStorage.getItem(STORAGE_KEYS.CATALOG_CLEARED) === '1') {
-          return [];
-        }
-      } catch {}
-    } else {
-      try {
-        localStorage.removeItem(STORAGE_KEYS.CATALOG_CLEARED);
-      } catch {}
-    }
-
     let base: Product[] = [];
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
@@ -630,24 +682,23 @@ class CentralStoreService {
       }
     });
 
+    if (map.size === 0) {
+      INITIAL_PRODUCTS.forEach((p) => {
+        if (!deleted.has(p.id) && !this.isBannedProduct(p)) {
+          map.set(p.id, p);
+        }
+      });
+      try {
+        localStorage.removeItem(STORAGE_KEYS.CATALOG_CLEARED);
+      } catch {}
+    }
+
     return this.sortNewestProductsFirst(Array.from(map.values()));
   }
 
   private loadCategories(): AdminCategory[] {
     const custom = this.loadCustomCategories();
     const deleted = this.loadDeletedCategoryIds();
-
-    if (custom.length === 0) {
-      try {
-        if (localStorage.getItem(STORAGE_KEYS.CATEGORIES_CLEARED) === '1') {
-          return [];
-        }
-      } catch {}
-    } else {
-      try {
-        localStorage.removeItem(STORAGE_KEYS.CATEGORIES_CLEARED);
-      } catch {}
-    }
 
     let base: AdminCategory[] = [];
     try {
@@ -672,6 +723,17 @@ class CentralStoreService {
       }
     });
 
+    if (map.size === 0) {
+      INITIAL_CATEGORIES.forEach((c) => {
+        if (!deleted.has(c.id) && !this.isBannedCategory(c)) {
+          map.set(c.id, c);
+        }
+      });
+      try {
+        localStorage.removeItem(STORAGE_KEYS.CATEGORIES_CLEARED);
+      } catch {}
+    }
+
     return this.sortNewestCategoriesFirst(Array.from(map.values()));
   }
 
@@ -692,7 +754,7 @@ class CentralStoreService {
       if (stored !== null) {
         const parsed: unknown = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.every((id) => typeof id === 'string')) {
-          const cleaned = parsed.filter((id) => !id.startsWith('vp-') && !id.startsWith('ad-prod-'));
+          const cleaned = parsed.filter((id) => !id.startsWith('vp-'));
           return cleaned;
         }
       }
@@ -929,6 +991,13 @@ class CentralStoreService {
             catMap.set(c.id, c);
           }
         });
+        if (catMap.size === 0 && catalog.catalogCleared !== true) {
+          INITIAL_CATEGORIES.forEach((c) => {
+            if (!deletedCategories.has(c.id) && !this.isBannedCategory(c)) {
+              catMap.set(c.id, c);
+            }
+          });
+        }
         const sortedCategories = this.sortNewestCategoriesFirst(Array.from(catMap.values()));
 
         if (sortedCategories.length === 0) {
@@ -972,6 +1041,14 @@ class CentralStoreService {
             prodMap.set(p.id, p);
           }
         });
+
+        if (prodMap.size === 0 && catalog.catalogCleared !== true) {
+          INITIAL_PRODUCTS.forEach((p) => {
+            if (!deletedProducts.has(p.id) && !this.isBannedProduct(p)) {
+              prodMap.set(p.id, p);
+            }
+          });
+        }
 
         const sortedProducts = this.sortNewestProductsFirst(Array.from(prodMap.values()));
 
@@ -1061,7 +1138,7 @@ class CentralStoreService {
         } catch {}
       }
       if (Array.isArray(dealProductIds)) {
-        const cleanedDeals = dealProductIds.filter((id) => typeof id === 'string' && !id.startsWith('vp-') && !id.startsWith('ad-prod-'));
+        const cleanedDeals = dealProductIds.filter((id) => typeof id === 'string' && !id.startsWith('vp-'));
         const finalDeals = cleanedDeals;
         this.state = { ...this.state, homepageDealProductIds: finalDeals };
         try {
@@ -1436,6 +1513,28 @@ class CentralStoreService {
     allIds.forEach(id => deleted.add(id));
     this.saveDeletedProductIds(deleted);
     return this.saveProducts([]);
+  }
+
+  public async restoreDefaultCatalog(): Promise<boolean> {
+    try {
+      localStorage.removeItem(STORAGE_KEYS.PRODUCTS);
+      localStorage.removeItem(STORAGE_KEYS.CATEGORIES);
+      localStorage.removeItem(STORAGE_KEYS.CUSTOM_PRODUCTS);
+      localStorage.removeItem(STORAGE_KEYS.CUSTOM_CATEGORIES);
+      localStorage.removeItem(STORAGE_KEYS.DELETED_PRODUCT_IDS);
+      localStorage.removeItem(STORAGE_KEYS.DELETED_CATEGORY_IDS);
+      localStorage.removeItem(STORAGE_KEYS.CATALOG_CLEARED);
+      localStorage.removeItem(STORAGE_KEYS.CATEGORIES_CLEARED);
+    } catch {}
+    this.state = {
+      ...this.state,
+      products: INITIAL_PRODUCTS,
+      categories: INITIAL_CATEGORIES,
+    };
+    const prodSaved = await this.saveProducts(INITIAL_PRODUCTS);
+    const catSaved = await this.saveCategories(INITIAL_CATEGORIES);
+    this.notify();
+    return prodSaved && catSaved;
   }
 
   public deleteProduct(id: string): Promise<boolean> {
