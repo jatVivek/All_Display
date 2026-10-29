@@ -70,8 +70,8 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
   const [moq, setMoq] = useState(isNew ? 'MOQ: 1 Pack' : product.moq);
   
   const initialImages = isNew
-    ? []
-    : (product.images && product.images.length > 0 ? product.images : product.image ? [product.image] : []);
+    ? ['/assets/vinayak/cat_stand.png']
+    : (product.images && product.images.length > 0 ? product.images : product.image ? [product.image] : ['/assets/vinayak/cat_stand.png']);
 
   const [images, setImages] = useState<string[]>(initialImages);
   const [newImgInput, setNewImgInput] = useState('');
@@ -274,11 +274,9 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
       onError(msg);
       return;
     }
-    if (images.length === 0) {
-      setModalError('Add at least one product photo before saving.');
-      onError('Add at least one product photo before saving.');
-      return;
-    }
+
+    const finalImages = images.length > 0 ? images : ['/assets/vinayak/cat_stand.png'];
+    const primaryImage = finalImages[0];
 
     const finalSku = code.trim().toUpperCase();
     if (!finalSku) {
@@ -296,7 +294,6 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
     }
 
     const products = storeManager.getProducts();
-    const primaryImage = images[0];
     let saved: boolean;
 
     if (isNew) {
@@ -322,7 +319,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
         stockStatus,
         moq,
         image: primaryImage,
-        images,
+        images: finalImages,
         requirements,
         variations: variations.length > 0 ? variations : undefined,
         ...(videoUrl.trim() ? { videoUrl: videoUrl.trim() } : {}),
@@ -344,7 +341,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
         unit,
         moq,
         image: primaryImage,
-        images,
+        images: finalImages,
         videoUrl: videoUrl.trim() || undefined,
         finish,
         material,
