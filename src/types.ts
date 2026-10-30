@@ -42,6 +42,7 @@ export interface AdminCategory {
   parentId?: string | null; // null for Level 1 Root Category; parent Category ID for Level 2 Sub-Category; parent Sub-Category ID for Level 3 Child Category
   level?: CategoryLevel; // 1 = Category, 2 = Sub-Category, 3 = Child Category
   createdAt?: string;
+  updatedAt?: number | string;
   sortOrder?: number;
 }
 
@@ -84,6 +85,7 @@ export interface Product {
     color?: string;
   };
   createdAt?: string;
+  updatedAt?: number | string;
   sortOrder?: number;
 }
 

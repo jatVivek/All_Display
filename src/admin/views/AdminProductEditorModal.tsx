@@ -301,9 +301,9 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
 
     const products = storeManager.getProducts();
     let saved: boolean;
+    const now = new Date().toISOString();
 
     if (isNew) {
-      const now = new Date().toISOString();
       const newProduct: Product = {
         id: `prod-${Date.now()}`,
         code: finalSku,
@@ -330,9 +330,10 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
         variations: variations.length > 0 ? variations : undefined,
         ...(videoUrl.trim() ? { videoUrl: videoUrl.trim() } : {}),
         createdAt: now,
+        updatedAt: now,
         sortOrder: 0,
       };
-      saved = await storeManager.saveProducts([newProduct, ...products]);
+      saved = await storeManager.saveProducts([newProduct, ...products], true);
     } else {
       const updated = products.map((p) => (p.id === product.id ? {
         ...p,
@@ -356,8 +357,9 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
         requirements,
         variations: variations.length > 0 ? variations : undefined,
         finishes: undefined,
+        updatedAt: now,
       } : p));
-      saved = await storeManager.saveProducts(updated);
+      saved = await storeManager.saveProducts(updated, true);
     }
 
     setIsSaving(false);

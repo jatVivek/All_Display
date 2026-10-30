@@ -2,6 +2,13 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { AppIcon } from '../components/AppIcon';
 import { ActiveView, HomepageBanner, Product } from '../types';
 import { storeManager } from '../services/storeManager';
+import { useCatalogData } from '../hooks/useCatalogData';
+import {
+  CategoryCarouselSkeleton,
+  ProductGridSkeleton,
+  CatalogErrorState,
+  CatalogEmptyState,
+} from '../components/CatalogLoadingState';
 import { getWhatsAppLink } from '../utils/whatsapp';
 
 interface HomeViewProps {
@@ -19,46 +26,33 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onToast,
   onOpenBannerTarget
 }) => {
-  const [products, setProducts] = useState<Product[]>(() => storeManager.getProducts());
-  const [homepageBanners, setHomepageBanners] = useState(() => storeManager.getHomepageBanners());
+  const {
+    products,
+    categories,
+    homepageBanners,
+    settings,
+    isLoading,
+    isError,
+    error: fetchError,
+    retry,
+  } = useCatalogData();
+
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isCategoryHovered, setIsCategoryHovered] = useState(false);
   const [wishlistIds, setWishlistIds] = useState<string[]>(() => storeManager.getWishlist());
-  const [settings, setSettings] = useState(() => storeManager.getSettings());
-  const [categories, setCategories] = useState(() => storeManager.getCategories());
 
   const categoryScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleUpdate = () => {
-      setProducts(storeManager.getProducts());
-      setHomepageBanners(storeManager.getHomepageBanners());
+    const handleWishlistUpdate = () => {
       setWishlistIds(storeManager.getWishlist());
-      setSettings(storeManager.getSettings());
-      setCategories(storeManager.getCategories());
     };
-    window.addEventListener('alldisplay_catalog_updated', handleUpdate);
-    window.addEventListener('alldisplay_data_updated', handleUpdate);
-    window.addEventListener('vinayak_wishlist_updated', handleUpdate);
-    window.addEventListener('vinayak_settings_updated', handleUpdate);
-    window.addEventListener('storage', handleUpdate);
-
-    const unsubscribe = storeManager.subscribe((state) => {
-      setProducts(state.products);
-      setHomepageBanners(state.homepageBanners);
-      setWishlistIds(storeManager.getWishlist());
-      setSettings(state.settings);
-      setCategories(state.categories);
-    });
-
+    window.addEventListener('vinayak_wishlist_updated', handleWishlistUpdate);
+    window.addEventListener('storage', handleWishlistUpdate);
     return () => {
-      window.removeEventListener('alldisplay_catalog_updated', handleUpdate);
-      window.removeEventListener('alldisplay_data_updated', handleUpdate);
-      window.removeEventListener('vinayak_wishlist_updated', handleUpdate);
-      window.removeEventListener('vinayak_settings_updated', handleUpdate);
-      window.removeEventListener('storage', handleUpdate);
-      unsubscribe();
+      window.removeEventListener('vinayak_wishlist_updated', handleWishlistUpdate);
+      window.removeEventListener('storage', handleWishlistUpdate);
     };
   }, []);
 
@@ -171,9 +165,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
     <div className="w-full bg-white text-slate-900 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-6 sm:gap-10 pt-4 sm:pt-6">
         
-        {/* 1. SHOP CATEGORIES CAROUSEL (Positioned First) */}
-        {activeCategoriesList.length > 0 && (
-          <section className="rounded-2xl sm:rounded-3xl border border-slate-100 bg-slate-50/60 p-4 sm:p-6 shadow-2xs">
+        {/* 1. SHOP CATEGORIES CAROUSEL */}
+        {isLoading ? (
+          <CategoryCarouselSkeleton />
+        ) : isError ? null : activeCategoriesList.length > 0 ? (
+          <section className="rounded-2xl sm:rounded-3xl border border-slate-100 bg-slate-50/60 p-4 sm:p-6 shadow-2xs transition-opacity duration-300">
             <div className="flex items-center justify-between mb-2.5 sm:mb-4">
               <div>
                 <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-orange-600">
@@ -273,7 +269,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </div>
             )}
           </section>
-        )}
+        ) : null}
 
         {/* 2. ALL PRODUCTS */}
         <section className="flex flex-col gap-4 sm:gap-6">
@@ -296,12 +292,15 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </button>
           </div>
 
-          {allProductsList.length === 0 ? (
-            <div className="bg-slate-50/70 border border-slate-100 rounded-3xl p-10 text-center flex flex-col items-center justify-center gap-2">
-              <AppIcon name="inventory_2" className="text-3xl text-slate-400" />
-              <h3 className="font-bold text-sm text-slate-800">No Products in Catalog</h3>
-              <p className="text-xs text-slate-500 max-w-sm">The product catalog has been cleared. Products created in the Admin panel will appear here.</p>
-            </div>
+          {isLoading ? (
+            <ProductGridSkeleton count={8} columns={4} />
+          ) : isError ? (
+            <CatalogErrorState message={fetchError} onRetry={retry} />
+          ) : allProductsList.length === 0 ? (
+            <CatalogEmptyState
+              title="No Products in Catalog"
+              description="There are currently no products available in the live catalog."
+            />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
               {allProductsList.map((product) => {

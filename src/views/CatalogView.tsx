@@ -2,6 +2,13 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { AppIcon } from '../components/AppIcon';
 import { ActiveView, Product } from '../types';
 import { storeManager } from '../services/storeManager';
+import { useCatalogData } from '../hooks/useCatalogData';
+import {
+  ProductGridSkeleton,
+  CategorySidebarSkeleton,
+  CatalogErrorState,
+  CatalogEmptyState,
+} from '../components/CatalogLoadingState';
 import { getWhatsAppLink } from '../utils/whatsapp';
 
 interface CatalogViewProps {
@@ -36,37 +43,28 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   initialSubCategoryName = '',
   initialChildCategoryName = '',
 }) => {
-  const [products, setProducts] = useState<Product[]>(() => storeManager.getProducts());
-  const [categories, setCategories] = useState(() => storeManager.getCategories());
-  const [wishlistIds, setWishlistIds] = useState<string[]>(() => storeManager.getWishlist());
-  const [settings, setSettings] = useState(() => storeManager.getSettings());
+  const {
+    products,
+    categories,
+    settings,
+    isLoading,
+    isError,
+    error: fetchError,
+    retry,
+  } = useCatalogData();
 
-  // Listen to catalog & wishlist updates
+  const [wishlistIds, setWishlistIds] = useState<string[]>(() => storeManager.getWishlist());
+
+  // Listen to wishlist updates
   useEffect(() => {
     const handleUpdate = () => {
-      setProducts(storeManager.getProducts());
-      setCategories(storeManager.getCategories());
       setWishlistIds(storeManager.getWishlist());
-      setSettings(storeManager.getSettings());
     };
-    window.addEventListener('alldisplay_catalog_updated', handleUpdate);
-    window.addEventListener('alldisplay_data_updated', handleUpdate);
     window.addEventListener('vinayak_wishlist_updated', handleUpdate);
-    window.addEventListener('vinayak_settings_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
-    const unsubscribe = storeManager.subscribe((state) => {
-      setProducts(state.products);
-      setCategories(state.categories);
-      setWishlistIds(storeManager.getWishlist());
-      setSettings(state.settings);
-    });
     return () => {
-      window.removeEventListener('alldisplay_catalog_updated', handleUpdate);
-      window.removeEventListener('alldisplay_data_updated', handleUpdate);
       window.removeEventListener('vinayak_wishlist_updated', handleUpdate);
-      window.removeEventListener('vinayak_settings_updated', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
-      unsubscribe();
     };
   }, []);
 
@@ -960,8 +958,14 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             {/* Toolbar (View Mode, Sorting, Count) */}
             <div className="bg-slate-50/80 p-3 sm:p-4 rounded-2xl border border-slate-100 flex flex-wrap items-center justify-between gap-4">
               <div className="text-xs text-slate-600 font-medium">
-                Showing <strong className="text-slate-900">{displayedProducts.length}</strong> of{' '}
-                <strong className="text-slate-900">{filteredProducts.length}</strong> products
+                {isLoading ? (
+                  <span className="inline-block h-3.5 w-24 bg-slate-200 animate-pulse rounded-md" />
+                ) : (
+                  <>
+                    Showing <strong className="text-slate-900">{displayedProducts.length}</strong> of{' '}
+                    <strong className="text-slate-900">{filteredProducts.length}</strong> products
+                  </>
+                )}
               </div>
 
               <div className="flex items-center gap-3 ml-auto">
@@ -1026,16 +1030,23 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             </div>
 
             {/* PRODUCT CARDS GRID */}
-            {displayedProducts.length === 0 ? (
+            {isLoading ? (
+              <ProductGridSkeleton count={8} columns={gridColumns === 4 ? 4 : 3} />
+            ) : isError ? (
+              <CatalogErrorState message={fetchError} onRetry={retry} />
+            ) : products.length === 0 ? (
+              <CatalogEmptyState
+                title="No Products in Catalog"
+                description="There are currently no products available in the live catalog."
+              />
+            ) : displayedProducts.length === 0 ? (
               <div className="bg-slate-50 rounded-3xl p-12 text-center flex flex-col items-center gap-3 border border-slate-100">
                 <AppIcon name="inventory_2" className="text-4xl text-slate-400" />
                 <h3 className="font-bold text-base text-slate-900">
-                  {products.length === 0 ? 'No Products in Catalog' : 'No products matched your criteria'}
+                  No products matched your criteria
                 </h3>
                 <p className="text-xs text-slate-600 max-w-sm">
-                  {products.length === 0
-                    ? 'The product catalog has been cleared. Products added via Admin will be visible here.'
-                    : 'Try widening your price range or clearing category / material filters.'}
+                  Try widening your price range or clearing category / material filters.
                 </p>
                 {products.length > 0 && (
                   <button

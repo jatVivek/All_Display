@@ -198,8 +198,9 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
       resolvedParentId = parentSubCatId;
     }
 
+    const now = new Date().toISOString();
+
     if (editingCat === 'new') {
-      const now = new Date().toISOString();
       const newCat: AdminCategory = {
         id: `cat-${Date.now()}`,
         name: name.trim(),
@@ -208,10 +209,11 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
         parentId: resolvedParentId,
         level,
         createdAt: now,
+        updatedAt: now,
         sortOrder: 0,
       };
       const updated = [newCat, ...categories];
-      if (!await storeManager.saveCategories(updated)) {
+      if (!await storeManager.saveCategories(updated, true)) {
         showToast('Category could not be saved to the shared catalog.');
         return;
       }
@@ -226,9 +228,10 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
         image: image.trim() || undefined,
         parentId: resolvedParentId,
         level,
+        updatedAt: now,
       } : c));
 
-      if (!await storeManager.saveCategories(updated)) {
+      if (!await storeManager.saveCategories(updated, true)) {
         showToast('Category could not be saved to the shared catalog.');
         return;
       }

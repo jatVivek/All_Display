@@ -42,15 +42,16 @@ export const AdminProductsView: React.FC<AdminProductsViewProps> = ({
   );
 
   const handleToggleStock = async (id: string) => {
+    const now = new Date().toISOString();
     const updated = products.map(p => {
       if (p.id === id) {
         const nextStatus = p.stockStatus.includes('In Stock') ? 'Sold Out / Make to Order' : 'Feel Khana In Stock';
-        return { ...p, stockStatus: nextStatus };
+        return { ...p, stockStatus: nextStatus, updatedAt: now };
       }
       return p;
     });
     setProducts(updated);
-    if (await storeManager.saveProducts(updated)) {
+    if (await storeManager.saveProducts(updated, true)) {
       showToast('Product stock status saved.');
     } else {
       showToast('Stock status changed locally but could not sync to the shared database.');

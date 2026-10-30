@@ -5,6 +5,7 @@ import { ActiveView, CartItem, Product } from '../types';
 import { useScrollLock } from '../hooks/useScrollLock';
 import { useAuth } from '../auth/AuthContext';
 import { storeManager } from '../services/storeManager';
+import { useCatalogData } from '../hooks/useCatalogData';
 
 interface HeaderProps {
   activeView: ActiveView;
@@ -43,9 +44,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [expandedMobileCats, setExpandedMobileCats] = useState<Record<string, boolean>>({});
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const { user, openAuthDialog, logout } = useAuth();
-
-  const categories = storeManager.getCategories();
-  const products = storeManager.getProducts();
+  const { categories, products, isLoading } = useCatalogData();
 
   // Root categories (Level 1)
   const rootCategories = React.useMemo(() => {
@@ -500,7 +499,14 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 All Shop Categories
               </button>
-              {rootCategories.slice(0, 7).map((cat) => {
+              {isLoading ? (
+                <div className="flex items-center gap-4 py-1">
+                  <div className="h-3 w-16 bg-slate-200/70 rounded-full animate-pulse" />
+                  <div className="h-3 w-20 bg-slate-200/70 rounded-full animate-pulse" />
+                  <div className="h-3 w-14 bg-slate-200/70 rounded-full animate-pulse" />
+                </div>
+              ) : (
+                rootCategories.slice(0, 7).map((cat) => {
                 const isCatActive = activeView === 'shop' && selectedCategoryName === cat.name;
                 const subs = getCategorySubCategories(cat.id);
 
@@ -571,7 +577,7 @@ export const Header: React.FC<HeaderProps> = ({
                     )}
                   </div>
                 );
-              })}
+              }))}
               <button
                 type="button"
                 onClick={() => navigateTo('custom-quote')}

@@ -103,6 +103,9 @@ app.disable('x-powered-by');
 
 // Live Environment CORS & Security Headers
 const allowedOrigins = [
+  'https://alldisplay.co.in',
+  'https://www.alldisplay.co.in',
+  'http://alldisplay.co.in',
   'https://all-display.vercel.app',
   process.env.SITE_URL,
   process.env.BASE_URL,
@@ -113,7 +116,7 @@ const allowedOrigins = [
 
 app.use((request, response, next) => {
   const origin = request.headers.origin;
-  if (origin && (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || !production)) {
+  if (origin && (allowedOrigins.includes(origin) || origin.endsWith('alldisplay.co.in') || origin.endsWith('.vercel.app') || !production)) {
     response.setHeader('Access-Control-Allow-Origin', origin);
     response.setHeader('Access-Control-Allow-Credentials', 'true');
     response.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -1449,7 +1452,7 @@ function sanitizeSettingsObject(settings) {
     settings.logoUrl = '/assets/logo.png';
   }
   if (!settings.siteUrl) {
-    settings.siteUrl = 'https://all-display.vercel.app/';
+    settings.siteUrl = 'https://alldisplay.co.in/';
   }
   if (!settings.instagramUrl) {
     settings.instagramUrl = 'https://www.instagram.com/all_display_?cplk=MXNpcGN3cno4MHI0Nw==';

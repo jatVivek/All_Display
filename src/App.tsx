@@ -131,7 +131,7 @@ export default function App() {
       );
       if (match) return match;
     }
-    return storeManager.getProducts()[0] || null;
+    return null;
   });
   const [consignee, setConsignee] = useState<ConsigneeDetails>({
     storeName: '',

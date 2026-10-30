@@ -3,6 +3,8 @@ import { AppIcon } from '../components/AppIcon';
 import { ActiveView, Product, CartItem, ProductVariation } from '../types';
 import { getWhatsAppLink } from '../utils/whatsapp';
 import { storeManager } from '../services/storeManager';
+import { useCatalogData } from '../hooks/useCatalogData';
+import { ProductDetailSkeleton, CatalogErrorState } from '../components/CatalogLoadingState';
 
 interface ProductDetailViewProps {
   product?: Product | null;
@@ -867,23 +869,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
   onOpenCad,
   onOpenReel
 }) => {
-  const [allProducts, setAllProducts] = useState<Product[]>(() => storeManager.getProducts());
-
-  useEffect(() => {
-    const handleProductsUpdate = () => {
-      setAllProducts(storeManager.getProducts());
-    };
-    window.addEventListener('alldisplay_catalog_updated', handleProductsUpdate);
-    window.addEventListener('alldisplay_data_updated', handleProductsUpdate);
-    const unsubscribe = storeManager.subscribe((state) => {
-      setAllProducts(state.products);
-    });
-    return () => {
-      window.removeEventListener('alldisplay_catalog_updated', handleProductsUpdate);
-      window.removeEventListener('alldisplay_data_updated', handleProductsUpdate);
-      unsubscribe();
-    };
-  }, []);
+  const { products: allProducts, isLoading, isError, error, retry } = useCatalogData();
 
   const currentProduct: Product | null = useMemo(() => {
     if (initialProduct) return initialProduct;
@@ -899,6 +885,18 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({
     }
     return allProducts[0] || null;
   }, [initialProduct, allProducts]);
+
+  if (isLoading) {
+    return <ProductDetailSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center p-6">
+        <CatalogErrorState message={error} onRetry={retry} />
+      </div>
+    );
+  }
 
   if (!currentProduct) {
     return (

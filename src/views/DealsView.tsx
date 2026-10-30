@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Product, ActiveView } from '../types';
 import { storeManager } from '../services/storeManager';
+import { useCatalogData } from '../hooks/useCatalogData';
+import { ProductGridSkeleton, CatalogErrorState } from '../components/CatalogLoadingState';
 import { AppIcon } from '../components/AppIcon';
 import { getWhatsAppLink } from '../utils/whatsapp';
 
@@ -17,8 +19,15 @@ export const DealsView: React.FC<DealsViewProps> = ({
   onSelectProduct,
   onToast,
 }) => {
-  const [products, setProducts] = useState<Product[]>(() => storeManager.getProducts());
-  const [dealProductIds, setDealProductIds] = useState<string[]>(() => storeManager.getHomepageDealProductIds());
+  const {
+    products,
+    homepageDealProductIds: dealProductIds,
+    isLoading,
+    isError,
+    error: fetchError,
+    retry,
+  } = useCatalogData();
+
   const [wishlistIds, setWishlistIds] = useState<string[]>(() => storeManager.getWishlist());
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'featured' | 'discount' | 'price-low' | 'price-high'>('featured');
@@ -50,32 +59,17 @@ export const DealsView: React.FC<DealsViewProps> = ({
     return () => clearInterval(timer);
   }, []);
 
-  // Listen for updates from store / admin
+  // Listen for updates from wishlist
   useEffect(() => {
     const handleUpdate = () => {
-      setProducts(storeManager.getProducts());
-      setDealProductIds(storeManager.getHomepageDealProductIds());
       setWishlistIds(storeManager.getWishlist());
     };
-    window.addEventListener('alldisplay_catalog_updated', handleUpdate);
-    window.addEventListener('alldisplay_data_updated', handleUpdate);
-    window.addEventListener('alldisplay_deals_updated', handleUpdate);
     window.addEventListener('vinayak_wishlist_updated', handleUpdate);
     window.addEventListener('storage', handleUpdate);
 
-    const unsubscribe = storeManager.subscribe((state) => {
-      setProducts(state.products);
-      setDealProductIds(state.homepageDealProductIds);
-      setWishlistIds(storeManager.getWishlist());
-    });
-
     return () => {
-      window.removeEventListener('alldisplay_catalog_updated', handleUpdate);
-      window.removeEventListener('alldisplay_data_updated', handleUpdate);
-      window.removeEventListener('alldisplay_deals_updated', handleUpdate);
       window.removeEventListener('vinayak_wishlist_updated', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
-      unsubscribe();
     };
   }, []);
 
@@ -459,7 +453,11 @@ export const DealsView: React.FC<DealsViewProps> = ({
 
       {/* 5. ALL DEALS GRID */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {filteredDeals.length === 0 ? (
+        {isLoading ? (
+          <ProductGridSkeleton count={8} columns={4} />
+        ) : isError ? (
+          <CatalogErrorState message={fetchError} onRetry={retry} />
+        ) : filteredDeals.length === 0 ? (
           <div className="bg-white rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-3 border border-slate-200">
             <AppIcon name="sell" className="text-4xl text-slate-300" />
             <h3 className="text-base font-bold text-slate-800">No deals found for this category</h3>

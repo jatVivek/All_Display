@@ -238,9 +238,9 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
               <label className="text-xs font-semibold text-slate-800">Live Base URL</label>
               <input
                 type="text"
-                value={settings.siteUrl || 'https://all-display.vercel.app/'}
+                value={settings.siteUrl || 'https://alldisplay.co.in/'}
                 onChange={(e) => handleChange('siteUrl', e.target.value)}
-                placeholder="https://all-display.vercel.app/"
+                placeholder="https://alldisplay.co.in/"
                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
               />
             </div>

@@ -105,6 +105,7 @@ export interface AdminCategory {
   parentId?: string | null; // null for Level 1 Root Category; parent Category ID for Level 2 Sub-Category; parent Sub-Category ID for Level 3 Child Category
   level?: 1 | 2 | 3; // 1 = Category, 2 = Sub-Category, 3 = Child Category
   createdAt?: string;
+  updatedAt?: number | string;
   sortOrder?: number;
 }
 
@@ -683,7 +684,7 @@ const DEFAULT_SETTINGS: AdminSettings = {
   headerNotice: 'Direct Factory Wholesale • Feel Khana Depot, Hyderabad • Same-Day Dispatch Across India',
   supportEmail: 'contact@alldisplay.com',
   supportPhone: '+91 73961 27273',
-  siteUrl: 'https://all-display.vercel.app',
+  siteUrl: 'https://alldisplay.co.in',
   instagramUrl: 'https://www.instagram.com/all_display_?cplk=MXNpcGN3cno4MHI0Nw==',
 };
 
@@ -835,6 +836,9 @@ export interface CentralStoreState {
   settings: AdminSettings;
   catalogSyncStatus: 'local' | 'connecting' | 'connected' | 'error';
   catalogSyncError: string | null;
+  isLoading: boolean;
+  isInitialized: boolean;
+  fetchError: string | null;
 }
 
 type StoreListener = (state: CentralStoreState) => void;
@@ -909,13 +913,32 @@ export function sanitizeProductGlobal(p: Product): Product {
   return p;
 }
 
+export function getRecordTimestamp(item: { updatedAt?: number | string; createdAt?: string } | undefined): number {
+  if (!item) return 0;
+  if (typeof item.updatedAt === 'number' && !isNaN(item.updatedAt)) return item.updatedAt;
+  if (typeof item.updatedAt === 'string') {
+    const t = new Date(item.updatedAt).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
+  if (typeof item.createdAt === 'string') {
+    const t = new Date(item.createdAt).getTime();
+    if (!isNaN(t) && t > 0) return t;
+  }
+  return 0;
+}
+
 class CentralStoreService {
   private listeners: Set<StoreListener> = new Set();
   private apiConfigured = false;
   private adminAuthenticated = false;
+  private initPromise: Promise<void> | null = null;
+  private syncTimeout: ReturnType<typeof setTimeout> | null = null;
+  private activeCatalogAbortController: AbortController | null = null;
+  private isMutatingCatalog = false;
+  private catalogMutationVersion = 0;
   private state: CentralStoreState = {
-    products: this.loadProducts(),
-    categories: this.loadCategories(),
+    products: [],
+    categories: [],
     homepageBanners: this.loadHomepageBanners(),
     homepageDealProductIds: this.loadHomepageDealProductIds(),
     orders: this.loadOrders(),
@@ -924,16 +947,19 @@ class CentralStoreService {
     settings: this.loadSettings(),
     catalogSyncStatus: 'connecting',
     catalogSyncError: null,
+    isLoading: true,
+    isInitialized: false,
+    fetchError: null,
   };
 
   constructor() {
     window.addEventListener('storage', this.handleStorageChange);
-    void this.refreshCatalog();
+    this.initPromise = this.refreshCatalog();
     window.setInterval(() => {
-      if (this.apiConfigured) {
-        void this.loadSharedCatalog();
-        void this.loadSharedSettings();
-        void this.loadSharedHomepageBanners();
+      if (this.apiConfigured && !this.isMutatingCatalog) {
+        void this.loadSharedCatalog().catch(() => null);
+        void this.loadSharedSettings().catch(() => null);
+        void this.loadSharedHomepageBanners().catch(() => null);
         if (this.adminAuthenticated) void this.loadOperationalData();
       }
     }, 15000);
@@ -941,6 +967,7 @@ class CentralStoreService {
 
   private handleStorageChange = (event: StorageEvent) => {
     if (event.storageArea && event.storageArea !== window.localStorage) return;
+    if (this.isMutatingCatalog) return;
 
     if (event.key === null || event.key === STORAGE_KEYS.PRODUCTS || event.key === STORAGE_KEYS.CUSTOM_PRODUCTS) {
       this.state = { ...this.state, products: this.loadProducts() };
@@ -1119,17 +1146,6 @@ class CentralStoreService {
       }
     });
 
-    if (map.size === 0) {
-      INITIAL_PRODUCTS.forEach((p) => {
-        if (!deleted.has(p.id) && !isBannedProductGlobal(p)) {
-          map.set(p.id, p);
-        }
-      });
-      try {
-        localStorage.removeItem(STORAGE_KEYS.CATALOG_CLEARED);
-      } catch {}
-    }
-
     return this.sortNewestProductsFirst(Array.from(map.values()));
   }
 
@@ -1159,17 +1175,6 @@ class CentralStoreService {
         map.set(c.id, c);
       }
     });
-
-    if (map.size === 0) {
-      INITIAL_CATEGORIES.forEach((c) => {
-        if (!deleted.has(c.id) && !isBannedCategoryGlobal(c)) {
-          map.set(c.id, c);
-        }
-      });
-      try {
-        localStorage.removeItem(STORAGE_KEYS.CATEGORIES_CLEARED);
-      } catch {}
-    }
 
     return this.sortNewestCategoriesFirst(Array.from(map.values()));
   }
@@ -1401,13 +1406,28 @@ class CentralStoreService {
   }
 
   private async loadSharedCatalog() {
+    if (this.isMutatingCatalog) {
+      return;
+    }
+    const requestVersion = this.catalogMutationVersion;
+    if (this.activeCatalogAbortController) {
+      this.activeCatalogAbortController.abort();
+    }
+    const controller = new AbortController();
+    this.activeCatalogAbortController = controller;
+
     try {
       const catalog = await this.apiRequest<{
         products: Product[];
         categories: AdminCategory[];
         catalogCleared?: boolean;
         catalogInitialized?: boolean;
-      }>('/api/catalog');
+      }>('/api/catalog', { signal: controller.signal });
+
+      if (controller.signal.aborted || this.catalogMutationVersion !== requestVersion || this.isMutatingCatalog) {
+        return;
+      }
+
       const catalogIsAuthoritative = catalog.catalogInitialized === true;
       const customProducts = catalogIsAuthoritative ? [] : this.loadCustomProducts();
       const deletedProducts = catalogIsAuthoritative ? new Set<string>() : this.loadDeletedProductIds();
@@ -1420,34 +1440,43 @@ class CentralStoreService {
           this.saveDeletedCategoryIds(new Set());
         }
 
-        // 1. Process categories with full deletedCategories filter
+        // 1. Process categories with conflict resolution
         const rawServerCategories = Array.isArray(catalog.categories) ? catalog.categories : [];
         const cleanServerCategories = rawServerCategories.filter(c => c && !isBannedCategoryGlobal(c) && !deletedCategories.has(c.id));
 
         const catMap = new Map<string, AdminCategory>();
+        const localCatMap = new Map<string, AdminCategory>();
+        this.state.categories.forEach(c => {
+          if (c && c.id) localCatMap.set(c.id, c);
+        });
+
         customCategories.forEach((c) => {
           if (!deletedCategories.has(c.id) && !isBannedCategoryGlobal(c)) catMap.set(c.id, c);
         });
-        cleanServerCategories.forEach((c) => {
-          if (!catMap.has(c.id) && !deletedCategories.has(c.id) && !isBannedCategoryGlobal(c)) {
-            catMap.set(c.id, c);
+
+        cleanServerCategories.forEach((serverC) => {
+          if (deletedCategories.has(serverC.id) || isBannedCategoryGlobal(serverC)) return;
+          const localC = localCatMap.get(serverC.id);
+          if (localC) {
+            const localTime = getRecordTimestamp(localC);
+            const serverTime = getRecordTimestamp(serverC);
+            if (localTime > 0 && localTime > serverTime) {
+              catMap.set(localC.id, localC);
+              return;
+            }
+          }
+          catMap.set(serverC.id, serverC);
+        });
+
+        // Include any newer in-memory categories from current session
+        this.state.categories.forEach((c) => {
+          if (c && !catMap.has(c.id) && !deletedCategories.has(c.id) && !isBannedCategoryGlobal(c)) {
+            const localTime = getRecordTimestamp(c);
+            if (!catalogIsAuthoritative || localTime > 0) {
+              catMap.set(c.id, c);
+            }
           }
         });
-        // Include in-memory categories from current session
-        if (!catalogIsAuthoritative) {
-          this.state.categories.forEach((c) => {
-            if (c && !catMap.has(c.id) && !deletedCategories.has(c.id) && !isBannedCategoryGlobal(c)) {
-              catMap.set(c.id, c);
-            }
-          });
-        }
-        if (!catalogIsAuthoritative && catMap.size === 0 && catalog.catalogCleared !== true) {
-          INITIAL_CATEGORIES.forEach((c) => {
-            if (!deletedCategories.has(c.id) && !isBannedCategoryGlobal(c)) {
-              catMap.set(c.id, c);
-            }
-          });
-        }
         const sortedCategories = this.sortNewestCategoriesFirst(Array.from(catMap.values()));
 
         if (sortedCategories.length === 0) {
@@ -1467,42 +1496,50 @@ class CentralStoreService {
         // If server had categories that were deleted locally, sync server immediately
         const missingOnServerCategories = !catalogIsAuthoritative &&
           cleanServerCategories.length < rawServerCategories.length;
-        if (missingOnServerCategories && this.adminAuthenticated) {
-          void this.persistCatalog();
+        if (missingOnServerCategories && this.adminAuthenticated && !this.isMutatingCatalog) {
+          void this.persistCatalog(true);
         }
 
-        // 2. Process products with full deletedProducts filter and customProducts merge
+        // 2. Process products with conflict resolution (prevent stale server overwrites)
         const rawServerProducts = Array.isArray(catalog.products) ? catalog.products : [];
         const cleanServerProducts = rawServerProducts.filter(p => p && !isBannedProductGlobal(p) && !deletedProducts.has(p.id));
 
-        // Merge server products with local custom products and in-memory products so products NEVER disappear
         const prodMap = new Map<string, Product>();
+        const localProdMap = new Map<string, Product>();
+        this.state.products.forEach(p => {
+          if (p && p.id) localProdMap.set(p.id, p);
+        });
+
         customProducts.forEach((p) => {
           if (!deletedProducts.has(p.id) && !isBannedProductGlobal(p)) {
             prodMap.set(p.id, p);
           }
         });
-        cleanServerProducts.forEach((p) => {
-          if (!prodMap.has(p.id) && !deletedProducts.has(p.id) && !isBannedProductGlobal(p)) {
-            prodMap.set(p.id, p);
+
+        cleanServerProducts.forEach((serverP) => {
+          if (deletedProducts.has(serverP.id) || isBannedProductGlobal(serverP)) return;
+          const localP = localProdMap.get(serverP.id);
+          if (localP) {
+            const localTime = getRecordTimestamp(localP);
+            const serverTime = getRecordTimestamp(serverP);
+            if (localTime > 0 && localTime > serverTime) {
+              // Local product is newer than server response! Do not overwrite with stale server record
+              prodMap.set(localP.id, localP);
+              return;
+            }
+          }
+          prodMap.set(serverP.id, serverP);
+        });
+
+        // Include any newer in-memory products from current session
+        this.state.products.forEach((p) => {
+          if (p && !prodMap.has(p.id) && !deletedProducts.has(p.id) && !isBannedProductGlobal(p)) {
+            const localTime = getRecordTimestamp(p);
+            if (!catalogIsAuthoritative || localTime > 0) {
+              prodMap.set(p.id, p);
+            }
           }
         });
-        // Include in-memory products from current session
-        if (!catalogIsAuthoritative) {
-          this.state.products.forEach((p) => {
-            if (p && !prodMap.has(p.id) && !deletedProducts.has(p.id) && !isBannedProductGlobal(p)) {
-              prodMap.set(p.id, p);
-            }
-          });
-        }
-
-        if (!catalogIsAuthoritative && prodMap.size === 0 && catalog.catalogCleared !== true) {
-          INITIAL_PRODUCTS.forEach((p) => {
-            if (!deletedProducts.has(p.id) && !isBannedProductGlobal(p)) {
-              prodMap.set(p.id, p);
-            }
-          });
-        }
 
         const sortedProducts = this.sortNewestProductsFirst(Array.from(prodMap.values()));
 
@@ -1533,13 +1570,21 @@ class CentralStoreService {
         const serverProdIds = new Set(cleanServerProducts.map(p => p.id));
         const missingOnServer = !catalogIsAuthoritative &&
           sortedProducts.some(p => !serverProdIds.has(p.id));
-        if (missingOnServer && sortedProducts.length > 0) {
-          void this.persistCatalog();
+        if (missingOnServer && sortedProducts.length > 0 && !this.isMutatingCatalog) {
+          void this.persistCatalog(true);
         }
       }
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
       if (this.apiConfigured) {
         this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to load the shared catalog.');
+      }
+      throw error;
+    } finally {
+      if (this.activeCatalogAbortController === controller) {
+        this.activeCatalogAbortController = null;
       }
     }
   }
@@ -1701,7 +1746,18 @@ class CentralStoreService {
     }
   }
 
-  private async refreshCatalog() {
+  public async refreshCatalog(_isManual = false): Promise<void> {
+    if (this.isMutatingCatalog) {
+      return;
+    }
+    this.state = {
+      ...this.state,
+      isLoading: true,
+      fetchError: null,
+      catalogSyncStatus: 'connecting',
+    };
+    this.notify();
+
     try {
       const savedToken = (typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('alldisplay_admin_token') : null)
         || (typeof localStorage !== 'undefined' ? localStorage.getItem('alldisplay_admin_token') : null);
@@ -1709,24 +1765,57 @@ class CentralStoreService {
         this.adminAuthenticated = true;
         void this.getAdminRole();
       }
-      const status = await this.apiRequest<{ configured: boolean; connected: boolean; mode?: string }>('/api/health');
-      this.apiConfigured = true;
-      if (status.connected) {
-        this.state = { ...this.state, catalogSyncStatus: 'connected', catalogSyncError: null };
-      } else {
-        this.state = { ...this.state, catalogSyncStatus: 'local', catalogSyncError: null };
-      }
-      await Promise.allSettled([
+
+      const [catalogResult] = await Promise.allSettled([
         this.loadSharedCatalog(),
         this.loadSharedSettings(),
         this.loadSharedHomepageBanners(),
       ]);
+
+      if (catalogResult.status === 'rejected') {
+        throw catalogResult.reason;
+      }
+
+      this.apiConfigured = true;
+      this.state = {
+        ...this.state,
+        catalogSyncStatus: 'connected',
+        catalogSyncError: null,
+        isLoading: false,
+        isInitialized: true,
+        fetchError: null,
+      };
       this.notify();
-    } catch {
+    } catch (error) {
+      console.error('Catalog refresh failed:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Unable to connect to live catalog server.';
       this.apiConfigured = false;
-      this.state = { ...this.state, catalogSyncStatus: 'local', catalogSyncError: null };
+      this.state = {
+        ...this.state,
+        catalogSyncStatus: 'error',
+        catalogSyncError: errorMsg,
+        isLoading: false,
+        isInitialized: true,
+        fetchError: errorMsg,
+      };
       this.notify();
     }
+  }
+
+  public isLoading(): boolean {
+    return this.state.isLoading;
+  }
+
+  public isInitialized(): boolean {
+    return this.state.isInitialized;
+  }
+
+  public getFetchError(): string | null {
+    return this.state.fetchError;
+  }
+
+  public whenReady(): Promise<void> {
+    return this.initPromise || Promise.resolve();
   }
 
   private async apiRequest<T>(url: string, options: RequestInit = {}): Promise<T> {
@@ -1767,34 +1856,45 @@ class CentralStoreService {
     this.notify();
   }
 
-  private syncTimeout: ReturnType<typeof setTimeout> | null = null;
-
-  private async persistCatalog(): Promise<boolean> {
+  private async persistCatalog(immediate = false): Promise<boolean> {
     if (!this.apiConfigured) return true;
     
-    // De-bounce catalog updates to improve performance
-    if (this.syncTimeout) clearTimeout(this.syncTimeout);
-    
+    // Clear any pending syncTimeout so rapid calls do not stack
+    if (this.syncTimeout) {
+      clearTimeout(this.syncTimeout);
+      this.syncTimeout = null;
+    }
+
+    const executePut = async (): Promise<boolean> => {
+      try {
+        await this.apiRequest('/api/catalog', {
+          method: 'PUT',
+          headers: { 'X-Admin-Request': '1' },
+          body: JSON.stringify({
+            products: this.state.products,
+            categories: this.state.categories,
+            catalogCleared: this.state.products.length === 0,
+          }),
+        });
+        this.state = { ...this.state, catalogSyncStatus: 'connected', catalogSyncError: null };
+        this.notify();
+        return true;
+      } catch (error) {
+        this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to save shared catalog.');
+        return false;
+      }
+    };
+
+    if (immediate) {
+      return await executePut();
+    }
+
     return new Promise((resolve) => {
       this.syncTimeout = setTimeout(async () => {
-        try {
-          await this.apiRequest('/api/catalog', {
-            method: 'PUT',
-            headers: { 'X-Admin-Request': '1' },
-            body: JSON.stringify({
-              products: this.state.products,
-              categories: this.state.categories,
-              catalogCleared: this.state.products.length === 0,
-            }),
-          });
-          this.state = { ...this.state, catalogSyncStatus: 'connected', catalogSyncError: null };
-          this.notify();
-          resolve(true);
-        } catch (error) {
-          this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to save shared catalog.');
-          resolve(false);
-        }
-      }, 500); // 500ms delay to batch rapid requests
+        this.syncTimeout = null;
+        const res = await executePut();
+        resolve(res);
+      }, 500);
     });
   }
 
@@ -1871,12 +1971,14 @@ class CentralStoreService {
       } catch (e) {
         console.warn('Catalog migration deferred:', e);
       }
-      await Promise.allSettled([
-        this.loadSharedCatalog(),
-        this.migrateLocalSettingsIfCloudIsEmpty(),
-        this.loadSharedHomepageBanners(),
-        this.loadOperationalData(),
-      ]);
+      if (!this.isMutatingCatalog) {
+        await Promise.allSettled([
+          this.loadSharedCatalog(),
+          this.migrateLocalSettingsIfCloudIsEmpty(),
+          this.loadSharedHomepageBanners(),
+          this.loadOperationalData(),
+        ]);
+      }
       return session.role;
     } catch {
       return null;
@@ -1902,7 +2004,20 @@ class CentralStoreService {
     return this.state.products;
   }
 
-  public async saveProducts(products: Product[]): Promise<boolean> {
+  public async saveProducts(products: Product[], immediate = true): Promise<boolean> {
+    const previousProducts = [...this.state.products];
+    const previousDeleted = new Set(this.loadDeletedProductIds());
+    const previousCustom = this.loadCustomProducts();
+
+    // Increment mutation version and mark mutation active to cancel/block stale background queries
+    this.catalogMutationVersion++;
+    this.isMutatingCatalog = true;
+
+    if (this.activeCatalogAbortController) {
+      this.activeCatalogAbortController.abort();
+      this.activeCatalogAbortController = null;
+    }
+
     if (products.length === 0) {
       try {
         localStorage.setItem(STORAGE_KEYS.CATALOG_CLEARED, '1');
@@ -1911,13 +2026,26 @@ class CentralStoreService {
       } catch {}
       this.state = { ...this.state, products: [] };
       this.notify();
-      return this.persistCatalog();
+      const saved = await this.persistCatalog(immediate);
+      this.isMutatingCatalog = false;
+      if (!saved) {
+        this.state = { ...this.state, products: previousProducts };
+        try {
+          localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(previousProducts));
+          this.saveCustomProducts(previousCustom);
+          this.saveDeletedProductIds(previousDeleted);
+        } catch {}
+        this.notify();
+        return false;
+      }
+      return true;
     } else {
       try {
         localStorage.removeItem(STORAGE_KEYS.CATALOG_CLEARED);
       } catch {}
     }
 
+    const now = Date.now();
     const sanitized = products
       .map((p) => sanitizeProductGlobal(p))
       .filter((p) => !isBannedProductGlobal(p));
@@ -1943,7 +2071,8 @@ class CentralStoreService {
         ...p,
         code: currentCode,
         sortOrder: index,
-        createdAt: p.createdAt || (p.id.startsWith('prod-') ? new Date(Number(p.id.replace('prod-', '')) || Date.now()).toISOString() : undefined)
+        createdAt: p.createdAt || (p.id.startsWith('prod-') ? new Date(Number(p.id.replace('prod-', '')) || now).toISOString() : undefined),
+        updatedAt: p.updatedAt || now,
       };
     });
 
@@ -1963,6 +2092,7 @@ class CentralStoreService {
     const custom = indexed.filter(p => !isBannedProductGlobal(p));
     this.saveCustomProducts(custom);
 
+    // Optimistic UI state update
     this.state = { ...this.state, products: indexed };
     try {
       localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(indexed));
@@ -1970,7 +2100,26 @@ class CentralStoreService {
       console.warn('Could not store full catalog in localStorage, custom products preserved safely:', e);
     }
     this.notify();
-    return this.persistCatalog();
+
+    const saved = await this.persistCatalog(immediate);
+    this.isMutatingCatalog = false;
+
+    if (!saved) {
+      console.error('saveProducts failed to persist to server. Rolling back optimistic state.');
+      this.state = {
+        ...this.state,
+        products: previousProducts,
+      };
+      try {
+        localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(previousProducts));
+        this.saveCustomProducts(previousCustom);
+        this.saveDeletedProductIds(previousDeleted);
+      } catch {}
+      this.notify();
+      return false;
+    }
+
+    return true;
   }
 
   public clearProducts(): Promise<boolean> {
@@ -1978,7 +2127,7 @@ class CentralStoreService {
     const deleted = this.loadDeletedProductIds();
     allIds.forEach(id => deleted.add(id));
     this.saveDeletedProductIds(deleted);
-    return this.saveProducts([]);
+    return this.saveProducts([], true);
   }
 
   public async restoreDefaultCatalog(): Promise<boolean> {
@@ -1997,13 +2146,17 @@ class CentralStoreService {
       products: INITIAL_PRODUCTS,
       categories: INITIAL_CATEGORIES,
     };
-    const prodSaved = await this.saveProducts(INITIAL_PRODUCTS);
-    const catSaved = await this.saveCategories(INITIAL_CATEGORIES);
+    const prodSaved = await this.saveProducts(INITIAL_PRODUCTS, true);
+    const catSaved = await this.saveCategories(INITIAL_CATEGORIES, true);
     this.notify();
     return prodSaved && catSaved;
   }
 
-  public deleteProduct(id: string): Promise<boolean> {
+  public async deleteProduct(id: string): Promise<boolean> {
+    const previousProducts = [...this.state.products];
+    const previousDeleted = new Set(this.loadDeletedProductIds());
+    const previousCustom = this.loadCustomProducts();
+
     const custom = this.loadCustomProducts().filter(p => p.id !== id);
     this.saveCustomProducts(custom);
 
@@ -2012,7 +2165,15 @@ class CentralStoreService {
     this.saveDeletedProductIds(deleted);
 
     const updated = this.state.products.filter(p => p.id !== id);
-    return this.saveProducts(updated);
+    const saved = await this.saveProducts(updated, true);
+    if (!saved) {
+      this.saveDeletedProductIds(previousDeleted);
+      this.saveCustomProducts(previousCustom);
+      this.state = { ...this.state, products: previousProducts };
+      this.notify();
+      return false;
+    }
+    return true;
   }
 
   // Categories CRUD
@@ -2065,7 +2226,20 @@ class CentralStoreService {
     return this.saveHomepageBanners(this.state.homepageBanners, dealProductIds);
   }
 
-  public async saveCategories(categories: AdminCategory[]): Promise<boolean> {
+  public async saveCategories(categories: AdminCategory[], immediate = true): Promise<boolean> {
+    const previousCategories = [...this.state.categories];
+    const previousDeleted = new Set(this.loadDeletedCategoryIds());
+    const previousCustom = this.loadCustomCategories();
+
+    // Increment mutation version and mark mutation active to cancel/block stale background queries
+    this.catalogMutationVersion++;
+    this.isMutatingCatalog = true;
+
+    if (this.activeCatalogAbortController) {
+      this.activeCatalogAbortController.abort();
+      this.activeCatalogAbortController = null;
+    }
+
     if (categories.length === 0) {
       try {
         localStorage.setItem(STORAGE_KEYS.CATEGORIES_CLEARED, '1');
@@ -2077,18 +2251,32 @@ class CentralStoreService {
       } catch {}
       this.state = { ...this.state, categories: [] };
       this.notify();
-      return this.persistCatalog();
+      const saved = await this.persistCatalog(immediate);
+      this.isMutatingCatalog = false;
+      if (!saved) {
+        this.state = { ...this.state, categories: previousCategories };
+        try {
+          localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(previousCategories));
+          this.saveCustomCategories(previousCustom);
+          this.saveDeletedCategoryIds(previousDeleted);
+        } catch {}
+        this.notify();
+        return false;
+      }
+      return true;
     } else {
       try {
         localStorage.removeItem(STORAGE_KEYS.CATEGORIES_CLEARED);
       } catch {}
     }
 
+    const now = Date.now();
     const sorted = this.sortNewestCategoriesFirst(categories);
     const indexed = sorted.map((c, index) => ({
       ...c,
       sortOrder: index,
-      createdAt: c.createdAt || (c.id.startsWith('cat-') ? new Date(Number(c.id.replace('cat-', '')) || Date.now()).toISOString() : undefined)
+      createdAt: c.createdAt || (c.id.startsWith('cat-') ? new Date(Number(c.id.replace('cat-', '')) || now).toISOString() : undefined),
+      updatedAt: c.updatedAt || now,
     }));
 
     const deleted = this.loadDeletedCategoryIds();
@@ -2106,6 +2294,7 @@ class CentralStoreService {
     const custom = indexed.filter(c => !isBannedCategoryGlobal(c));
     this.saveCustomCategories(custom);
 
+    // Optimistic UI state update
     this.state = { ...this.state, categories: indexed };
     try {
       localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(indexed));
@@ -2113,10 +2302,33 @@ class CentralStoreService {
       console.warn('Could not store categories in localStorage, custom categories preserved safely:', e);
     }
     this.notify();
-    return this.persistCatalog();
+
+    const saved = await this.persistCatalog(immediate);
+    this.isMutatingCatalog = false;
+
+    if (!saved) {
+      console.error('saveCategories failed to persist to server. Rolling back optimistic state.');
+      this.state = {
+        ...this.state,
+        categories: previousCategories,
+      };
+      try {
+        localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(previousCategories));
+        this.saveCustomCategories(previousCustom);
+        this.saveDeletedCategoryIds(previousDeleted);
+      } catch {}
+      this.notify();
+      return false;
+    }
+
+    return true;
   }
 
-  public deleteCategory(id: string): Promise<boolean> {
+  public async deleteCategory(id: string): Promise<boolean> {
+    const previousCategories = [...this.state.categories];
+    const previousDeleted = new Set(this.loadDeletedCategoryIds());
+    const previousCustom = this.loadCustomCategories();
+
     // Find all descendant categories to cascade delete
     const allCategories = this.state.categories;
     const idsToDelete = new Set<string>([id]);
@@ -2142,7 +2354,15 @@ class CentralStoreService {
     this.saveDeletedCategoryIds(deleted);
 
     const updated = this.state.categories.filter(c => !idsToDelete.has(c.id));
-    return this.saveCategories(updated);
+    const saved = await this.saveCategories(updated, true);
+    if (!saved) {
+      this.saveDeletedCategoryIds(previousDeleted);
+      this.saveCustomCategories(previousCustom);
+      this.state = { ...this.state, categories: previousCategories };
+      this.notify();
+      return false;
+    }
+    return true;
   }
 
   public clearCategories(): Promise<boolean> {
@@ -2150,7 +2370,7 @@ class CentralStoreService {
     const deleted = this.loadDeletedCategoryIds();
     allIds.forEach(id => deleted.add(id));
     this.saveDeletedCategoryIds(deleted);
-    return this.saveCategories([]);
+    return this.saveCategories([], true);
   }
 
   public getRootCategories(): AdminCategory[] {
