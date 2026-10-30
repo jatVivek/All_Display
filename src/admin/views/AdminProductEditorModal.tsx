@@ -265,13 +265,17 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
     }
   };
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
     setModalError(null);
     if (!category || !category.trim()) {
       const msg = 'Please create at least one Main Category in the Categories tab before creating products.';
       setModalError(msg);
       onError(msg);
+      setIsSaving(false);
       return;
     }
 
@@ -283,6 +287,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
       const msg = 'Product SKU code is required.';
       setModalError(msg);
       onError(msg);
+      setIsSaving(false);
       return;
     }
 
@@ -290,6 +295,7 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
       const msg = `Cannot save: SKU code "${finalSku}" is already used by product "${duplicateProduct.title}". Each product must have a unique SKU code.`;
       setModalError(msg);
       onError(msg);
+      setIsSaving(false);
       return;
     }
 
@@ -354,8 +360,10 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
       saved = await storeManager.saveProducts(updated);
     }
 
+    setIsSaving(false);
     if (saved) {
       onSave();
+      onClose();
     } else {
       const err = 'Product could not be saved to the shared catalog. Check the database sync error and try again.';
       setModalError(err);
@@ -903,11 +911,23 @@ export const AdminProductEditorModal: React.FC<AdminProductEditorModalProps> = (
             </button>
             <button
               type="submit"
-              className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer shadow-xs"
+              disabled={isSaving}
+              className={`px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer shadow-xs ${
+                isSaving ? 'bg-slate-400 cursor-wait' : 'bg-orange-600 hover:bg-orange-700 text-white'
+              }`}
             >
-              Save &amp; Sync Storefront
+              {isSaving ? 'Updating...' : 'Save & Sync Storefront'}
             </button>
           </div>
+          {isSaving && (
+            <div className="fixed inset-0 z-[101] bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4 text-orange-700">
+              <AppIcon name="progress_activity" className="text-4xl animate-spin" />
+              <div className="text-center">
+                <p className="font-bold text-lg">Updation in progress</p>
+                <p className="text-sm">Please be patient...</p>
+              </div>
+            </div>
+          )}
         </form>
       </div>
     </div>
