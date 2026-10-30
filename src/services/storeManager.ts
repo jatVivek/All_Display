@@ -1767,25 +1767,35 @@ class CentralStoreService {
     this.notify();
   }
 
+  private syncTimeout: ReturnType<typeof setTimeout> | null = null;
+
   private async persistCatalog(): Promise<boolean> {
     if (!this.apiConfigured) return true;
-    try {
-      await this.apiRequest('/api/catalog', {
-        method: 'PUT',
-        headers: { 'X-Admin-Request': '1' },
-        body: JSON.stringify({
-          products: this.state.products,
-          categories: this.state.categories,
-          catalogCleared: this.state.products.length === 0,
-        }),
-      });
-      this.state = { ...this.state, catalogSyncStatus: 'connected', catalogSyncError: null };
-      this.notify();
-      return true;
-    } catch (error) {
-      this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to save shared catalog.');
-      return false;
-    }
+    
+    // De-bounce catalog updates to improve performance
+    if (this.syncTimeout) clearTimeout(this.syncTimeout);
+    
+    return new Promise((resolve) => {
+      this.syncTimeout = setTimeout(async () => {
+        try {
+          await this.apiRequest('/api/catalog', {
+            method: 'PUT',
+            headers: { 'X-Admin-Request': '1' },
+            body: JSON.stringify({
+              products: this.state.products,
+              categories: this.state.categories,
+              catalogCleared: this.state.products.length === 0,
+            }),
+          });
+          this.state = { ...this.state, catalogSyncStatus: 'connected', catalogSyncError: null };
+          this.notify();
+          resolve(true);
+        } catch (error) {
+          this.setCatalogSyncError(error instanceof Error ? error.message : 'Unable to save shared catalog.');
+          resolve(false);
+        }
+      }, 500); // 500ms delay to batch rapid requests
+    });
   }
 
   private async migrateLocalCatalogIfCloudIsEmpty() {
