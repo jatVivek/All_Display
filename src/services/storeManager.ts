@@ -1513,18 +1513,17 @@ class CentralStoreService {
           catMap.set(serverC.id, serverC);
         });
 
-        // Include any newer in-memory categories from current session
-        this.state.categories.forEach((c) => {
-          if (c && !catMap.has(c.id) && !deletedCategories.has(c.id) && !isBannedCategoryGlobal(c)) {
-            const localTime = getRecordTimestamp(c);
-            if (!catalogIsAuthoritative || localTime > 0) {
+        // The initialized shared catalog is authoritative; do not restore records from stale local state.
+        if (!catalogIsAuthoritative) {
+          this.state.categories.forEach((c) => {
+            if (c && !catMap.has(c.id) && !deletedCategories.has(c.id) && !isBannedCategoryGlobal(c)) {
               catMap.set(c.id, c);
             }
-          }
-        });
+          });
+        }
 
         // If categories are empty and not explicitly cleared by admin, integrate default categories
-        if (catMap.size === 0 && catalog.catalogCleared !== true) {
+        if (catMap.size === 0 && !catalogIsAuthoritative && catalog.catalogCleared !== true) {
           INITIAL_CATEGORIES.forEach((c) => {
             if (!deletedCategories.has(c.id) && !isBannedCategoryGlobal(c)) {
               catMap.set(c.id, c);
@@ -1586,18 +1585,17 @@ class CentralStoreService {
           prodMap.set(serverP.id, serverP);
         });
 
-        // Include any newer in-memory products from current session
-        this.state.products.forEach((p) => {
-          if (p && !prodMap.has(p.id) && !deletedProducts.has(p.id) && !isBannedProductGlobal(p)) {
-            const localTime = getRecordTimestamp(p);
-            if (!catalogIsAuthoritative || localTime > 0) {
+        // The initialized shared catalog is authoritative; do not restore records from stale local state.
+        if (!catalogIsAuthoritative) {
+          this.state.products.forEach((p) => {
+            if (p && !prodMap.has(p.id) && !deletedProducts.has(p.id) && !isBannedProductGlobal(p)) {
               prodMap.set(p.id, p);
             }
-          }
-        });
+          });
+        }
 
         // If products are empty and not explicitly cleared by admin, integrate default products
-        if (prodMap.size === 0 && catalog.catalogCleared !== true) {
+        if (prodMap.size === 0 && !catalogIsAuthoritative && catalog.catalogCleared !== true) {
           INITIAL_PRODUCTS.forEach((p) => {
             if (!deletedProducts.has(p.id) && !isBannedProductGlobal(p)) {
               prodMap.set(p.id, p);

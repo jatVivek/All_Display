@@ -1336,6 +1336,10 @@ app.get('/api/catalog', async (_request, response, next) => {
     try {
       await connection.beginTransaction();
       await connection.query('INSERT IGNORE INTO catalog_state (id, initialized) VALUES (1, 0)');
+      const [catalogStateRows] = await connection.query(
+        'SELECT initialized FROM catalog_state WHERE id = 1 FOR UPDATE'
+      );
+      const catalogWasInitialized = Number(catalogStateRows[0]?.initialized) === 1;
       const [productCountRows] = await connection.query(
         'SELECT COUNT(*) AS count FROM catalog_products'
       );
@@ -1345,7 +1349,7 @@ app.get('/api/catalog', async (_request, response, next) => {
       const isEmptyCatalog = Number(productCountRows[0]?.count) === 0 &&
         Number(categoryCountRows[0]?.count) === 0;
 
-      if (isEmptyCatalog) {
+      if (isEmptyCatalog && !catalogWasInitialized) {
         if (!memoryStore.products || memoryStore.products.length === 0) {
           loadDiskCatalog();
         }
