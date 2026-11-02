@@ -111,6 +111,14 @@ export interface AdminCategory {
 
 export const INITIAL_CATEGORIES: AdminCategory[] = [
   {
+    id: 'cat-lvn',
+    name: 'Luxury Velvet Necklaces',
+    description: 'Luxury velvet bust displays and necklace presentation suites.',
+    image: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80',
+    level: 1,
+    sortOrder: 0,
+  },
+  {
     "id": "cat-1",
     "name": "Display Bust",
     "description": "Velvet and leatherette portrait busts for necklaces and bridal sets.",

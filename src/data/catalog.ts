@@ -2,6 +2,114 @@ import { Product, ProjectReel, Review } from '../types';
 
 export const INITIAL_PRODUCTS: Product[] = [
   {
+    "id": "prod-1793198422071-1",
+    "code": "AD-LVN-01",
+    "title": "Emerald Green Velvet Bust (12 inch)",
+    "description": "Emerald Green Velvet Bust (12 inch) - Wholesale jewellery display item. Superior craftsmanship and immediate dispatch.",
+    "price": 1850,
+    "originalPrice": 2200,
+    "unit": "Pieces",
+    "rating": 4.8,
+    "reviewCount": 24,
+    "loadCapacity": "Standard Load",
+    "category": "Luxury Velvet Necklaces",
+    "finish": "Standard Finish",
+    "structuralProfile": "Standard",
+    "dispatchReadiness": "Same-Day Dispatch",
+    "stockStatus": "In Stock (Chennai Depot)",
+    "moq": "2 Pcs",
+    "image": "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80",
+    "videoUrl": "",
+    "images": [
+      "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80"
+    ],
+    "finishes": [
+      {
+        "name": "Midnight Black",
+        "color": "#0F172A"
+      },
+      {
+        "name": "Emerald Teal",
+        "color": "#0D9488"
+      },
+      {
+        "name": "Royal Maroon",
+        "color": "#881337"
+      },
+      {
+        "name": "Pure White",
+        "color": "#F8FAFC"
+      }
+    ],
+    "requirements": [
+      "instagram-shop",
+      "new-jewellery"
+    ],
+    "material": "Velvet",
+    "specs": {
+      "dimensions": "Standard Commercial Dimensions",
+      "weight": "300 grams",
+      "color": "Multicolor Options Available"
+    },
+    "variations": [],
+    "sortOrder": 0,
+    "createdAt": "2026-11-02T06:40:29.743Z"
+  },
+  {
+    "id": "prod-1793198422071-2",
+    "code": "AD-LVN-02",
+    "title": "Midnight Black Tiered Velvet Earring Stand",
+    "description": "Midnight Black Tiered Velvet Earring Stand - Wholesale jewellery display item. Superior craftsmanship and immediate dispatch.",
+    "price": 1200,
+    "originalPrice": 1500,
+    "unit": "Pieces",
+    "rating": 4.8,
+    "reviewCount": 24,
+    "loadCapacity": "Standard Load",
+    "category": "Luxury Velvet Necklaces",
+    "finish": "Standard Finish",
+    "structuralProfile": "Standard",
+    "dispatchReadiness": "Same-Day Dispatch",
+    "stockStatus": "In Stock (Chennai Depot)",
+    "moq": "5 Pcs",
+    "image": "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=600&q=80",
+    "videoUrl": "",
+    "images": [
+      "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=600&q=80"
+    ],
+    "finishes": [
+      {
+        "name": "Midnight Black",
+        "color": "#0F172A"
+      },
+      {
+        "name": "Emerald Teal",
+        "color": "#0D9488"
+      },
+      {
+        "name": "Royal Maroon",
+        "color": "#881337"
+      },
+      {
+        "name": "Pure White",
+        "color": "#F8FAFC"
+      }
+    ],
+    "requirements": [
+      "instagram-shop",
+      "new-jewellery"
+    ],
+    "material": "Velvet",
+    "specs": {
+      "dimensions": "Standard Commercial Dimensions",
+      "weight": "300 grams",
+      "color": "Multicolor Options Available"
+    },
+    "variations": [],
+    "sortOrder": 1,
+    "createdAt": "2026-11-02T06:40:29.743Z"
+  },
+  {
     "id": "ad-prod-001",
     "code": "AD-DB-001",
     "title": "Royal Velvet Portrait Necklace Bust (10 Inch)",
@@ -85,7 +193,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 0,
+    "sortOrder": 2,
     "subCategory": "Velvet Portrait Busts",
     "childCategory": "Necklace & Choker Busts"
   },
@@ -173,7 +281,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 1,
+    "sortOrder": 3,
     "subCategory": "Velvet Portrait Busts",
     "childCategory": "Necklace & Choker Busts"
   },
@@ -262,7 +370,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 2,
+    "sortOrder": 4,
     "subCategory": "Velvet Portrait Busts",
     "childCategory": "Pendant Portrait Stands",
     "badgeType": "success"
@@ -351,7 +459,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 3,
+    "sortOrder": 5,
     "subCategory": "Velvet Portrait Busts",
     "childCategory": "Necklace & Choker Busts"
   },
@@ -439,7 +547,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 4,
+    "sortOrder": 6,
     "subCategory": "Leatherette & Acrylic Busts",
     "childCategory": "Countertop Neck Blocks"
   },
@@ -528,7 +636,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 5,
+    "sortOrder": 7,
     "subCategory": "Velvet Portrait Busts",
     "childCategory": "Pendant Portrait Stands",
     "badgeType": "neutral"
@@ -617,7 +725,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 6,
+    "sortOrder": 8,
     "subCategory": "Velvet Portrait Busts",
     "childCategory": "Necklace & Choker Busts"
   },
@@ -705,7 +813,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 7,
+    "sortOrder": 9,
     "subCategory": "Velvet Portrait Busts",
     "childCategory": "Necklace & Choker Busts"
   },
@@ -794,7 +902,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 8,
+    "sortOrder": 10,
     "subCategory": "Velvet Portrait Busts",
     "childCategory": "Pendant Portrait Stands",
     "badgeType": "secondary"
@@ -883,7 +991,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 9,
+    "sortOrder": 11,
     "subCategory": "Velvet Portrait Busts",
     "childCategory": "Necklace & Choker Busts"
   },
@@ -971,7 +1079,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 10,
+    "sortOrder": 12,
     "subCategory": "Velvet Portrait Busts",
     "childCategory": "Pendant Portrait Stands"
   },
@@ -1060,7 +1168,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 11,
+    "sortOrder": 13,
     "subCategory": "Velvet Portrait Busts",
     "childCategory": "Pendant Portrait Stands",
     "badgeType": "primary"
@@ -1149,7 +1257,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 12,
+    "sortOrder": 14,
     "subCategory": "Velvet Portrait Busts",
     "childCategory": "Necklace & Choker Busts"
   },
@@ -1237,7 +1345,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 13,
+    "sortOrder": 15,
     "subCategory": "Velvet Portrait Busts",
     "childCategory": "Pendant Portrait Stands"
   },
@@ -1326,7 +1434,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 14,
+    "sortOrder": 16,
     "subCategory": "Earring & Stud Cards",
     "childCategory": "Matte Cardstock Cards",
     "badgeType": "success"
@@ -1415,7 +1523,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 15,
+    "sortOrder": 17,
     "subCategory": "Tags & Packaging Cards",
     "childCategory": "Kraft Paper Eco Cards"
   },
@@ -1503,7 +1611,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 16,
+    "sortOrder": 18,
     "subCategory": "Earring & Stud Cards",
     "childCategory": "Foil Stamped & Embossed Cards"
   },
@@ -1592,7 +1700,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 17,
+    "sortOrder": 19,
     "subCategory": "Earring & Stud Cards",
     "childCategory": "Foil Stamped & Embossed Cards",
     "badgeType": "neutral"
@@ -1681,7 +1789,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 18,
+    "sortOrder": 20,
     "subCategory": "Tags & Packaging Cards",
     "childCategory": "Kraft Paper Eco Cards"
   },
@@ -1769,7 +1877,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 19,
+    "sortOrder": 21,
     "subCategory": "Tags & Packaging Cards",
     "childCategory": "Kraft Paper Eco Cards"
   },
@@ -1858,7 +1966,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 20,
+    "sortOrder": 22,
     "subCategory": "Tags & Packaging Cards",
     "childCategory": "Kraft Paper Eco Cards",
     "badgeType": "secondary"
@@ -1947,7 +2055,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 21,
+    "sortOrder": 23,
     "subCategory": "Earring & Stud Cards",
     "childCategory": "Matte Cardstock Cards"
   },
@@ -2035,7 +2143,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 22,
+    "sortOrder": 24,
     "subCategory": "Earring & Stud Cards",
     "childCategory": "Matte Cardstock Cards"
   },
@@ -2124,7 +2232,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 23,
+    "sortOrder": 25,
     "subCategory": "Tags & Packaging Cards",
     "childCategory": "Kraft Paper Eco Cards",
     "badgeType": "primary"
@@ -2213,7 +2321,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 24,
+    "sortOrder": 26,
     "subCategory": "Earring & Stud Cards",
     "childCategory": "Matte Cardstock Cards"
   },
@@ -2301,7 +2409,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 25,
+    "sortOrder": 27,
     "subCategory": "Tags & Packaging Cards",
     "childCategory": "Kraft Paper Eco Cards"
   },
@@ -2390,7 +2498,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 26,
+    "sortOrder": 28,
     "subCategory": "Earring & Stud Cards",
     "childCategory": "Matte Cardstock Cards",
     "badgeType": "success"
@@ -2479,7 +2587,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 27,
+    "sortOrder": 29,
     "subCategory": "Tags & Packaging Cards",
     "childCategory": "Kraft Paper Eco Cards"
   },
@@ -2567,7 +2675,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 28,
+    "sortOrder": 30,
     "subCategory": "Wooden & Tiered Stands",
     "childCategory": "Multi-Layer Earring Stands"
   },
@@ -2656,7 +2764,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 29,
+    "sortOrder": 31,
     "subCategory": "Metal & Acrylic Displays",
     "childCategory": "Rotating Carousel Racks",
     "badgeType": "neutral"
@@ -2745,7 +2853,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 30,
+    "sortOrder": 32,
     "subCategory": "Metal & Acrylic Displays",
     "childCategory": "T-Bar Hanging Stands"
   },
@@ -2833,7 +2941,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 31,
+    "sortOrder": 33,
     "subCategory": "Metal & Acrylic Displays",
     "childCategory": "T-Bar Hanging Stands"
   },
@@ -2922,7 +3030,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 32,
+    "sortOrder": 34,
     "subCategory": "Wooden & Tiered Stands",
     "childCategory": "Multi-Layer Earring Stands",
     "badgeType": "secondary"
@@ -3011,7 +3119,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 33,
+    "sortOrder": 35,
     "subCategory": "Metal & Acrylic Displays",
     "childCategory": "Rotating Carousel Racks"
   },
@@ -3099,7 +3207,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 34,
+    "sortOrder": 36,
     "subCategory": "Metal & Acrylic Displays",
     "childCategory": "T-Bar Hanging Stands"
   },
@@ -3188,7 +3296,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 35,
+    "sortOrder": 37,
     "subCategory": "Wooden & Tiered Stands",
     "childCategory": "Solid Teakwood Racks",
     "badgeType": "primary"
@@ -3277,7 +3385,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 36,
+    "sortOrder": 38,
     "subCategory": "Wooden & Tiered Stands",
     "childCategory": "Multi-Layer Earring Stands"
   },
@@ -3365,7 +3473,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 37,
+    "sortOrder": 39,
     "subCategory": "Metal & Acrylic Displays",
     "childCategory": "Rotating Carousel Racks"
   },
@@ -3454,7 +3562,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 38,
+    "sortOrder": 40,
     "subCategory": "Metal & Acrylic Displays",
     "childCategory": "T-Bar Hanging Stands",
     "badgeType": "success"
@@ -3543,7 +3651,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 39,
+    "sortOrder": 41,
     "subCategory": "Metal & Acrylic Displays",
     "childCategory": "Rotating Carousel Racks"
   },
@@ -3631,7 +3739,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 40,
+    "sortOrder": 42,
     "subCategory": "Wooden & Tiered Stands",
     "childCategory": "Multi-Layer Earring Stands"
   },
@@ -3720,7 +3828,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 41,
+    "sortOrder": 43,
     "subCategory": "Metal & Acrylic Displays",
     "childCategory": "Rotating Carousel Racks",
     "badgeType": "neutral"
@@ -3809,7 +3917,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 42,
+    "sortOrder": 44,
     "subCategory": "Lockable & Glass Trays",
     "childCategory": "Flatlay Counter Trays"
   },
@@ -3897,7 +4005,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 43,
+    "sortOrder": 45,
     "subCategory": "Velvet Showcase Trays",
     "childCategory": "Ring Display Pads"
   },
@@ -3986,7 +4094,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 44,
+    "sortOrder": 46,
     "subCategory": "Lockable & Glass Trays",
     "childCategory": "Glass-Lid Presentation Trays",
     "badgeType": "secondary"
@@ -4075,7 +4183,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 45,
+    "sortOrder": 47,
     "subCategory": "Velvet Showcase Trays",
     "childCategory": "Compartment Organizer Trays"
   },
@@ -4163,7 +4271,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 46,
+    "sortOrder": 48,
     "subCategory": "Velvet Showcase Trays",
     "childCategory": "Ring Display Pads"
   },
@@ -4252,7 +4360,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 47,
+    "sortOrder": 49,
     "subCategory": "Velvet Showcase Trays",
     "childCategory": "Compartment Organizer Trays",
     "badgeType": "primary"
@@ -4341,7 +4449,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 48,
+    "sortOrder": 50,
     "subCategory": "Lockable & Glass Trays",
     "childCategory": "Flatlay Counter Trays"
   },
@@ -4429,7 +4537,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 49,
+    "sortOrder": 51,
     "subCategory": "Velvet Showcase Trays",
     "childCategory": "Compartment Organizer Trays"
   },
@@ -4518,7 +4626,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 50,
+    "sortOrder": 52,
     "subCategory": "Velvet Showcase Trays",
     "childCategory": "Compartment Organizer Trays",
     "badgeType": "success"
@@ -4607,7 +4715,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 51,
+    "sortOrder": 53,
     "subCategory": "Velvet Showcase Trays",
     "childCategory": "Compartment Organizer Trays"
   },
@@ -4695,7 +4803,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 52,
+    "sortOrder": 54,
     "subCategory": "Velvet Showcase Trays",
     "childCategory": "Ring Display Pads"
   },
@@ -4784,7 +4892,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 53,
+    "sortOrder": 55,
     "subCategory": "Velvet Showcase Trays",
     "childCategory": "Ring Display Pads",
     "badgeType": "neutral"
@@ -4873,7 +4981,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 54,
+    "sortOrder": 56,
     "subCategory": "Velvet Showcase Trays",
     "childCategory": "Compartment Organizer Trays"
   },
@@ -4961,7 +5069,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 55,
+    "sortOrder": 57,
     "subCategory": "Velvet Showcase Trays",
     "childCategory": "Compartment Organizer Trays"
   },
@@ -5050,7 +5158,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 56,
+    "sortOrder": 58,
     "subCategory": "Cylinder & Roll Stands",
     "childCategory": "Single Tier Bangle Rolls",
     "badgeType": "secondary"
@@ -5139,7 +5247,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 57,
+    "sortOrder": 59,
     "subCategory": "Cylinder & Roll Stands",
     "childCategory": "Multi-Tier Stepped Stands"
   },
@@ -5227,7 +5335,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 58,
+    "sortOrder": 60,
     "subCategory": "Cylinder & Roll Stands",
     "childCategory": "Multi-Tier Stepped Stands"
   },
@@ -5316,7 +5424,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 59,
+    "sortOrder": 61,
     "subCategory": "T-Bar & Wooden Holders",
     "childCategory": "Curved Bangle Organizers",
     "badgeType": "primary"
@@ -5405,7 +5513,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 60,
+    "sortOrder": 62,
     "subCategory": "T-Bar & Wooden Holders",
     "childCategory": "T-Bar Bracelet Displays"
   },
@@ -5493,7 +5601,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 61,
+    "sortOrder": 63,
     "subCategory": "T-Bar & Wooden Holders",
     "childCategory": "T-Bar Bracelet Displays"
   },
@@ -5582,7 +5690,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 62,
+    "sortOrder": 64,
     "subCategory": "T-Bar & Wooden Holders",
     "childCategory": "T-Bar Bracelet Displays",
     "badgeType": "success"
@@ -5671,7 +5779,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 63,
+    "sortOrder": 65,
     "subCategory": "T-Bar & Wooden Holders",
     "childCategory": "T-Bar Bracelet Displays"
   },
@@ -5759,7 +5867,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 64,
+    "sortOrder": 66,
     "subCategory": "Cylinder & Roll Stands",
     "childCategory": "Single Tier Bangle Rolls"
   },
@@ -5848,7 +5956,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 65,
+    "sortOrder": 67,
     "subCategory": "Cylinder & Roll Stands",
     "childCategory": "Single Tier Bangle Rolls",
     "badgeType": "neutral"
@@ -5937,7 +6045,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 66,
+    "sortOrder": 68,
     "subCategory": "Cylinder & Roll Stands",
     "childCategory": "Multi-Tier Stepped Stands"
   },
@@ -6025,7 +6133,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 67,
+    "sortOrder": 69,
     "subCategory": "T-Bar & Wooden Holders",
     "childCategory": "T-Bar Bracelet Displays"
   },
@@ -6114,7 +6222,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 68,
+    "sortOrder": 70,
     "subCategory": "Cylinder & Roll Stands",
     "childCategory": "Single Tier Bangle Rolls",
     "badgeType": "secondary"
@@ -6203,7 +6311,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 69,
+    "sortOrder": 71,
     "subCategory": "Presentation Gift Boxes",
     "childCategory": "Velvet Ring & Earring Boxes"
   },
@@ -6291,7 +6399,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 70,
+    "sortOrder": 72,
     "subCategory": "Organizer Chests & Cases",
     "childCategory": "Drawer Storage Chests"
   },
@@ -6380,7 +6488,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 71,
+    "sortOrder": 73,
     "subCategory": "Organizer Chests & Cases",
     "childCategory": "Sales Travel Cases",
     "badgeType": "primary"
@@ -6469,7 +6577,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 72,
+    "sortOrder": 74,
     "subCategory": "Presentation Gift Boxes",
     "childCategory": "Necklace Presentation Boxes"
   },
@@ -6557,7 +6665,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 73,
+    "sortOrder": 75,
     "subCategory": "Organizer Chests & Cases",
     "childCategory": "Drawer Storage Chests"
   },
@@ -6646,7 +6754,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 74,
+    "sortOrder": 76,
     "subCategory": "Organizer Chests & Cases",
     "childCategory": "Drawer Storage Chests",
     "badgeType": "success"
@@ -6735,7 +6843,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 75,
+    "sortOrder": 77,
     "subCategory": "Organizer Chests & Cases",
     "childCategory": "Drawer Storage Chests"
   },
@@ -6823,7 +6931,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 76,
+    "sortOrder": 78,
     "subCategory": "Organizer Chests & Cases",
     "childCategory": "Drawer Storage Chests"
   },
@@ -6912,7 +7020,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 77,
+    "sortOrder": 79,
     "subCategory": "Presentation Gift Boxes",
     "childCategory": "Velvet Ring & Earring Boxes",
     "badgeType": "neutral"
@@ -7001,7 +7109,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 78,
+    "sortOrder": 80,
     "subCategory": "Organizer Chests & Cases",
     "childCategory": "Drawer Storage Chests"
   },
@@ -7089,7 +7197,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 79,
+    "sortOrder": 81,
     "subCategory": "Organizer Chests & Cases",
     "childCategory": "Drawer Storage Chests"
   },
@@ -7178,7 +7286,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 80,
+    "sortOrder": 82,
     "subCategory": "Presentation Gift Boxes",
     "childCategory": "Velvet Ring & Earring Boxes",
     "badgeType": "secondary"
@@ -7267,7 +7375,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 81,
+    "sortOrder": 83,
     "subCategory": "Presentation Gift Boxes",
     "childCategory": "Velvet Ring & Earring Boxes"
   },
@@ -7355,7 +7463,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 82,
+    "sortOrder": 84,
     "subCategory": "Full Form Mannequin Busts",
     "childCategory": "Torso & Linen Models"
   },
@@ -7444,7 +7552,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 83,
+    "sortOrder": 85,
     "subCategory": "Sculpted Heads & Forms",
     "childCategory": "Maang Tikka & Earring Heads",
     "badgeType": "primary"
@@ -7533,7 +7641,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 84,
+    "sortOrder": 86,
     "subCategory": "Full Form Mannequin Busts",
     "childCategory": "Torso & Linen Models"
   },
@@ -7621,7 +7729,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 85,
+    "sortOrder": 87,
     "subCategory": "Sculpted Heads & Forms",
     "childCategory": "Fiberglass Designer Models"
   },
@@ -7710,7 +7818,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 86,
+    "sortOrder": 88,
     "subCategory": "Full Form Mannequin Busts",
     "childCategory": "Torso & Linen Models",
     "badgeType": "success"
@@ -7799,7 +7907,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 87,
+    "sortOrder": 89,
     "subCategory": "Sculpted Heads & Forms",
     "childCategory": "Maang Tikka & Earring Heads"
   },
@@ -7887,7 +7995,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 88,
+    "sortOrder": 90,
     "subCategory": "Full Form Mannequin Busts",
     "childCategory": "Velvet Shoulder Mannequins"
   },
@@ -7976,7 +8084,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 89,
+    "sortOrder": 91,
     "subCategory": "Full Form Mannequin Busts",
     "childCategory": "Velvet Shoulder Mannequins",
     "badgeType": "neutral"
@@ -8065,7 +8173,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 90,
+    "sortOrder": 92,
     "subCategory": "Full Form Mannequin Busts",
     "childCategory": "Torso & Linen Models"
   },
@@ -8153,7 +8261,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 91,
+    "sortOrder": 93,
     "subCategory": "Sculpted Heads & Forms",
     "childCategory": "Maang Tikka & Earring Heads"
   },
@@ -8242,7 +8350,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 92,
+    "sortOrder": 94,
     "subCategory": "Full Form Mannequin Busts",
     "childCategory": "Torso & Linen Models",
     "badgeType": "secondary"
@@ -8331,7 +8439,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 93,
+    "sortOrder": 95,
     "subCategory": "Sculpted Heads & Forms",
     "childCategory": "Fiberglass Designer Models"
   },
@@ -8419,7 +8527,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 94,
+    "sortOrder": 96,
     "subCategory": "Full Form Mannequin Busts",
     "childCategory": "Torso & Linen Models"
   },
@@ -8508,7 +8616,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 95,
+    "sortOrder": 97,
     "subCategory": "Tapes & Dispensers",
     "childCategory": "Desktop Tape Dispensers",
     "badgeType": "primary"
@@ -8597,7 +8705,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 96,
+    "sortOrder": 98,
     "subCategory": "Tapes & Dispensers",
     "childCategory": "Ultra Clear Wonder Tapes"
   },
@@ -8685,7 +8793,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 97,
+    "sortOrder": 99,
     "subCategory": "Tagging & Sealing Equipment",
     "childCategory": "Barcode & Price Stickers"
   },
@@ -8774,7 +8882,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 98,
+    "sortOrder": 100,
     "subCategory": "Tagging & Sealing Equipment",
     "childCategory": "Tagging Guns & Heat Sealers",
     "badgeType": "success"
@@ -8863,7 +8971,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 99,
+    "sortOrder": 101,
     "subCategory": "Tagging & Sealing Equipment",
     "childCategory": "Tagging Guns & Heat Sealers"
   },
@@ -8951,7 +9059,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 100,
+    "sortOrder": 102,
     "subCategory": "Tapes & Dispensers",
     "childCategory": "Desktop Tape Dispensers"
   },
@@ -9040,7 +9148,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 101,
+    "sortOrder": 103,
     "subCategory": "Tagging & Sealing Equipment",
     "childCategory": "Barcode & Price Stickers",
     "badgeType": "neutral"
@@ -9129,7 +9237,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 102,
+    "sortOrder": 104,
     "subCategory": "Tagging & Sealing Equipment",
     "childCategory": "Barcode & Price Stickers"
   },
@@ -9217,7 +9325,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 103,
+    "sortOrder": 105,
     "subCategory": "Tagging & Sealing Equipment",
     "childCategory": "Tagging Guns & Heat Sealers"
   },
@@ -9306,7 +9414,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 104,
+    "sortOrder": 106,
     "subCategory": "Tagging & Sealing Equipment",
     "childCategory": "Tagging Guns & Heat Sealers",
     "badgeType": "secondary"
@@ -9395,7 +9503,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 105,
+    "sortOrder": 107,
     "subCategory": "Tagging & Sealing Equipment",
     "childCategory": "Barcode & Price Stickers"
   },
@@ -9483,7 +9591,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 106,
+    "sortOrder": 108,
     "subCategory": "Tagging & Sealing Equipment",
     "childCategory": "Barcode & Price Stickers"
   },
@@ -9572,7 +9680,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 107,
+    "sortOrder": 109,
     "subCategory": "Tapes & Dispensers",
     "childCategory": "Desktop Tape Dispensers",
     "badgeType": "primary"
@@ -9661,7 +9769,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 108,
+    "sortOrder": 110,
     "subCategory": "Showcase Flatlay Mats",
     "childCategory": "Microfiber Suede Mats"
   },
@@ -9749,7 +9857,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 109,
+    "sortOrder": 111,
     "subCategory": "Countertop Drape Runners",
     "childCategory": "Royal Velvet Showcase Runners"
   },
@@ -9838,7 +9946,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 110,
+    "sortOrder": 112,
     "subCategory": "Countertop Drape Runners",
     "childCategory": "Royal Velvet Showcase Runners",
     "badgeType": "success"
@@ -9927,7 +10035,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 111,
+    "sortOrder": 113,
     "subCategory": "Showcase Flatlay Mats",
     "childCategory": "Microfiber Suede Mats"
   },
@@ -10015,7 +10123,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 112,
+    "sortOrder": 114,
     "subCategory": "Countertop Drape Runners",
     "childCategory": "Crushed Velvet Drape Fabrics"
   },
@@ -10104,7 +10212,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 113,
+    "sortOrder": 115,
     "subCategory": "Countertop Drape Runners",
     "childCategory": "Royal Velvet Showcase Runners",
     "badgeType": "neutral"
@@ -10193,7 +10301,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 114,
+    "sortOrder": 116,
     "subCategory": "Countertop Drape Runners",
     "childCategory": "Royal Velvet Showcase Runners"
   },
@@ -10281,7 +10389,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 115,
+    "sortOrder": 117,
     "subCategory": "Showcase Flatlay Mats",
     "childCategory": "Microfiber Suede Mats"
   },
@@ -10370,7 +10478,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 116,
+    "sortOrder": 118,
     "subCategory": "Showcase Flatlay Mats",
     "childCategory": "Microfiber Suede Mats",
     "badgeType": "secondary"
@@ -10459,7 +10567,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 117,
+    "sortOrder": 119,
     "subCategory": "Countertop Drape Runners",
     "childCategory": "Royal Velvet Showcase Runners"
   },
@@ -10547,7 +10655,7 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 118,
+    "sortOrder": 120,
     "subCategory": "Countertop Drape Runners",
     "childCategory": "Royal Velvet Showcase Runners"
   },
@@ -10636,116 +10744,10 @@ export const INITIAL_PRODUCTS: Product[] = [
         ]
       }
     ],
-    "sortOrder": 119,
+    "sortOrder": 121,
     "subCategory": "Countertop Drape Runners",
     "childCategory": "Royal Velvet Showcase Runners",
     "badgeType": "primary"
-  },
-  {
-    "id": "prod-1793198422071-1",
-    "code": "AD-LVN-01",
-    "title": "Emerald Green Velvet Bust (12 inch)",
-    "description": "Emerald Green Velvet Bust (12 inch) - Wholesale jewellery display item. Superior craftsmanship and immediate dispatch.",
-    "price": 1850,
-    "originalPrice": 2200,
-    "unit": "Pieces",
-    "rating": 4.8,
-    "reviewCount": 24,
-    "loadCapacity": "Standard Load",
-    "category": "Luxury Velvet Necklaces",
-    "finish": "Standard Finish",
-    "structuralProfile": "Standard",
-    "dispatchReadiness": "Same-Day Dispatch",
-    "stockStatus": "In Stock (Chennai Depot)",
-    "moq": "2 Pcs",
-    "image": "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80",
-    "videoUrl": "",
-    "images": [
-      "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=600&q=80"
-    ],
-    "finishes": [
-      {
-        "name": "Midnight Black",
-        "color": "#0F172A"
-      },
-      {
-        "name": "Emerald Teal",
-        "color": "#0D9488"
-      },
-      {
-        "name": "Royal Maroon",
-        "color": "#881337"
-      },
-      {
-        "name": "Pure White",
-        "color": "#F8FAFC"
-      }
-    ],
-    "requirements": [
-      "instagram-shop",
-      "new-jewellery"
-    ],
-    "material": "Velvet",
-    "specs": {
-      "dimensions": "Standard Commercial Dimensions",
-      "weight": "300 grams",
-      "color": "Multicolor Options Available"
-    },
-    "variations": [],
-    "sortOrder": 120
-  },
-  {
-    "id": "prod-1793198422071-2",
-    "code": "AD-LVN-02",
-    "title": "Midnight Black Tiered Velvet Earring Stand",
-    "description": "Midnight Black Tiered Velvet Earring Stand - Wholesale jewellery display item. Superior craftsmanship and immediate dispatch.",
-    "price": 1200,
-    "originalPrice": 1500,
-    "unit": "Pieces",
-    "rating": 4.8,
-    "reviewCount": 24,
-    "loadCapacity": "Standard Load",
-    "category": "Luxury Velvet Necklaces",
-    "finish": "Standard Finish",
-    "structuralProfile": "Standard",
-    "dispatchReadiness": "Same-Day Dispatch",
-    "stockStatus": "In Stock (Chennai Depot)",
-    "moq": "5 Pcs",
-    "image": "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=600&q=80",
-    "videoUrl": "",
-    "images": [
-      "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=600&q=80"
-    ],
-    "finishes": [
-      {
-        "name": "Midnight Black",
-        "color": "#0F172A"
-      },
-      {
-        "name": "Emerald Teal",
-        "color": "#0D9488"
-      },
-      {
-        "name": "Royal Maroon",
-        "color": "#881337"
-      },
-      {
-        "name": "Pure White",
-        "color": "#F8FAFC"
-      }
-    ],
-    "requirements": [
-      "instagram-shop",
-      "new-jewellery"
-    ],
-    "material": "Velvet",
-    "specs": {
-      "dimensions": "Standard Commercial Dimensions",
-      "weight": "300 grams",
-      "color": "Multicolor Options Available"
-    },
-    "variations": [],
-    "sortOrder": 121
   }
 ];
 
