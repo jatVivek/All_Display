@@ -274,13 +274,25 @@ const ProductDetailContent: React.FC<ProductDetailContentProps> = ({
     return price;
   }, [currentProduct, selectedVariations]);
 
-  // Tier bulk discount
+  // Tier bulk discount (controlled by Admin Settings: enableQuantityDiscounts)
   const discountMultiplier = useMemo(() => {
-    if (quantity >= 25) return 0.85; // 15% off
-    if (quantity >= 10) return 0.90; // 10% off
-    if (quantity >= 5) return 0.95;  // 5% off
+    if (!settings.enableQuantityDiscounts) return 1.0;
+
+    const tiers = Array.isArray(settings.bulkDiscountTiers) && settings.bulkDiscountTiers.length > 0
+      ? [...settings.bulkDiscountTiers].sort((a, b) => b.minQty - a.minQty)
+      : [
+          { minQty: 25, discountPercent: 15 },
+          { minQty: 10, discountPercent: 10 },
+          { minQty: 5, discountPercent: 5 },
+        ];
+
+    for (const tier of tiers) {
+      if (quantity >= tier.minQty) {
+        return Math.max(0, 1 - (tier.discountPercent / 100));
+      }
+    }
     return 1.0;
-  }, [quantity]);
+  }, [quantity, settings]);
 
   const effectiveUnitPrice = Math.round(unitPrice * discountMultiplier);
   const totalPrice = effectiveUnitPrice * quantity;
@@ -643,21 +655,23 @@ Please confirm stock availability and freight to my location.`;
                 <span className="text-emerald-700 font-medium">GST Input Credit Available</span>
               </div>
 
-              {/* Bulk discount tier badges */}
-              <div className="mt-2 pt-2 border-t border-slate-200/60 grid grid-cols-3 gap-2 text-center text-xs">
-                <div className={`p-2 rounded-lg border ${quantity < 5 ? 'bg-orange-50 border-orange-300 font-bold text-orange-900' : 'bg-white border-slate-200 text-slate-600'}`}>
-                  <div className="font-semibold">1 - 4 {currentProduct.unit}s</div>
-                  <div className="text-[11px]">Standard Wholesale</div>
+              {/* Bulk discount tier badges (shown only when enableQuantityDiscounts is turned on in Admin) */}
+              {settings.enableQuantityDiscounts && (
+                <div className="mt-2 pt-2 border-t border-slate-200/60 grid grid-cols-3 gap-2 text-center text-xs">
+                  <div className={`p-2 rounded-lg border ${quantity < 5 ? 'bg-orange-50 border-orange-300 font-bold text-orange-900' : 'bg-white border-slate-200 text-slate-600'}`}>
+                    <div className="font-semibold">1 - 4 {currentProduct.unit}s</div>
+                    <div className="text-[11px]">Standard Wholesale</div>
+                  </div>
+                  <div className={`p-2 rounded-lg border ${quantity >= 5 && quantity < 10 ? 'bg-orange-50 border-orange-300 font-bold text-orange-900' : 'bg-white border-slate-200 text-slate-600'}`}>
+                    <div className="font-semibold">5 - 9 {currentProduct.unit}s</div>
+                    <div className="text-[11px] text-emerald-600 font-bold">5% OFF</div>
+                  </div>
+                  <div className={`p-2 rounded-lg border ${quantity >= 10 ? 'bg-orange-50 border-orange-300 font-bold text-orange-900' : 'bg-white border-slate-200 text-slate-600'}`}>
+                    <div className="font-semibold">10+ {currentProduct.unit}s</div>
+                    <div className="text-[11px] text-emerald-600 font-bold">10-15% OFF</div>
+                  </div>
                 </div>
-                <div className={`p-2 rounded-lg border ${quantity >= 5 && quantity < 10 ? 'bg-orange-50 border-orange-300 font-bold text-orange-900' : 'bg-white border-slate-200 text-slate-600'}`}>
-                  <div className="font-semibold">5 - 9 {currentProduct.unit}s</div>
-                  <div className="text-[11px] text-emerald-600 font-bold">5% OFF</div>
-                </div>
-                <div className={`p-2 rounded-lg border ${quantity >= 10 ? 'bg-orange-50 border-orange-300 font-bold text-orange-900' : 'bg-white border-slate-200 text-slate-600'}`}>
-                  <div className="font-semibold">10+ {currentProduct.unit}s</div>
-                  <div className="text-[11px] text-emerald-600 font-bold">10-15% OFF</div>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* DYNAMIC VARIATIONS SELECTOR */}

@@ -79,7 +79,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
     }
   };
 
-  const handleChange = (field: keyof AdminSettings, value: string | number | Record<string, string>) => {
+  const handleChange = (field: keyof AdminSettings, value: any) => {
     setSettings((prev) => {
       const next = { ...prev, [field]: value };
       if (field === 'brandName') {
@@ -472,6 +472,49 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({ role, show
                 placeholder="HDFC0001842"
                 className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-all"
               />
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 4: BULK SLAB DISCOUNT POLICY */}
+        <div className="flex flex-col gap-4 pb-6 border-b border-slate-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AppIcon name="percent" className="text-orange-600 text-lg" />
+              <div>
+                <h2 className="font-bold text-base text-slate-900">Quantity Slab Discounts</h2>
+                <p className="text-xs text-slate-500">Enable or disable automatic tiered volume discounts (5-9 units, 10+ units) on product detail pages.</p>
+              </div>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={Boolean(settings.enableQuantityDiscounts)}
+                onChange={(e) => handleChange('enableQuantityDiscounts', e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+            </label>
+          </div>
+
+          <div className={`p-4 rounded-xl border transition-all ${
+            settings.enableQuantityDiscounts
+              ? 'bg-orange-50/50 border-orange-200 text-slate-800'
+              : 'bg-slate-50 border-slate-200 text-slate-500'
+          }`}>
+            <div className="flex items-start gap-2.5">
+              <AppIcon name={settings.enableQuantityDiscounts ? 'check_circle' : 'info'} className={`text-base mt-0.5 ${settings.enableQuantityDiscounts ? 'text-orange-600' : 'text-slate-400'}`} />
+              <div className="text-xs leading-relaxed">
+                {settings.enableQuantityDiscounts ? (
+                  <span>
+                    <strong>Quantity discounts are ACTIVE:</strong> Product detail views will display and apply tiered discounts (5% off for 5-9 units, 10% off for 10+ units).
+                  </span>
+                ) : (
+                  <span>
+                    <strong>Quantity discounts are DISABLED:</strong> Products are charged strictly at their standard wholesale rate with no automatic 5-9 or 10+ percentage cuts.
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>

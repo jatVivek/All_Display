@@ -73,6 +73,12 @@ export interface RegisteredCustomer {
   lastOrderDate?: string | null;
 }
 
+export interface BulkDiscountTier {
+  minQty: number;
+  discountPercent: number; // e.g. 5 for 5%, 10 for 10%
+  label?: string;
+}
+
 export interface AdminSettings {
   whatsappNumber: string;
   alternateWhatsapp: string;
@@ -93,6 +99,8 @@ export interface AdminSettings {
   showroomAddress?: string;
   siteUrl?: string;
   instagramUrl?: string;
+  enableQuantityDiscounts?: boolean;
+  bulkDiscountTiers?: BulkDiscountTier[];
   requirementImages?: Record<string, string>;
   updatedAt?: number;
 }
@@ -694,6 +702,11 @@ const DEFAULT_SETTINGS: AdminSettings = {
   supportPhone: '+91 73961 27273',
   siteUrl: 'https://alldisplay.co.in',
   instagramUrl: 'https://www.instagram.com/all_display_?cplk=MXNpcGN3cno4MHI0Nw==',
+  enableQuantityDiscounts: false,
+  bulkDiscountTiers: [
+    { minQty: 5, discountPercent: 5, label: '5 - 9 units' },
+    { minQty: 10, discountPercent: 10, label: '10+ units' },
+  ],
 };
 
 export const INITIAL_ORDERS: AdminOrder[] = [
@@ -1400,6 +1413,8 @@ class CentralStoreService {
       showroomAddress,
       headerNotice,
       instagramUrl,
+      enableQuantityDiscounts: raw.enableQuantityDiscounts ?? fallback.enableQuantityDiscounts ?? false,
+      bulkDiscountTiers: Array.isArray(raw.bulkDiscountTiers) ? raw.bulkDiscountTiers : fallback.bulkDiscountTiers,
       updatedAt: typeof raw.updatedAt === 'number' ? raw.updatedAt : undefined,
     };
   }
