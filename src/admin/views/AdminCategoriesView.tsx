@@ -20,6 +20,7 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
   const [description, setDescription] = useState('');
   const [image, setImage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
 
   useEffect(() => {
@@ -198,47 +199,52 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
       resolvedParentId = parentSubCatId;
     }
 
-    const now = new Date().toISOString();
+    setIsSaving(true);
+    try {
+      const now = new Date().toISOString();
 
-    if (editingCat === 'new') {
-      const newCat: AdminCategory = {
-        id: `cat-${Date.now()}`,
-        name: name.trim(),
-        description: description.trim(),
-        image: image.trim() || undefined,
-        parentId: resolvedParentId,
-        level,
-        createdAt: now,
-        updatedAt: now,
-        sortOrder: 0,
-      };
-      const updated = [newCat, ...categories];
-      if (!await storeManager.saveCategories(updated, true)) {
-        showToast('Category could not be saved to the shared catalog.');
-        return;
-      }
-      setCategories(updated);
-      const levelLabel = level === 1 ? 'Category' : level === 2 ? 'Sub-Category' : 'Child Category';
-      showToast(`New ${levelLabel} created successfully with image!`);
-    } else if (editingCat && typeof editingCat === 'object') {
-      const updated = categories.map((c) => (c.id === editingCat.id ? {
-        ...c,
-        name: name.trim(),
-        description: description.trim(),
-        image: image.trim() || undefined,
-        parentId: resolvedParentId,
-        level,
-        updatedAt: now,
-      } : c));
+      if (editingCat === 'new') {
+        const newCat: AdminCategory = {
+          id: `cat-${Date.now()}`,
+          name: name.trim(),
+          description: description.trim(),
+          image: image.trim() || undefined,
+          parentId: resolvedParentId,
+          level,
+          createdAt: now,
+          updatedAt: now,
+          sortOrder: 0,
+        };
+        const updated = [newCat, ...categories];
+        if (!await storeManager.saveCategories(updated, true)) {
+          showToast('Category could not be saved to the shared catalog.');
+          return;
+        }
+        setCategories(updated);
+        const levelLabel = level === 1 ? 'Category' : level === 2 ? 'Sub-Category' : 'Child Category';
+        showToast(`New ${levelLabel} created successfully with image!`);
+      } else if (editingCat && typeof editingCat === 'object') {
+        const updated = categories.map((c) => (c.id === editingCat.id ? {
+          ...c,
+          name: name.trim(),
+          description: description.trim(),
+          image: image.trim() || undefined,
+          parentId: resolvedParentId,
+          level,
+          updatedAt: now,
+        } : c));
 
-      if (!await storeManager.saveCategories(updated, true)) {
-        showToast('Category could not be saved to the shared catalog.');
-        return;
+        if (!await storeManager.saveCategories(updated, true)) {
+          showToast('Category could not be saved to the shared catalog.');
+          return;
+        }
+        setCategories(updated);
+        showToast('Category updated successfully!');
       }
-      setCategories(updated);
-      showToast('Category updated successfully!');
+      setEditingCat(null);
+    } finally {
+      setIsSaving(false);
     }
-    setEditingCat(null);
   };
 
   const handleDelete = async (id: string, catName: string, catLevel: 1 | 2 | 3 = 1) => {
@@ -772,12 +778,24 @@ export const AdminCategoriesView: React.FC<AdminCategoriesViewProps> = ({ role, 
                 </button>
                 <button
                   type="submit"
-                  disabled={isUploading}
-                  className="bg-orange-600 hover:bg-orange-700 disabled:opacity-60 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer shadow-xs transition-colors"
+                  disabled={isUploading || isSaving}
+                  className={`px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider cursor-pointer shadow-xs transition-colors ${
+                    isSaving ? 'bg-slate-400 cursor-wait text-white' : 'bg-orange-600 hover:bg-orange-700 disabled:opacity-60 text-white'
+                  }`}
                 >
-                  Save {level === 1 ? 'Category' : level === 2 ? 'Sub-Category' : 'Child Category'}
+                  {isSaving ? 'Updating...' : `Save ${level === 1 ? 'Category' : level === 2 ? 'Sub-Category' : 'Child Category'}`}
                 </button>
               </div>
+
+              {isSaving && (
+                <div className="fixed inset-0 z-[101] bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4 text-orange-700">
+                  <AppIcon name="progress_activity" className="text-4xl animate-spin" />
+                  <div className="text-center">
+                    <p className="font-bold text-lg">Updation in progress</p>
+                    <p className="text-sm">Please be patient...</p>
+                  </div>
+                </div>
+              )}
             </form>
           </div>
         </div>

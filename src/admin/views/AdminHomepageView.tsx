@@ -397,6 +397,16 @@ export const AdminHomepageView: React.FC<AdminHomepageViewProps> = ({ showToast 
             Save Homepage Banners
           </LoadingButton>
         </div>
+
+        {isSaving && (
+          <div className="fixed inset-0 z-[101] bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center gap-4 text-orange-700">
+            <AppIcon name="progress_activity" className="text-4xl animate-spin" />
+            <div className="text-center">
+              <p className="font-bold text-lg">Updation in progress</p>
+              <p className="text-sm">Please be patient...</p>
+            </div>
+          </div>
+        )}
       </form>
 
       {/* Admin Visual Image Cropper Modal */}
