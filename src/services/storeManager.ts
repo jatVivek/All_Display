@@ -937,8 +937,8 @@ class CentralStoreService {
   private isMutatingCatalog = false;
   private catalogMutationVersion = 0;
   private state: CentralStoreState = {
-    products: [],
-    categories: [],
+    products: this.loadProducts(),
+    categories: this.loadCategories(),
     homepageBanners: this.loadHomepageBanners(),
     homepageDealProductIds: this.loadHomepageDealProductIds(),
     orders: this.loadOrders(),
@@ -1146,6 +1146,17 @@ class CentralStoreService {
       }
     });
 
+    if (map.size === 0) {
+      INITIAL_PRODUCTS.forEach((p) => {
+        if (!deleted.has(p.id) && !isBannedProductGlobal(p)) {
+          map.set(p.id, p);
+        }
+      });
+      try {
+        localStorage.removeItem(STORAGE_KEYS.CATALOG_CLEARED);
+      } catch {}
+    }
+
     return this.sortNewestProductsFirst(Array.from(map.values()));
   }
 
@@ -1175,6 +1186,17 @@ class CentralStoreService {
         map.set(c.id, c);
       }
     });
+
+    if (map.size === 0) {
+      INITIAL_CATEGORIES.forEach((c) => {
+        if (!deleted.has(c.id) && !isBannedCategoryGlobal(c)) {
+          map.set(c.id, c);
+        }
+      });
+      try {
+        localStorage.removeItem(STORAGE_KEYS.CATEGORIES_CLEARED);
+      } catch {}
+    }
 
     return this.sortNewestCategoriesFirst(Array.from(map.values()));
   }
@@ -1477,6 +1499,16 @@ class CentralStoreService {
             }
           }
         });
+
+        // If categories are empty and not explicitly cleared by admin, integrate default categories
+        if (catMap.size === 0 && catalog.catalogCleared !== true) {
+          INITIAL_CATEGORIES.forEach((c) => {
+            if (!deletedCategories.has(c.id) && !isBannedCategoryGlobal(c)) {
+              catMap.set(c.id, c);
+            }
+          });
+        }
+
         const sortedCategories = this.sortNewestCategoriesFirst(Array.from(catMap.values()));
 
         if (sortedCategories.length === 0) {
@@ -1540,6 +1572,15 @@ class CentralStoreService {
             }
           }
         });
+
+        // If products are empty and not explicitly cleared by admin, integrate default products
+        if (prodMap.size === 0 && catalog.catalogCleared !== true) {
+          INITIAL_PRODUCTS.forEach((p) => {
+            if (!deletedProducts.has(p.id) && !isBannedProductGlobal(p)) {
+              prodMap.set(p.id, p);
+            }
+          });
+        }
 
         const sortedProducts = this.sortNewestProductsFirst(Array.from(prodMap.values()));
 

@@ -188,10 +188,58 @@ const ProductDetailContent: React.FC<ProductDetailContentProps> = ({
   }, [currentProduct.moq]);
 
   const [quantity, setQuantity] = useState<number>(moqNumber);
+  const [quantityText, setQuantityText] = useState<string>(String(moqNumber));
 
   useEffect(() => {
     setQuantity(moqNumber);
+    setQuantityText(String(moqNumber));
   }, [moqNumber, currentProduct.id]);
+
+  const handleQuantityIncrement = () => {
+    setQuantity((prev) => {
+      const next = prev + 1;
+      setQuantityText(String(next));
+      return next;
+    });
+  };
+
+  const handleQuantityDecrement = () => {
+    setQuantity((prev) => {
+      const next = Math.max(moqNumber, prev - 1);
+      setQuantityText(String(next));
+      return next;
+    });
+  };
+
+  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, '');
+    setQuantityText(raw);
+    if (raw !== '') {
+      const parsed = parseInt(raw, 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        setQuantity(Math.min(999999, parsed));
+      }
+    }
+  };
+
+  const handleQuantityBlur = () => {
+    const parsed = parseInt(quantityText, 10);
+    const valid = (!isNaN(parsed) && parsed >= moqNumber) ? Math.min(999999, parsed) : moqNumber;
+    setQuantity(valid);
+    setQuantityText(String(valid));
+  };
+
+  const handleQuantityKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      handleQuantityIncrement();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      handleQuantityDecrement();
+    } else if (e.key === 'Enter') {
+      e.currentTarget.blur();
+    }
+  };
 
   // Wishlist state
   const [inWishlist, setInWishlist] = useState(() => storeManager.isInWishlist(currentProduct.id));
@@ -252,6 +300,12 @@ const ProductDetailContent: React.FC<ProductDetailContentProps> = ({
 
   // Add to Cart
   const handleAddToCart = () => {
+    const finalQty = Math.max(moqNumber, quantity || moqNumber);
+    if (quantity !== finalQty) {
+      setQuantity(finalQty);
+      setQuantityText(String(finalQty));
+    }
+
     const variationRecord: Record<string, string> = {};
     if (currentProduct.variations) {
       currentProduct.variations.forEach(v => {
@@ -267,7 +321,7 @@ const ProductDetailContent: React.FC<ProductDetailContentProps> = ({
       title: currentProduct.title,
       image: gallery[activeImgIndex] || currentProduct.image,
       unitPrice: effectiveUnitPrice,
-      quantity,
+      quantity: finalQty,
       moq: moqNumber,
       unitLabel: currentProduct.unit,
       finish: selectedVariationsSummary || currentProduct.finish || 'Standard',
@@ -275,7 +329,7 @@ const ProductDetailContent: React.FC<ProductDetailContentProps> = ({
       gauge: currentProduct.specs?.gauge || 'Factory Standard',
       packingType: 'Standard Protective Packaging',
       selectedVariations: variationRecord
-    }, quantity);
+    }, finalQty);
   };
 
   // WhatsApp Inquiry link
@@ -659,23 +713,36 @@ Please confirm stock availability and freight to my location.`;
 
             {/* Quantity Stepper & Add to Order List */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
-              {/* Stepper */}
-              <div className="flex items-center justify-between border border-slate-200 rounded-xl bg-white px-2 py-1.5 sm:w-36">
+              {/* Stepper with manual typing option */}
+              <div className="flex items-center justify-between border border-slate-200 rounded-xl bg-white px-2 py-1.5 sm:w-36 focus-within:border-orange-500 focus-within:ring-1 focus-within:ring-orange-500 transition-all">
                 <button
                   type="button"
-                  onClick={() => setQuantity(prev => Math.max(moqNumber, prev - 1))}
+                  onClick={handleQuantityDecrement}
                   disabled={quantity <= moqNumber}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                  title="Decrease quantity"
+                  aria-label="Decrease quantity"
                 >
                   <AppIcon name="remove" className="text-base" />
                 </button>
-                <span className="font-bold text-sm text-slate-900 min-w-[2.5rem] text-center">
-                  {quantity}
-                </span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={quantityText}
+                  onChange={handleQuantityChange}
+                  onBlur={handleQuantityBlur}
+                  onKeyDown={handleQuantityKeyDown}
+                  className="font-bold text-sm text-slate-900 min-w-[2.5rem] w-12 text-center bg-transparent focus:outline-none p-0 selection:bg-orange-100"
+                  aria-label="Quantity"
+                  title={`Enter quantity (minimum ${moqNumber})`}
+                />
                 <button
                   type="button"
-                  onClick={() => setQuantity(prev => prev + 1)}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  onClick={handleQuantityIncrement}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors"
+                  title="Increase quantity"
+                  aria-label="Increase quantity"
                 >
                   <AppIcon name="add" className="text-base" />
                 </button>

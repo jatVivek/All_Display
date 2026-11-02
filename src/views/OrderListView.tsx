@@ -375,19 +375,44 @@ export const OrderListView: React.FC<OrderListViewProps> = ({
                               <span className="text-xs text-on-surface-variant font-medium">
                                 {item.isLinear ? 'Running Feet:' : 'Qty:'}
                               </span>
-                              <div className="inline-flex items-center rounded-lg bg-surface-container p-0.5 border border-surface-container-high">
+                              <div className="inline-flex items-center rounded-lg bg-surface-container p-0.5 border border-surface-container-high focus-within:border-orange-500 focus-within:ring-1 focus-within:ring-orange-500 transition-all">
                                 <button
+                                  type="button"
                                   onClick={() => onUpdateQty(item.id, Math.max(item.moq, item.quantity - 1))}
-                                  className="w-7 h-7 flex items-center justify-center rounded bg-surface-container-lowest text-on-surface hover:bg-surface-container-high transition-colors"
+                                  disabled={item.quantity <= item.moq}
+                                  className="w-7 h-7 flex items-center justify-center rounded bg-surface-container-lowest text-on-surface hover:bg-surface-container-high disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                                  title="Decrease quantity"
+                                  aria-label="Decrease quantity"
                                 >
                                   <AppIcon name="remove" className="text-[16px]" />
                                 </button>
-                                <span className="w-9 text-center font-bold text-xs text-on-surface">
-                                  {item.quantity}
-                                </span>
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  pattern="[0-9]*"
+                                  defaultValue={item.quantity}
+                                  key={item.quantity}
+                                  onBlur={(e) => {
+                                    const raw = e.target.value.replace(/\D/g, '');
+                                    const parsed = parseInt(raw, 10);
+                                    const valid = (!isNaN(parsed) && parsed >= item.moq) ? Math.min(999999, parsed) : item.moq;
+                                    onUpdateQty(item.id, valid);
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.currentTarget.blur();
+                                    }
+                                  }}
+                                  className="w-10 text-center font-bold text-xs text-on-surface bg-transparent focus:outline-none focus:bg-white rounded p-0.5"
+                                  aria-label="Quantity"
+                                  title={`Enter quantity (minimum ${item.moq})`}
+                                />
                                 <button
+                                  type="button"
                                   onClick={() => onUpdateQty(item.id, item.quantity + 1)}
-                                  className="w-7 h-7 flex items-center justify-center rounded bg-surface-container-lowest text-on-surface hover:bg-surface-container-high transition-colors"
+                                  className="w-7 h-7 flex items-center justify-center rounded bg-surface-container-lowest text-on-surface hover:bg-surface-container-high transition-colors cursor-pointer"
+                                  title="Increase quantity"
+                                  aria-label="Increase quantity"
                                 >
                                   <AppIcon name="add" className="text-[16px]" />
                                 </button>

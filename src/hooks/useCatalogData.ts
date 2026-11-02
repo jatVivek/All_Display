@@ -42,7 +42,7 @@ export function useCatalogData(): UseCatalogDataReturn {
     homepageBanners: state.homepageBanners,
     homepageDealProductIds: state.homepageDealProductIds,
     settings: state.settings,
-    isLoading: state.isLoading || (!state.isInitialized && !state.fetchError),
+    isLoading: state.products.length === 0 && (state.isLoading || (!state.isInitialized && !state.fetchError)),
     isInitialized: state.isInitialized,
     isError: Boolean(state.fetchError),
     error: state.fetchError,
