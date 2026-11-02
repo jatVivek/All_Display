@@ -1336,38 +1336,36 @@ app.get('/api/catalog', async (_request, response, next) => {
     try {
       await connection.beginTransaction();
       await connection.query('INSERT IGNORE INTO catalog_state (id, initialized) VALUES (1, 0)');
-      const [stateRows] = await connection.query(
-        'SELECT initialized FROM catalog_state WHERE id = 1 FOR UPDATE'
+      const [productCountRows] = await connection.query(
+        'SELECT COUNT(*) AS count FROM catalog_products'
       );
-      if (Number(stateRows[0]?.initialized) !== 1) {
-        const [productCountRows] = await connection.query(
-          'SELECT COUNT(*) AS count FROM catalog_products'
-        );
-        const [categoryCountRows] = await connection.query(
-          'SELECT COUNT(*) AS count FROM catalog_categories'
-        );
-        const isNewCatalog = Number(productCountRows[0]?.count) === 0 &&
-          Number(categoryCountRows[0]?.count) === 0;
+      const [categoryCountRows] = await connection.query(
+        'SELECT COUNT(*) AS count FROM catalog_categories'
+      );
+      const isEmptyCatalog = Number(productCountRows[0]?.count) === 0 &&
+        Number(categoryCountRows[0]?.count) === 0;
 
-        if (isNewCatalog) {
-          const seedProducts = (memoryStore.products || []).filter(p => !isBannedProduct(p));
-          const seedCategories = (memoryStore.categories || []).filter(c => !isBannedCategory(c));
-          if (seedProducts.length > 0) {
-            await connection.query(
-              'INSERT INTO catalog_products (id, data) VALUES ?',
-              [seedProducts.map(({ id, ...data }, index) => [id, JSON.stringify({ ...data, sortOrder: index })])]
-            );
-          }
-          if (seedCategories.length > 0) {
-            await connection.query(
-              'INSERT INTO catalog_categories (id, data) VALUES ?',
-              [seedCategories.map(({ id, ...data }, index) => [id, JSON.stringify({ ...data, sortOrder: index })])]
-            );
-          }
+      if (isEmptyCatalog) {
+        if (!memoryStore.products || memoryStore.products.length === 0) {
+          loadDiskCatalog();
         }
-
-        await connection.query('UPDATE catalog_state SET initialized = 1 WHERE id = 1');
+        const seedProducts = (memoryStore.products || []).filter(p => !isBannedProduct(p));
+        const seedCategories = (memoryStore.categories || []).filter(c => !isBannedCategory(c));
+        if (seedProducts.length > 0) {
+          await connection.query(
+            'INSERT INTO catalog_products (id, data) VALUES ?',
+            [seedProducts.map(({ id, ...data }, index) => [id, JSON.stringify({ ...data, sortOrder: index })])]
+          );
+        }
+        if (seedCategories.length > 0) {
+          await connection.query(
+            'INSERT INTO catalog_categories (id, data) VALUES ?',
+            [seedCategories.map(({ id, ...data }, index) => [id, JSON.stringify({ ...data, sortOrder: index })])]
+          );
+        }
       }
+
+      await connection.query('UPDATE catalog_state SET initialized = 1 WHERE id = 1');
       await connection.commit();
     } catch (error) {
       await connection.rollback();
